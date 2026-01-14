@@ -5,7 +5,7 @@ import {
   LogOut, User, Shield, Terminal, 
   Copy, Check, Plus, Ticket, Activity 
 } from 'lucide-react';
-import '../Home.css'; // Nous créerons ce fichier CSS juste après
+import './Home.css'; // Nous créerons ce fichier CSS juste après
 
 // Init Supabase
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
