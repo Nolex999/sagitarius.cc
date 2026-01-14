@@ -4,7 +4,7 @@ import { Eye, EyeOff, Mail, Lock, User, Ticket } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import './App.css';
 import Home from './routes/Home.jsx';
-import logoMain from 'src/assets/logo.svg';
+import logoMain from './assets/logo.svg';
 
 // Utilisation des variables d'environnement (plus sécurisé)
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
