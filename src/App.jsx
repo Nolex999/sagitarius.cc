@@ -75,11 +75,11 @@ function LoginPage() {
           .single();
 
         if (inviteError || !inviteData) {
-          throw new Error("Code d'invitation invalide ou déjà utilisé.");
+          throw new Error("Invalid invite or already used one.");
         }
 
         if (formData.password !== formData.confirmPassword) {
-          throw new Error("Les mots de passe ne correspondent pas.");
+          throw new Error("The passwords are not the same !.");
         }
 
         const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -102,9 +102,9 @@ function LoginPage() {
           })
           .eq('id', inviteData.id);
 
-        if (updateError) console.error("Erreur mise à jour code:", updateError);
+        if (updateError) console.error("Update code error:", updateError);
 
-        setSuccess('Compte créé ! Vérifiez vos emails.');
+        setSuccess('Account created, check your email for confirm your sign-up.');
       }
     } catch (err) {
       setError(err.message);
@@ -136,7 +136,7 @@ function LoginPage() {
               <input
                 name="inviteCode"
                 type="text"
-                placeholder="Enter secret code"
+                placeholder="Enter invite code"
                 onChange={handleInputChange}
                 required
               />
