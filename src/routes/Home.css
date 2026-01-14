@@ -1,7 +1,7 @@
 /* Variables Dark Theme */
 :root {
-  --bg-dark: #0f1115;
-  --bg-panel: #161b22;
+  --bg-dark: #000000;
+  --bg-panel: #000000;
   --border: #30363d;
   --accent: #58a6ff;
   --text-main: #c9d1d9;
