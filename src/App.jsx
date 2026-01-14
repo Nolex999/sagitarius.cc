@@ -119,8 +119,8 @@ function LoginPage() {
         <img src={logoMain} alt="logo"/>
       </div>
 
-      <div className="header">
-        <h1>SAGITARIUS<h1 class="h1s">.CC</h1></h1>
+      <div class="header">
+        <h1>SAGITARIUS<span class="h1s">.CC</span></h1>
         <p><center>Authentication Portal</center></p>
       </div>
 
