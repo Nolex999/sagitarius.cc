@@ -164,5 +164,9 @@ body {
   width: 100%;
 }
 
+.h1s {
+  color: rgb(158, 69, 110)
+}
+
 .alert-error { background: rgba(255, 0, 0, 0.1); border: 1px solid red; color: #ff8080; }
 .alert-success { background: rgba(0, 255, 0, 0.1); border: 1px solid green; color: #80ff80; }

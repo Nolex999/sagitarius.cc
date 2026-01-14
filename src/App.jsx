@@ -120,7 +120,7 @@ function LoginPage() {
       </div>
 
       <div className="header">
-        <h1>SAGITARIUS</h1>
+        <h1>SAGITARIUS<h1 class="h1s">CC</h1></h1>
         <p><center>Authentication Portal</center></p>
       </div>
 
