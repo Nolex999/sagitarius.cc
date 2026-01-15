@@ -55,8 +55,13 @@ export default function Home() {
       setProfile(profileData || { username: metaUsername, role: 'member' });
       
       // LOGIQUE ADMIN : Si le profil dit 'admin' OU si c'est ton email spécifique
-      if (profileData?.role === 'admin') { 
-        setIsAdmin(true); 
+      if (profileData) {
+        setProfile(profileData);
+        setIsAdmin(profileData.role === 'admin'); // Mise à jour automatique de l'état
+        console.log("Rôle actuel détecté :", profileData.role);
+      } else {
+        const metaUsername = user.user_metadata.username || 'User';
+        setProfile({ username: metaUsername, role: 'member' });
       }
 
     } catch (error) {
