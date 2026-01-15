@@ -208,27 +208,26 @@ function AdminPanel({ user }) {
   };
 
   const createInvite = async () => {
-    setLoading(true);
-    // Génération UUID
-    const newCode = crypto.randomUUID(); 
-    
-    try {
-      const { error } = await supabase
-        .from('inv_code')
-        .insert([{ 
-          code: newCode, 
-          is_used: false,
-          created_by: user.id // Assure-toi que cette colonne existe ou retire-la
-        }]);
+  setLoading(true);
+  const newCode = crypto.randomUUID(); 
+  
+  try {
+    const { error } = await supabase
+      .from('inv_code')
+      .insert([{ 
+        code: newCode, 
+        is_used: false
+        // ON RETIRE 'created_by' car la colonne n'existe pas en base
+      }]);
 
-      if (error) throw error;
-      await fetchInvites();
-    } catch (err) {
-      alert("Erreur création invite: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (error) throw error;
+    await fetchInvites();
+  } catch (err) {
+    alert("Erreur création invite: " + err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="panel admin-panel">
