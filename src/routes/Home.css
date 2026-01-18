@@ -24,7 +24,7 @@ body { background: var(--deep-black); margin: 0; overflow: hidden; }
 .sidebar-brand h1 { font-size: 1.4rem; letter-spacing: -1px; margin-bottom: 2rem; text-align: center; }
 
 .nav-menu { flex: 1; }
-.nav-label { font-size: 0.65rem; color: #444; text-transform: uppercase; margin: 20px 0 10px 10px; }
+.nav-label { font-size: 0.65rem; color: #000000; text-transform: uppercase; margin: 20px 0 10px 10px; }
 
 .nav-item {
   display: flex;
