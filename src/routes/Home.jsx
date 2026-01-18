@@ -5,7 +5,7 @@ import {
   LogOut, User, Shield, LayoutDashboard, 
   Users, Settings, Check, X, Activity, 
   Plus, Copy, Trash2, Terminal as TerminalIcon,
-  ShieldAlert, Database, Key, Clock
+  ShieldAlert, Database, Key, Clock, Globe, Zap, Palette
 } from 'lucide-react';
 import './Home.css';
 
@@ -41,7 +41,7 @@ export default function Home() {
         await supabase.auth.signOut();
         return navigate('/login');
       }
-      setProfile(profileData || { username: 'User', role: 'guest' });
+      setProfile(profileData || { username: 'User', role: 'guest', bio: '', custom_color: '#ffb2f9' });
     } catch (err) {
       console.error(err);
     } finally {
@@ -54,75 +54,66 @@ export default function Home() {
     return roles.indexOf(profile?.role) >= roles.indexOf(requiredRole);
   };
 
-  if (loading) return <div className="loading-screen">INITIALIZING SECURE SESSION...</div>;
+  if (loading) return <div className="loading-screen">ACCESSING SAGITARIUS NETWORK...</div>;
 
   return (
     <div className="dashboard-container">
-      {/* --- SIDEBAR --- */}
       <aside className="sidebar">
         <div className="sidebar-brand">
           <h1>SAGITARIUS<span className="brand-dot">.CC</span></h1>
-          <p className="system-status">AUTHENTICATED AS {profile.role.toUpperCase()}</p>
+          <p className="system-status">CORE INTERFACE v2.0</p>
         </div>
 
         <nav className="nav-menu">
-          <div className="nav-label">Core</div>
+          <div className="nav-label">General</div>
           <NavBtn id="dashboard" icon={<LayoutDashboard size={18}/>} label="Overview" active={activeTab} set={setActiveTab} />
-          <NavBtn id="profile" icon={<User size={18}/>} label="Identity" active={activeTab} set={setActiveTab} />
+          <NavBtn id="profile" icon={<Palette size={18}/>} label="Customization" active={activeTab} set={setActiveTab} />
+          <NavBtn id="tools" icon={<Globe size={18}/>} label="Network Panel" active={activeTab} set={setActiveTab} />
           
           {hasPermission('moderator') && (
             <>
-              <div className="nav-label">Moderation</div>
-              <NavBtn id="users" icon={<Users size={18}/>} label="Network Nodes" active={activeTab} set={setActiveTab} />
-              <NavBtn id="invites" icon={<Key size={18}/>} label="Access Keys" active={activeTab} set={setActiveTab} />
+              <div className="nav-label">Staff</div>
+              <NavBtn id="users" icon={<Users size={18}/>} label="Users" active={activeTab} set={setActiveTab} />
+              <NavBtn id="invites" icon={<Key size={18}/>} label="Invites" active={activeTab} set={setActiveTab} />
             </>
           )}
 
           {hasPermission('admin') && (
             <>
-              <div className="nav-label">Security & Ops</div>
-              <NavBtn id="audit" icon={<ShieldAlert size={18}/>} label="Audit Logs" active={activeTab} set={setActiveTab} />
-              <NavBtn id="system" icon={<Database size={18}/>} label="System Config" active={activeTab} set={setActiveTab} />
+              <div className="nav-label">System</div>
+              <NavBtn id="audit" icon={<ShieldAlert size={18}/>} label="Audit" active={activeTab} set={setActiveTab} />
             </>
           )}
         </nav>
 
         <div className="sidebar-bottom">
-          <button className="terminal-toggle" onClick={() => setShowTerminal(!showTerminal)}>
-            <TerminalIcon size={18} /> <span>Open Terminal</span>
-          </button>
           <button className="logout-btn" onClick={() => supabase.auth.signOut().then(() => navigate('/login'))}>
-            <LogOut size={18} /> <span>Terminate</span>
+            <LogOut size={18} /> <span>Disconnect</span>
           </button>
         </div>
       </aside>
 
-      {/* --- MAIN CONTENT --- */}
       <main className="main-content">
         <header className="top-header">
-          <div className="path">/root/{activeTab}</div>
+          <div className="path">/sagitarius/{activeTab}</div>
           <div className="user-badge-header">
-             <span className="status-dot-online"></span>
+             <span className={`rank-tag ${profile.role}`}>{profile.role.toUpperCase()}</span>
              <span className="username-display">{profile.username}</span>
           </div>
         </header>
 
         <div className="content-scroll">
-          {activeTab === 'dashboard' && <DashboardView profile={profile} isAdmin={hasPermission('admin')} />}
-          {activeTab === 'profile' && <ProfileView user={user} profile={profile} refresh={checkSession} />}
+          {activeTab === 'dashboard' && <DashboardView profile={profile} />}
+          {activeTab === 'profile' && <AdvancedProfile user={user} profile={profile} refresh={checkSession} />}
+          {activeTab === 'tools' && <NetworkPanel />}
           {activeTab === 'users' && <UsersView />}
           {activeTab === 'invites' && <InvitesView user={user} />}
-          {activeTab === 'audit' && <AuditView />}
-          {activeTab === 'system' && <SystemConfigView />}
         </div>
-
-        {showTerminal && <FakeTerminal user={profile.username} close={() => setShowTerminal(false)} />}
       </main>
     </div>
   );
 }
 
-/* ================= COMPOSANTS DE NAVIGATION ================= */
 function NavBtn({ id, icon, label, active, set }) {
   return (
     <button className={`nav-item ${active === id ? 'active' : ''}`} onClick={() => set(id)}>
@@ -131,100 +122,124 @@ function NavBtn({ id, icon, label, active, set }) {
   );
 }
 
-/* ================= VUE : DASHBOARD ================= */
-function DashboardView({ profile, isAdmin }) {
+/* --- NEW: NETWORK TOOLS PANEL --- */
+function NetworkPanel() {
+  const [target, setTarget] = useState('');
+  const [results, setResults] = useState([]);
+  const [pinging, setPinging] = useState(false);
+
+  const runPing = () => {
+    if (!target) return;
+    setPinging(true);
+    setResults([`Initiating trace to ${target}...`]);
+    
+    // Simulating real network response
+    setTimeout(() => {
+      setResults(prev => [...prev, `Reply from ${target}: bytes=32 time=14ms TTL=54`, `Reply from ${target}: bytes=32 time=12ms TTL=54`, `Connection stable.`]);
+      setPinging(false);
+    }, 1500);
+  };
+
+  return (
+    <div className="panel">
+      <h3><Globe size={18}/> Network Utilities</h3>
+      <div className="tool-input-group">
+        <input 
+          placeholder="Enter IP or Domain..." 
+          className="dark-input" 
+          value={target}
+          onChange={e => setTarget(e.target.value)}
+        />
+        <button className="pink-btn" onClick={runPing} disabled={pinging}>
+          {pinging ? 'Tracing...' : 'Run Ping'}
+        </button>
+      </div>
+      <div className="terminal-box">
+        {results.map((r, i) => <div key={i} className="log-entry">> {r}</div>)}
+      </div>
+    </div>
+  );
+}
+
+/* --- NEW: ADVANCED PROFILE CUSTOMIZATION --- */
+function AdvancedProfile({ user, profile, refresh }) {
+  const [bio, setBio] = useState(profile.bio || '');
+  const [color, setColor] = useState(profile.custom_color || '#ffb2f9');
+
+  const saveProfile = async () => {
+    await supabase.from('profiles').update({ bio, custom_color: color }).eq('id', user.id);
+    refresh();
+  };
+
+  return (
+    <div className="grid-2">
+      <div className="panel profile-card-preview" style={{ borderLeft: `4px solid ${color}` }}>
+        <div className="preview-top">
+          <div className="avatar-preview" style={{ boxShadow: `0 0 20px ${color}33`, borderColor: color }}>
+            {profile.username[0]}
+          </div>
+          <div>
+            <h2 style={{ color: color }}>{profile.username}</h2>
+            <p className="bio-text">{bio || "No bio set."}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="panel">
+        <h3>Customize Identity</h3>
+        <div className="form-group">
+          <label>Profile Bio</label>
+          <textarea className="dark-input" value={bio} onChange={e => setBio(e.target.value)} maxLength={150} />
+        </div>
+        <div className="form-group">
+          <label>Accent Color</label>
+          <input type="color" value={color} onChange={e => setColor(e.target.value)} className="color-picker" />
+        </div>
+        <button className="pink-btn w-full" onClick={saveProfile}>Save Changes</button>
+      </div>
+    </div>
+  );
+}
+
+/* --- VIEWS --- */
+function DashboardView({ profile }) {
   return (
     <div className="fade-in">
       <div className="grid-3">
         <div className="stat-box border-pink">
-          <label>Network Status</label>
-          <div className="value pink-text">ENCRYPTED</div>
+          <label>Global Status</label>
+          <div className="value pink-text">ONLINE</div>
         </div>
         <div className="stat-box">
-          <label>Active Connections</label>
-          <div className="value">42</div>
+          <label>Network Nodes</label>
+          <div className="value">1,024</div>
         </div>
         <div className="stat-box">
-          <label>System Uptime</label>
-          <div className="value">99.99%</div>
-        </div>
-      </div>
-
-      <div className="panel mt-20">
-        <h3><Activity size={18}/> System Notifications</h3>
-        <div className="log-line"><span>[08:42:11]</span> Internal Kernel Update Applied.</div>
-        <div className="log-line"><span>[10:15:03]</span> Security Handshake with 127.0.0.1 success.</div>
-        <div className="log-line"><span>[12:00:00]</span> Welcome back, {profile.username}. Access granted.</div>
-      </div>
-    </div>
-  );
-}
-
-/* ================= VUE : PROFILE ================= */
-function ProfileView({ user, profile, refresh }) {
-  const [editMode, setEditMode] = useState(false);
-  const [newUsername, setNewUsername] = useState(profile.username);
-
-  const handleUpdate = async () => {
-    const { error } = await supabase.from('profiles').update({ username: newUsername }).eq('id', user.id);
-    if (!error) { setEditMode(false); refresh(); }
-  };
-
-  return (
-    <div className="panel profile-panel">
-      <div className="profile-header">
-        <div className="avatar-big">{profile.username[0].toUpperCase()}</div>
-        <div className="profile-details">
-          {editMode ? (
-            <div className="edit-box">
-              <input value={newUsername} onChange={e => setNewUsername(e.target.value)} className="dark-input" />
-              <button className="icon-btn-confirm" onClick={handleUpdate}><Check size={18}/></button>
-              <button className="icon-btn-cancel" onClick={() => setEditMode(false)}><X size={18}/></button>
-            </div>
-          ) : (
-            <h1>{profile.username} <button className="icon-btn-edit" onClick={() => setEditMode(true)}><Settings size={16}/></button></h1>
-          )}
-          <div className="badges-row">
-            <span className={`rank-badge ${profile.role}`}>{profile.role}</span>
-            <span className="id-badge">UID: {user.id.slice(0,8)}</span>
-          </div>
+          <label>Your Role</label>
+          <div className="value">{profile.role.toUpperCase()}</div>
         </div>
       </div>
     </div>
   );
 }
 
-/* ================= VUE : USERS (ADMIN) ================= */
 function UsersView() {
   const [users, setUsers] = useState([]);
   useEffect(() => {
     supabase.from('profiles').select('*').then(({ data }) => setUsers(data || []));
   }, []);
 
-  const toggleBan = async (u) => {
-    await supabase.from('profiles').update({ is_banned: !u.is_banned }).eq('id', u.id);
-    // Refresh local
-    setUsers(users.map(user => user.id === u.id ? {...user, is_banned: !u.is_banned} : user));
-  };
-
   return (
     <div className="panel">
-      <h3><Users size={18}/> User Directory</h3>
+      <h3>Network Directory</h3>
       <table className="admin-table">
-        <thead>
-          <tr><th>Node</th><th>Role</th><th>Status</th><th>Actions</th></tr>
-        </thead>
+        <thead><tr><th>Username</th><th>Rank</th><th>Status</th></tr></thead>
         <tbody>
           {users.map(u => (
             <tr key={u.id}>
               <td>{u.username}</td>
-              <td><span className={`rank-badge ${u.role}`}>{u.role}</span></td>
+              <td><span className={`rank-tag ${u.role}`}>{u.role}</span></td>
               <td>{u.is_banned ? <span className="text-red">BANNED</span> : <span className="text-green">ACTIVE</span>}</td>
-              <td>
-                <button className="table-btn" onClick={() => toggleBan(u)}>
-                  {u.is_banned ? 'Restore' : 'Suspend'}
-                </button>
-              </td>
             </tr>
           ))}
         </tbody>
@@ -233,131 +248,34 @@ function UsersView() {
   );
 }
 
-/* ================= VUE : INVITES (ADMIN) ================= */
 function InvitesView({ user }) {
   const [invites, setInvites] = useState([]);
-  const [duration, setDuration] = useState(24);
-
   const fetchInvites = async () => {
     const { data } = await supabase.from('inv_code').select('*').order('created_at', {ascending: false});
     setInvites(data || []);
   };
-
   useEffect(() => { fetchInvites(); }, []);
 
-  const generateCode = async () => {
+  const generate = async () => {
     const code = crypto.randomUUID().split('-')[0].toUpperCase();
-    const expiry = new Date();
-    expiry.setHours(expiry.getHours() + parseInt(duration));
-    
-    await supabase.from('inv_code').insert([{
-      code,
-      created_by: user.id,
-      expires_at: expiry.toISOString()
-    }]);
+    await supabase.from('inv_code').insert([{ code, created_by: user.id, expires_at: new Date(Date.now() + 86400000).toISOString() }]);
     fetchInvites();
   };
 
   return (
     <div className="panel">
       <div className="panel-header-flex">
-        <h3><Key size={18}/> Access Keys</h3>
-        <div className="actions">
-          <select value={duration} onChange={e => setDuration(e.target.value)} className="dark-select">
-            <option value="24">24H</option>
-            <option value="168">7 Days</option>
-            <option value="8760">Forever</option>
-          </select>
-          <button className="pink-btn" onClick={generateCode}><Plus size={16}/> New Key</button>
-        </div>
+        <h3>Access Keys</h3>
+        <button className="pink-btn" onClick={generate}>Generate Key</button>
       </div>
       <table className="admin-table">
-        <thead>
-          <tr><th>Code</th><th>Expiry</th><th>Status</th></tr>
-        </thead>
+        <thead><tr><th>Key</th><th>Usage</th></tr></thead>
         <tbody>
           {invites.map(i => (
-            <tr key={i.id}>
-              <td className="mono-pink">{i.code}</td>
-              <td>{new Date(i.expires_at).toLocaleDateString()}</td>
-              <td>{i.is_used ? 'USED' : 'READY'}</td>
-            </tr>
+            <tr key={i.id}><td className="mono-pink">{i.code}</td><td>{i.is_used ? 'USED' : 'ACTIVE'}</td></tr>
           ))}
         </tbody>
       </table>
-    </div>
-  );
-}
-
-/* ================= VUE : AUDIT (ADMIN) ================= */
-function AuditView() {
-  return (
-    <div className="panel">
-      <h3><ShieldAlert size={18}/> Global Audit Logs</h3>
-      <div className="audit-list">
-        <div className="audit-item"><Clock size={14}/> [14:02] ADMIN updated global config. <span className="immutable-tag">IMMUTABLE</span></div>
-        <div className="audit-item"><Clock size={14}/> [13:45] USER_01 changed password.</div>
-        <div className="audit-item"><Clock size={14}/> [12:10] New invite generated by ROOT.</div>
-      </div>
-    </div>
-  );
-}
-
-/* ================= VUE : SYSTEM CONFIG (ADMIN) ================= */
-function SystemConfigView() {
-  return (
-    <div className="grid-3">
-      <div className="panel">
-        <h4>Maintenance Mode</h4>
-        <label className="switch">
-          <input type="checkbox" />
-          <span className="slider"></span>
-        </label>
-        <p className="desc">Only Admins can login.</p>
-      </div>
-      <div className="panel">
-        <h4>Stealth Mode</h4>
-        <label className="switch">
-          <input type="checkbox" />
-          <span className="slider"></span>
-        </label>
-        <p className="desc">Hide stats from Guest role.</p>
-      </div>
-    </div>
-  );
-}
-
-/* ================= BONUS : FAKE TERMINAL ================= */
-function FakeTerminal({ user, close }) {
-  const [lines, setLines] = useState([`>> Sagitarius OS v1.0.4.5 initialized.`, `>> Welcome, ${user}. Type 'help' for commands.`]);
-  const [input, setInput] = useState('');
-
-  const exec = (e) => {
-    if (e.key === 'Enter') {
-      let res = `Command not recognized: ${input}`;
-      if (input === 'help') res = "Available: status, whoami, clear, uptime";
-      if (input === 'status') res = "All systems NOMINAL. Network encryption: AES-256.";
-      if (input === 'whoami') res = `Current User: ${user} | Security clearance: HIGH.`;
-      if (input === 'clear') { setLines([]); setInput(''); return; }
-      
-      setLines([...lines, `${user}@sagitarius:~$ ${input}`, res]);
-      setInput('');
-    }
-  };
-
-  return (
-    <div className="terminal-overlay">
-      <div className="terminal-header">
-        <span>SAGITARIUS_TERMINAL.EXE</span>
-        <button onClick={close}><X size={14}/></button>
-      </div>
-      <div className="terminal-body">
-        {lines.map((l, i) => <div key={i}>{l}</div>)}
-        <div className="terminal-input-row">
-          <span>{user}@sagitarius:~$</span>
-          <input autoFocus value={input} onChange={e => setInput(e.target.value)} onKeyDown={exec} />
-        </div>
-      </div>
     </div>
   );
 }
