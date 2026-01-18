@@ -127,33 +127,6 @@ const DashboardTab = ({ profile }) => (
   </div>
 );
 
-const NetworkTab = () => {
-  const [target, setTarget] = useState('');
-  const [pingResult, setPingResult] = useState([]);
-
-  const simulatePing = () => {
-    setPingResult(prev => [...prev, `Pinging ${target}...`, `Reply from ${target}: bytes=32 time=24ms`]);
-  };
-
-  return (
-    <div className="card terminal-card">
-      <div className="terminal-header"><Terminal size={14}/> Network_Terminal</div>
-      <div className="terminal-body">
-        {pingResult.map((line, i) => <div key={i} className="line">{line}</div>)}
-        <div className="input-line">
-          <span>&gt;</span>
-          <input 
-            value={target} 
-            onChange={(e) => setTarget(e.target.value)} 
-            placeholder="enter_target_ip..." 
-            onKeyPress={(e) => e.key === 'Enter' && simulatePing()}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const ProfileTab = ({ profile }) => (
   <div className="card profile-settings">
     <div className="profile-header">
@@ -171,19 +144,96 @@ const ProfileTab = ({ profile }) => (
   </div>
 );
 
-const AdminTab = ({ stats }) => (
-  <div className="admin-grid">
-    <div className="stat-box">
-      <span className="label">Total Members</span>
-      <span className="value">{stats?.total_members || 0}</span>
+const NetworkTab = () => {
+  const [target, setTarget] = useState('');
+  const [results, setResults] = useState([]);
+  const [isResolving, setIsResolving] = useState(false);
+
+  const lookupIP = async (host) => {
+    if (!host) return;
+    setIsResolving(true);
+    setResults(prev => [...prev, `[SYSTEM] Interrogating ${host}...`]);
+
+    try {
+      // Utilisation d'une API publique DNS-over-HTTPS pour simuler un diagnostic
+      const response = await fetch(`https://dns.google/resolve?name=${host}`);
+      const data = await response.json();
+      
+      if (data.Answer) {
+        data.Answer.forEach(ans => {
+          setResults(prev => [...prev, `[RESOLVED] ${ans.name} -> ${ans.data} (TTL: ${ans.TTL})`]);
+        });
+      } else {
+        setResults(prev => [...prev, `[ERROR] Could not resolve host.`]);
+      }
+    } catch (err) {
+      setResults(prev => [...prev, `[CRITICAL] Connection failed.`]);
+    } finally {
+      setIsResolving(false);
+    }
+  };
+
+  return (
+    <div className="card terminal-card">
+      <div className="terminal-header">
+        <Terminal size={14}/> NETWORK_DIAGNOSTIC_V1
+      </div>
+      <div className="terminal-body">
+        {results.map((line, i) => (
+          <div key={i} className={`line ${line.includes('ERROR') ? 'text-red' : ''}`}>{line}</div>
+        ))}
+        <div className="input-line">
+          <span>&gt;</span>
+          <input 
+            value={target} 
+            onChange={(e) => setTarget(e.target.value)} 
+            placeholder="enter_domain_or_ip..." 
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                lookupIP(target);
+                setTarget('');
+              }
+            }}
+            disabled={isResolving}
+          />
+        </div>
+      </div>
     </div>
-    <div className="stat-box">
-      <span className="label">Online Now</span>
-      <span className="value pulse">{stats?.online_now || 0}</span>
+  );
+};
+
+const AdminTab = ({ stats }) => {
+  const [generatedCode, setGeneratedCode] = useState('');
+
+  const createCode = async () => {
+    const { data, error } = await supabase.rpc('generate_invite_code', { p_max_uses: 1 });
+    if (error) alert(error.message);
+    else setGeneratedCode(data);
+  };
+
+return (
+    <div className="admin-container">
+      <div className="admin-grid">
+        <div className="stat-box">
+          <span className="label">Total Members</span>
+          <span className="value">{stats?.total_members || 0}</span>
+        </div>
+        <div className="stat-box">
+          <span className="label">Active Keys</span>
+          <span className="value">{stats?.active_keys || 0}</span>
+        </div>
+      </div>
+
+      <div className="card admin-actions">
+        <h3>Key Management</h3>
+        <button className="submit-btn" onClick={createCode}>Generate New Invite Code</button>
+        {generatedCode && (
+          <div className="code-display">
+            <code>{generatedCode}</code>
+            <button onClick={() => navigator.clipboard.writeText(generatedCode)}>Copy</button>
+          </div>
+        )}
+      </div>
     </div>
-    <div className="stat-box">
-      <span className="label">Active Keys</span>
-      <span className="value">{stats?.active_keys || 0}</span>
-    </div>
-  </div>
-);
+  );
+};
