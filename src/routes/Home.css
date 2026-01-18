@@ -1,16 +1,36 @@
 /* src/routes/Home.css */
 
-/* --- Configuration de base --- */
+/* --- Variables Globales --- */
 :root {
-  --bg-main: #050505;
-  --accent: #4f46e5;
+  --bg-deep: #050505;
+  --bg-panel: rgba(15, 15, 15, 0.7);
+  --accent: #4f46e5; /* Indigo-600 */
   --accent-glow: rgba(79, 70, 229, 0.3);
-  --border-color: #1a1a1a;
+  --border-subtle: #1a1a1a;
+  --text-dim: #71717a;
+  --danger: #ef4444;
 }
 
-/* --- Scrollbar Custom (Invisible mais fonctionnelle) --- */
+/* --- Reset & Base --- */
+body {
+  background-color: var(--bg-deep);
+  margin: 0;
+  overflow: hidden; /* Empêche le scroll du body, on gère le scroll dans main */
+}
+
+/* --- Animations --- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* --- Scrollbars Personnalisées (Webkit) --- */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -26,60 +46,78 @@
   background: var(--accent);
 }
 
-/* --- Animations --- */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+/* --- Glassmorphism & Panels --- */
+aside {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-.animate-in {
-  animation: fadeIn 0.4s ease-out forwards;
-}
-
-/* --- Effets de Verre (Glassmorphism) --- */
-.glass-panel {
-  background: rgba(10, 10, 10, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
-}
-
-/* --- États de Input --- */
-input:focus {
-  box-shadow: 0 0 15px var(--accent-glow);
-}
-
-/* --- Utilitaires de Texte --- */
-.font-mono {
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
-}
-
-/* --- Sidebar Mobile Fix --- */
-@media (max-width: 1024px) {
-  aside {
-    transition: width 0.3s ease;
-  }
-}
-
-/* --- Stat Card Glow --- */
-.stat-card-hover:hover {
-  border-color: var(--accent);
-  box-shadow: 0 0 20px rgba(79, 70, 229, 0.1);
-}
-
-/* --- Chat Bubble Tails (Optionnel) --- */
-.chat-me {
+main {
   position: relative;
-  border-bottom-right-radius: 2px;
+  z-index: 1;
 }
 
-/* --- Background Noise (Texture Premium) --- */
+/* Texture de grain (Noise) en arrière-plan pour le côté premium */
 main::before {
   content: "";
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  opacity: 0.03;
+  opacity: 0.02;
   pointer-events: none;
-  z-index: 1;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3％3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  z-index: -1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* --- Composants UI --- */
+
+/* Input Focus Glow */
+input:focus {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--accent), 0 0 15px var(--accent-glow);
+  border-color: var(--accent) !important;
+}
+
+/* Nav Buttons Hover */
+button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Effet de lueur sur les badges actifs */
+.bg-green-500 {
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+}
+
+/* Stats Card Hover Effect */
+.grid > div:hover {
+  border-color: #3f3f46; /* zinc-700 */
+}
+
+/* --- Chat Specifics --- */
+.flex-1.overflow-y-auto {
+  scroll-behavior: smooth;
+}
+
+/* --- Typography --- */
+.font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  letter-spacing: -0.02em;
+}
+
+/* --- Media Queries --- */
+@media (max-width: 1024px) {
+  /* Sidebar réduite sur mobile */
+  aside {
+    width: 64px !important;
+  }
+  
+  /* Ajustement du margin main si sidebar fixe */
+  main {
+    margin-left: 64px !important;
+    padding: 1.5rem !important;
+  }
+}
+
+/* --- Admin Specifics --- */
+.border-red-900\/50 {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.05);
 }
