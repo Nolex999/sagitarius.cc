@@ -23,7 +23,7 @@ export default function Home() {
       if (!user) return navigate('/login');
 
       const { data: p } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      setProfile(p || { username: 'User', role: 'member', bio: '', custom_color: '#ffb2f9' });
+      setProfile(p || { id: user.id, username: 'User', role: 'member', bio: '', custom_color: '#ffb2f9' });
       setLoading(false);
     };
     fetchSession();
@@ -32,7 +32,7 @@ export default function Home() {
   if (loading) return <div className="loading-screen">ACCESSING NETWORK...</div>;
 
   return (
-    <div className="app-viewport">
+    <div className="dashboard-container">
       <aside className="sidebar">
         <div className="sidebar-header">
           <h1>SAGITARIUS<span className="pink-text">.CC</span></h1>
@@ -65,7 +65,7 @@ export default function Home() {
         </button>
       </aside>
 
-      <main className="stage">
+      <main className="main-content">
         <header className="stage-header">
           <div className="location-path">root@{profile.username}:~/{activeTab}</div>
           <div className="user-meta">
@@ -103,13 +103,28 @@ function DashboardView({ profile }) {
 
 function NetworkTools() {
   const [logs, setLogs] = useState(["Waiting for command..."]);
+  const [input, setInput] = useState("");
+
+  const executeCommand = () => {
+    if (input.trim()) {
+      setLogs([...logs, `Tracing ${input}...`, "Ping: 14ms"]);
+      setInput("");
+    }
+  };
+
   return (
     <div className="view-fade">
       <div className="card">
         <h3>Network Tools</h3>
         <div className="input-row">
-          <input className="shell-input" placeholder="Enter target..." />
-          <button className="shell-btn" onClick={() => setLogs([...logs, "Tracing 8.8.8.8...", "Ping: 14ms"])}>Execute</button>
+          <input 
+            className="shell-input" 
+            placeholder="Enter target..." 
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && executeCommand()}
+          />
+          <button className="shell-btn" onClick={executeCommand}>Execute</button>
         </div>
         <div className="shell-window">
           {logs.map((l, i) => <div key={i} className="shell-line"><ChevronRight size={14}/> {l}</div>)}
@@ -122,10 +137,18 @@ function NetworkTools() {
 function ProfileEditor({ profile, setProfile }) {
   const [bio, setBio] = useState(profile.bio || '');
   const [color, setColor] = useState(profile.custom_color || '#ffb2f9');
+  const [saving, setSaving] = useState(false);
 
   const save = async () => {
-    await supabase.from('profiles').update({ bio, custom_color: color }).eq('id', profile.id);
-    setProfile({...profile, bio, custom_color: color});
+    setSaving(true);
+    try {
+      await supabase.from('profiles').update({ bio, custom_color: color }).eq('id', profile.id);
+      setProfile({...profile, bio, custom_color: color});
+    } catch (error) {
+      console.error('Error saving profile:', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -143,13 +166,15 @@ function ProfileEditor({ profile, setProfile }) {
         <h3>Edit Identity</h3>
         <div className="field">
           <label>About Me</label>
-          <textarea value={bio} onChange={e => setBio(e.target.value)} className="shell-input" />
+          <textarea value={bio} onChange={e => setBio(e.target.value)} className="shell-input" rows="4" />
         </div>
         <div className="field">
           <label>Accent Color</label>
           <input type="color" value={color} onChange={e => setColor(e.target.value)} className="color-tool" />
         </div>
-        <button className="shell-btn full" onClick={save}>Apply Changes</button>
+        <button className="shell-btn full" onClick={save} disabled={saving}>
+          {saving ? 'Saving...' : 'Apply Changes'}
+        </button>
       </div>
     </div>
   );
