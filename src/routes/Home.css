@@ -1,9 +1,9 @@
 :root {
   --deep-black: #141212; /* Matching App.css */
   --sidebar-black: #0d0d0d;
-  --panel-black: #1a1a1a;
+  --panel-black: #000000;
   --pink: rgba(255, 178, 249, 0.86);
-  --border: #252525;
+  --border: #000000;
   --text-dim: #666;
 }
 
