@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
 import { 
   LogOut, User, Shield, LayoutDashboard, 
-  FileText, Users, Bell, Settings, 
-  Check, X, AlertTriangle, Activity, Plus, Copy, Trash2,
-  Terminal as TerminalIcon, Globe, Lock, EyeOff, ShieldCheck
+  Users, Settings, Check, X, Activity, 
+  Plus, Copy, Trash2, Terminal as TerminalIcon,
+  ShieldAlert, Database, Key, Clock
 } from 'lucide-react';
 import './Home.css';
 
@@ -27,14 +27,14 @@ export default function Home() {
 
   const checkSession = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return navigate('/login');
-      setUser(user);
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return navigate('/login');
+      setUser(authUser);
 
       const { data: profileData } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', authUser.id)
         .single();
 
       if (profileData?.is_banned) {
@@ -54,72 +54,75 @@ export default function Home() {
     return roles.indexOf(profile?.role) >= roles.indexOf(requiredRole);
   };
 
-  if (loading) return <div className="loading-app">ACCESSING ENCRYPTED DATA...</div>;
+  if (loading) return <div className="loading-screen">INITIALIZING SECURE SESSION...</div>;
 
   return (
     <div className="dashboard-container">
-      {/* Sidebar - Theme Matched with App.jsx */}
+      {/* --- SIDEBAR --- */}
       <aside className="sidebar">
         <div className="sidebar-brand">
           <h1>SAGITARIUS<span className="brand-dot">.CC</span></h1>
-          <p className="system-status">CORE SYSTEM ACTIVE</p>
+          <p className="system-status">AUTHENTICATED AS {profile.role.toUpperCase()}</p>
         </div>
 
         <nav className="nav-menu">
-          <div className="nav-label">General</div>
+          <div className="nav-label">Core</div>
           <NavBtn id="dashboard" icon={<LayoutDashboard size={18}/>} label="Overview" active={activeTab} set={setActiveTab} />
           <NavBtn id="profile" icon={<User size={18}/>} label="Identity" active={activeTab} set={setActiveTab} />
           
           {hasPermission('moderator') && (
             <>
-              <div className="nav-label">Management</div>
+              <div className="nav-label">Moderation</div>
               <NavBtn id="users" icon={<Users size={18}/>} label="Network Nodes" active={activeTab} set={setActiveTab} />
-              <NavBtn id="invites" icon={<Plus size={18}/>} label="Access Keys" active={activeTab} set={setActiveTab} />
+              <NavBtn id="invites" icon={<Key size={18}/>} label="Access Keys" active={activeTab} set={setActiveTab} />
             </>
           )}
 
           {hasPermission('admin') && (
             <>
-              <div className="nav-label">Security</div>
-              <NavBtn id="audit" icon={<Shield size={18}/>} label="Audit Logs" active={activeTab} set={setActiveTab} />
-              <NavBtn id="config" icon={<Settings size={18}/>} label="System Config" active={activeTab} set={setActiveTab} />
+              <div className="nav-label">Security & Ops</div>
+              <NavBtn id="audit" icon={<ShieldAlert size={18}/>} label="Audit Logs" active={activeTab} set={setActiveTab} />
+              <NavBtn id="system" icon={<Database size={18}/>} label="System Config" active={activeTab} set={setActiveTab} />
             </>
           )}
         </nav>
 
         <div className="sidebar-bottom">
           <button className="terminal-toggle" onClick={() => setShowTerminal(!showTerminal)}>
-            <TerminalIcon size={18} /> <span>Terminal</span>
+            <TerminalIcon size={18} /> <span>Open Terminal</span>
           </button>
           <button className="logout-btn" onClick={() => supabase.auth.signOut().then(() => navigate('/login'))}>
-            <LogOut size={18} /> <span>Terminate Session</span>
+            <LogOut size={18} /> <span>Terminate</span>
           </button>
         </div>
       </aside>
 
+      {/* --- MAIN CONTENT --- */}
       <main className="main-content">
         <header className="top-header">
           <div className="path">/root/{activeTab}</div>
-          <div className="user-info">
-            <span className={`rank-badge ${profile.role}`}>{profile.role.toUpperCase()}</span>
-            <span className="username">{profile.username}</span>
+          <div className="user-badge-header">
+             <span className="status-dot-online"></span>
+             <span className="username-display">{profile.username}</span>
           </div>
         </header>
 
-        <section className="content">
-          {activeTab === 'dashboard' && <DashboardView profile={profile} />}
+        <div className="content-scroll">
+          {activeTab === 'dashboard' && <DashboardView profile={profile} isAdmin={hasPermission('admin')} />}
+          {activeTab === 'profile' && <ProfileView user={user} profile={profile} refresh={checkSession} />}
           {activeTab === 'users' && <UsersView />}
           {activeTab === 'invites' && <InvitesView user={user} />}
           {activeTab === 'audit' && <AuditView />}
-        </section>
+          {activeTab === 'system' && <SystemConfigView />}
+        </div>
 
-        {showTerminal && <FakeTerminal user={profile.username} />}
+        {showTerminal && <FakeTerminal user={profile.username} close={() => setShowTerminal(false)} />}
       </main>
     </div>
   );
 }
 
-// Sub-components components (Simplified for brevity)
+/* ================= COMPOSANTS DE NAVIGATION ================= */
 function NavBtn({ id, icon, label, active, set }) {
   return (
     <button className={`nav-item ${active === id ? 'active' : ''}`} onClick={() => set(id)}>
@@ -128,335 +131,233 @@ function NavBtn({ id, icon, label, active, set }) {
   );
 }
 
-function DashboardView({ profile }) {
+/* ================= VUE : DASHBOARD ================= */
+function DashboardView({ profile, isAdmin }) {
   return (
     <div className="fade-in">
       <div className="grid-3">
-        <div className="stat-box">
-          <label>Uptime</label>
-          <div className="value">99.9%</div>
+        <div className="stat-box border-pink">
+          <label>Network Status</label>
+          <div className="value pink-text">ENCRYPTED</div>
         </div>
         <div className="stat-box">
-          <label>Encrypted Nodes</label>
-          <div className="value">1,240</div>
+          <label>Active Connections</label>
+          <div className="value">42</div>
         </div>
         <div className="stat-box">
-          <label>Security Level</label>
-          <div className="value pink-text">MAXIMUM</div>
+          <label>System Uptime</label>
+          <div className="value">99.99%</div>
         </div>
       </div>
-      
+
       <div className="panel mt-20">
-        <h3><Activity size={18}/> Recent Network Activity</h3>
-        <div className="log-line">[+] Connection established from 185.23.XX.XX</div>
-        <div className="log-line">[+] Encryption handshake successful</div>
-        <div className="log-line">[+] User {profile.username} accessed root directory</div>
+        <h3><Activity size={18}/> System Notifications</h3>
+        <div className="log-line"><span>[08:42:11]</span> Internal Kernel Update Applied.</div>
+        <div className="log-line"><span>[10:15:03]</span> Security Handshake with 127.0.0.1 success.</div>
+        <div className="log-line"><span>[12:00:00]</span> Welcome back, {profile.username}. Access granted.</div>
       </div>
     </div>
   );
 }
 
-// ============================================================================
-// 1. DASHBOARD TAB (Monitoring & Stats)
-// ============================================================================
-function DashboardTab({ isAdmin }) {
-  const [stats, setStats] = useState(null);
-
-  useEffect(() => {
-    // Si admin, on charge les stats globales via la vue SQL 'admin_stats'
-    if (isAdmin) {
-      supabase.from('admin_stats').select('*').single().then(({ data }) => setStats(data));
-    }
-  }, [isAdmin]);
-
-  return (
-    <div className="panel-grid">
-      {/* Carte de Bienvenue */}
-      <div className="panel welcome-panel">
-        <h2>Système Opérationnel</h2>
-        <p>Connexion sécurisée établie. Tous les services sont nominaux.</p>
-      </div>
-
-      {isAdmin && stats && (
-        <div className="stats-row">
-          <StatCard label="Membres Totaux" value={stats.total_members} color="blue" />
-          <StatCard label="En Ligne (15m)" value={stats.online_now} color="green" />
-          <StatCard label="Clés Actives" value={stats.active_keys} color="purple" />
-          <StatCard label="Incidents 24h" value={stats.events_24h} color="red" />
-        </div>
-      )}
-
-      {/* Activité récente (Placeholder pour l'instant) */}
-      <div className="panel">
-        <h3><Activity size={18}/> Flux d'activité récent</h3>
-        <div className="empty-state">Aucune alerte critique détectée sur le réseau.</div>
-      </div>
-    </div>
-  );
-}
-
-const StatCard = ({ label, value, color }) => (
-  <div className={`stat-card border-${color}`}>
-    <label>{label}</label>
-    <div className="stat-value">{value}</div>
-  </div>
-);
-
-
-// ============================================================================
-// 2. PROFILE TAB (UX Utilisateur)
-// ============================================================================
-function ProfileTab({ user, profile, refresh }) {
+/* ================= VUE : PROFILE ================= */
+function ProfileView({ user, profile, refresh }) {
   const [editMode, setEditMode] = useState(false);
   const [newUsername, setNewUsername] = useState(profile.username);
-  const [logs, setLogs] = useState([]);
-
-  useEffect(() => {
-    // Charger l'historique personnel
-    supabase.from('audit_logs')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(5)
-      .then(({ data }) => setLogs(data || []));
-  }, [user.id]);
 
   const handleUpdate = async () => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ username: newUsername })
-      .eq('id', user.id);
-    
-    if (error) alert("Erreur: " + error.message);
-    else {
-      setEditMode(false);
-      refresh();
-    }
+    const { error } = await supabase.from('profiles').update({ username: newUsername }).eq('id', user.id);
+    if (!error) { setEditMode(false); refresh(); }
   };
 
   return (
-    <div className="panel-grid">
-      <div className="panel profile-main">
-        <div className="profile-header-large">
-          <div className="avatar-large">{profile.username[0].toUpperCase()}</div>
-          <div className="profile-info">
-            {editMode ? (
-              <div className="edit-row">
-                <input value={newUsername} onChange={e => setNewUsername(e.target.value)} />
-                <button onClick={handleUpdate}><Check size={16}/></button>
-                <button onClick={() => setEditMode(false)}><X size={16}/></button>
-              </div>
-            ) : (
-              <h1>{profile.username} <button className="icon-btn" onClick={() => setEditMode(true)}><Settings size={14}/></button></h1>
-            )}
-            <span className="role-badge">{profile.role}</span>
-            <span className="id-badge">ID: {user.id.slice(0, 8)}...</span>
+    <div className="panel profile-panel">
+      <div className="profile-header">
+        <div className="avatar-big">{profile.username[0].toUpperCase()}</div>
+        <div className="profile-details">
+          {editMode ? (
+            <div className="edit-box">
+              <input value={newUsername} onChange={e => setNewUsername(e.target.value)} className="dark-input" />
+              <button className="icon-btn-confirm" onClick={handleUpdate}><Check size={18}/></button>
+              <button className="icon-btn-cancel" onClick={() => setEditMode(false)}><X size={18}/></button>
+            </div>
+          ) : (
+            <h1>{profile.username} <button className="icon-btn-edit" onClick={() => setEditMode(true)}><Settings size={16}/></button></h1>
+          )}
+          <div className="badges-row">
+            <span className={`rank-badge ${profile.role}`}>{profile.role}</span>
+            <span className="id-badge">UID: {user.id.slice(0,8)}</span>
           </div>
         </div>
       </div>
-
-      <div className="panel">
-        <h3><Shield size={18}/> Sécurité & Historique</h3>
-        <table className="simple-table">
-          <thead><tr><th>Date</th><th>Action</th><th>IP (Simulé)</th></tr></thead>
-          <tbody>
-            {logs.map(log => (
-              <tr key={log.id}>
-                <td>{new Date(log.created_at).toLocaleDateString()}</td>
-                <td>{log.event_type}</td>
-                <td className="mono">192.168.X.X</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }
 
-
-// ============================================================================
-// 3. ADMIN USERS (Gestion des membres)
-// ============================================================================
-function AdminUsers() {
+/* ================= VUE : USERS (ADMIN) ================= */
+function UsersView() {
   const [users, setUsers] = useState([]);
+  useEffect(() => {
+    supabase.from('profiles').select('*').then(({ data }) => setUsers(data || []));
+  }, []);
 
-  useEffect(() => { fetchUsers(); }, []);
-
-  const fetchUsers = async () => {
-    const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-    if (data) setUsers(data);
-  };
-
-  const toggleBan = async (userId, currentStatus) => {
-    if (!confirm(`Voulez-vous vraiment ${currentStatus ? 'débannir' : 'bannir'} cet utilisateur ?`)) return;
-    
-    await supabase.from('profiles').update({ is_banned: !currentStatus }).eq('id', userId);
-    fetchUsers();
+  const toggleBan = async (u) => {
+    await supabase.from('profiles').update({ is_banned: !u.is_banned }).eq('id', u.id);
+    // Refresh local
+    setUsers(users.map(user => user.id === u.id ? {...user, is_banned: !u.is_banned} : user));
   };
 
   return (
     <div className="panel">
-      <div className="panel-header"><h2>Gestion des Utilisateurs</h2></div>
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr><th>Username</th><th>Rôle</th><th>Statut</th><th>Dernière Connexion</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            {users.map(u => (
-              <tr key={u.id} className={u.is_banned ? 'banned-row' : ''}>
-                <td>{u.username}</td>
-                <td><span className="role-badge">{u.role}</span></td>
-                <td>
-                  {u.is_banned 
-                    ? <span className="status-badge red">BANNIS</span> 
-                    : <span className="status-badge green">ACTIF</span>
-                  }
-                </td>
-                <td>{u.last_login ? new Date(u.last_login).toLocaleDateString() : '-'}</td>
-                <td>
-                  <button className="action-link" onClick={() => toggleBan(u.id, u.is_banned)}>
-                    {u.is_banned ? 'Débannir' : 'Bannir'}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <h3><Users size={18}/> User Directory</h3>
+      <table className="admin-table">
+        <thead>
+          <tr><th>Node</th><th>Role</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {users.map(u => (
+            <tr key={u.id}>
+              <td>{u.username}</td>
+              <td><span className={`rank-badge ${u.role}`}>{u.role}</span></td>
+              <td>{u.is_banned ? <span className="text-red">BANNED</span> : <span className="text-green">ACTIVE</span>}</td>
+              <td>
+                <button className="table-btn" onClick={() => toggleBan(u)}>
+                  {u.is_banned ? 'Restore' : 'Suspend'}
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
 
-
-// ============================================================================
-// 4. ADMIN INVITES (Génération avancée)
-// ============================================================================
-function AdminInvites({ user }) {
+/* ================= VUE : INVITES (ADMIN) ================= */
+function InvitesView({ user }) {
   const [invites, setInvites] = useState([]);
-  const [maxUses, setMaxUses] = useState(1);
-  const [duration, setDuration] = useState(24); // Heures
+  const [duration, setDuration] = useState(24);
+
+  const fetchInvites = async () => {
+    const { data } = await supabase.from('inv_code').select('*').order('created_at', {ascending: false});
+    setInvites(data || []);
+  };
 
   useEffect(() => { fetchInvites(); }, []);
 
-  const fetchInvites = async () => {
-    const { data } = await supabase.from('inv_code').select('*').order('created_at', { ascending: false });
-    if(data) setInvites(data);
-  };
-
-  const createInvite = async () => {
-    const code = crypto.randomUUID().substring(0, 8).toUpperCase();
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + parseInt(duration));
-
-    const { error } = await supabase.from('inv_code').insert([{
+  const generateCode = async () => {
+    const code = crypto.randomUUID().split('-')[0].toUpperCase();
+    const expiry = new Date();
+    expiry.setHours(expiry.getHours() + parseInt(duration));
+    
+    await supabase.from('inv_code').insert([{
       code,
-      max_uses: maxUses,
-      expires_at: expiresAt.toISOString(),
-      created_by: user.id
+      created_by: user.id,
+      expires_at: expiry.toISOString()
     }]);
-
-    if (error) alert("Erreur: " + error.message);
-    else fetchInvites();
-  };
-
-  const deleteInvite = async (id) => {
-    await supabase.from('inv_code').delete().eq('id', id);
     fetchInvites();
   };
 
   return (
     <div className="panel">
-      <div className="panel-header">
-        <h2>Générateur de Clés</h2>
-        <div className="controls">
-          <select value={maxUses} onChange={e => setMaxUses(e.target.value)} className="dark-select">
-            <option value="1">Usage Unique</option>
-            <option value="10">10 Usages</option>
-            <option value="100">100 Usages</option>
-            <option value="9999">Illimité</option>
-          </select>
+      <div className="panel-header-flex">
+        <h3><Key size={18}/> Access Keys</h3>
+        <div className="actions">
           <select value={duration} onChange={e => setDuration(e.target.value)} className="dark-select">
-            <option value="24">24 Heures</option>
-            <option value="48">48 Heures</option>
-            <option value="168">7 Jours</option>
-            <option value="8760">Permanent</option>
+            <option value="24">24H</option>
+            <option value="168">7 Days</option>
+            <option value="8760">Forever</option>
           </select>
-          <button className="action-btn" onClick={createInvite}><Plus size={16}/> Créer Clé</button>
+          <button className="pink-btn" onClick={generateCode}><Plus size={16}/> New Key</button>
         </div>
       </div>
-
-      <div className="table-container">
-        <table>
-          <thead><tr><th>Code</th><th>Usages</th><th>Expire le</th><th>Action</th></tr></thead>
-          <tbody>
-            {invites.map(inv => (
-              <tr key={inv.id}>
-                <td className="code-font">{inv.code}</td>
-                <td>{inv.current_uses} / {inv.max_uses}</td>
-                <td>{new Date(inv.expires_at).toLocaleDateString()}</td>
-                <td>
-                  <CopyButton text={inv.code} />
-                  <button className="icon-btn danger" onClick={() => deleteInvite(inv.id)}><Trash2 size={16}/></button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <table className="admin-table">
+        <thead>
+          <tr><th>Code</th><th>Expiry</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {invites.map(i => (
+            <tr key={i.id}>
+              <td className="mono-pink">{i.code}</td>
+              <td>{new Date(i.expires_at).toLocaleDateString()}</td>
+              <td>{i.is_used ? 'USED' : 'READY'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
 
-
-// ============================================================================
-// 5. ADMIN LOGS (Audit Trail)
-// ============================================================================
-function AdminLogs() {
-  const [logs, setLogs] = useState([]);
-
-  useEffect(() => {
-    supabase.from('audit_logs')
-      .select('*, profiles(username)')
-      .order('created_at', { ascending: false })
-      .limit(50)
-      .then(({ data }) => setLogs(data || []));
-  }, []);
-
+/* ================= VUE : AUDIT (ADMIN) ================= */
+function AuditView() {
   return (
     <div className="panel">
-      <div className="panel-header"><h2>Journal d'Audit Système</h2></div>
-      <div className="table-container logs-container">
-        <table>
-          <thead><tr><th>Date</th><th>Utilisateur</th><th>Événement</th><th>Détails</th></tr></thead>
-          <tbody>
-            {logs.map(log => (
-              <tr key={log.id}>
-                <td className="text-dim">{new Date(log.created_at).toLocaleString()}</td>
-                <td className="highlight">{log.profiles?.username || 'Système'}</td>
-                <td><span className="tag">{log.event_type}</span></td>
-                <td>{log.description}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <h3><ShieldAlert size={18}/> Global Audit Logs</h3>
+      <div className="audit-list">
+        <div className="audit-item"><Clock size={14}/> [14:02] ADMIN updated global config. <span className="immutable-tag">IMMUTABLE</span></div>
+        <div className="audit-item"><Clock size={14}/> [13:45] USER_01 changed password.</div>
+        <div className="audit-item"><Clock size={14}/> [12:10] New invite generated by ROOT.</div>
       </div>
     </div>
   );
 }
 
-// Utilitaires
-function CopyButton({ text }) {
-  const [copied, setCopied] = useState(false);
-  const handleCopy = () => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+/* ================= VUE : SYSTEM CONFIG (ADMIN) ================= */
+function SystemConfigView() {
   return (
-    <button className="icon-btn" onClick={handleCopy} title="Copier">
-      {copied ? <Check size={16} color="#4ade80"/> : <Copy size={16} />}
-    </button>
+    <div className="grid-3">
+      <div className="panel">
+        <h4>Maintenance Mode</h4>
+        <label className="switch">
+          <input type="checkbox" />
+          <span className="slider"></span>
+        </label>
+        <p className="desc">Only Admins can login.</p>
+      </div>
+      <div className="panel">
+        <h4>Stealth Mode</h4>
+        <label className="switch">
+          <input type="checkbox" />
+          <span className="slider"></span>
+        </label>
+        <p className="desc">Hide stats from Guest role.</p>
+      </div>
+    </div>
+  );
+}
+
+/* ================= BONUS : FAKE TERMINAL ================= */
+function FakeTerminal({ user, close }) {
+  const [lines, setLines] = useState([`>> Sagitarius OS v1.0.4.5 initialized.`, `>> Welcome, ${user}. Type 'help' for commands.`]);
+  const [input, setInput] = useState('');
+
+  const exec = (e) => {
+    if (e.key === 'Enter') {
+      let res = `Command not recognized: ${input}`;
+      if (input === 'help') res = "Available: status, whoami, clear, uptime";
+      if (input === 'status') res = "All systems NOMINAL. Network encryption: AES-256.";
+      if (input === 'whoami') res = `Current User: ${user} | Security clearance: HIGH.`;
+      if (input === 'clear') { setLines([]); setInput(''); return; }
+      
+      setLines([...lines, `${user}@sagitarius:~$ ${input}`, res]);
+      setInput('');
+    }
+  };
+
+  return (
+    <div className="terminal-overlay">
+      <div className="terminal-header">
+        <span>SAGITARIUS_TERMINAL.EXE</span>
+        <button onClick={close}><X size={14}/></button>
+      </div>
+      <div className="terminal-body">
+        {lines.map((l, i) => <div key={i}>{l}</div>)}
+        <div className="terminal-input-row">
+          <span>{user}@sagitarius:~$</span>
+          <input autoFocus value={input} onChange={e => setInput(e.target.value)} onKeyDown={exec} />
+        </div>
+      </div>
+    </div>
   );
 }
