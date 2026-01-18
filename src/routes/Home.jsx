@@ -11,3 +11,11 @@ import './Home.css';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export default function App() {
+  return (
+    <div>
+      <h1>Bonjour</h1>
+    </div>
+  );
+}
