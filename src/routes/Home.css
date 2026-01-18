@@ -1,110 +1,85 @@
-/* Home.css */
-.dashboard-layout {
-  display: flex;
-  height: 100vh;
-  background: #000;
-  color: #fff;
+/* src/routes/Home.css */
+
+/* --- Configuration de base --- */
+:root {
+  --bg-main: #050505;
+  --accent: #4f46e5;
+  --accent-glow: rgba(79, 70, 229, 0.3);
+  --border-color: #1a1a1a;
 }
 
-/* Sidebar */
-.sidebar {
-  width: 240px;
-  background: #050505;
-  border-right: 1px solid #111;
-  display: flex;
-  flex-direction: column;
-  padding: 1.5rem;
+/* --- Scrollbar Custom (Invisible mais fonctionnelle) --- */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
 }
 
-.sidebar-brand {
-  font-size: 1.1rem;
-  font-weight: 900;
-  letter-spacing: 3px;
-  margin-bottom: 2.5rem;
-  color: #fff;
-}
-
-.brand-accent { color: #ff0055; }
-
-.sidebar-nav { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
-
-.sidebar-nav button {
+.custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
-  border: none;
-  color: #555;
-  padding: 0.75rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s;
-  text-align: left;
 }
 
-.sidebar-nav button:hover, .sidebar-nav button.active {
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 10px;
 }
 
-.admin-link { color: #ff4d4d !important; }
-
-.sidebar-footer {
-  border-top: 1px solid #111;
-  padding-top: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
 }
 
-.footer-name { display: block; font-size: 0.9rem; font-weight: 600; }
-.footer-role { font-size: 0.7rem; color: #ff0055; text-transform: uppercase; }
-
-/* Main Content */
-.main-content {
-  flex: 1;
-  padding: 2.5rem;
-  overflow-y: auto;
-  background: radial-gradient(circle at top right, #0a0a0a, #000);
+/* --- Animations --- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.page-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 2rem; letter-spacing: -0.5px; }
+.animate-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
 
-/* Stats Grid */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-.stat-item { background: #070707; border: 1px solid #111; padding: 1.5rem; border-radius: 10px; }
-.stat-label { display: block; color: #444; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 0.5rem; }
-.stat-value { font-size: 1.5rem; font-weight: 700; }
-.text-green { color: #00ff88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.2); }
+/* --- Effets de Verre (Glassmorphism) --- */
+.glass-panel {
+  background: rgba(10, 10, 10, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+}
 
-/* Terminal */
-.terminal-card { background: #000; border: 1px solid #111; border-radius: 8px; font-family: 'Courier New', monospace; }
-.terminal-body { padding: 1.5rem; min-height: 250px; color: #00ff88; font-size: 0.85rem; }
-.t-line { margin-bottom: 5px; }
-.t-input-area { display: flex; gap: 8px; margin-top: 10px; }
-.t-input-area input { background: none; border: none; color: #fff; outline: none; width: 100%; }
-.terminal-btns { padding: 1rem; border-top: 1px solid #111; display: flex; gap: 10px; }
-.terminal-btns button { background: #111; border: 1px solid #222; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.75rem; }
+/* --- États de Input --- */
+input:focus {
+  box-shadow: 0 0 15px var(--accent-glow);
+}
 
-/* Tables */
-.admin-table-container { background: #070707; border: 1px solid #111; border-radius: 8px; overflow: hidden; }
-.admin-table { width: 100%; border-collapse: collapse; }
-.admin-table th { background: #0a0a0a; text-align: left; padding: 1rem; font-size: 0.7rem; color: #444; }
-.admin-table td { padding: 1rem; border-bottom: 1px solid #111; font-size: 0.85rem; }
-.code-cell { font-family: monospace; color: #ff0055; }
-.status-badge { padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; }
-.status-badge.green { background: rgba(0, 255, 136, 0.1); color: #00ff88; }
-.status-badge.red { background: rgba(255, 0, 85, 0.1); color: #ff0055; }
+/* --- Utilitaires de Texte --- */
+.font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
 
-/* Profile */
-.profile-center { display: flex; justify-content: center; padding-top: 2rem; }
-.profile-card { background: #070707; border: 1px solid #111; padding: 2.5rem; border-radius: 12px; text-align: center; width: 100%; max-width: 400px; }
-.profile-avatar { width: 80px; height: 80px; background: #ff0055; border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; }
+/* --- Sidebar Mobile Fix --- */
+@media (max-width: 1024px) {
+  aside {
+    transition: width 0.3s ease;
+  }
+}
 
-.btn-primary { background: #fff; color: #000; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.8rem; }
-.btn-icon { background: none; border: none; color: #555; cursor: pointer; padding: 5px; }
-.btn-icon.delete:hover { color: #ff4d4d; }
+/* --- Stat Card Glow --- */
+.stat-card-hover:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 20px rgba(79, 70, 229, 0.1);
+}
 
-.loader { height: 100vh; display: flex; align-items: center; justify-content: center; letter-spacing: 4px; color: #ff0055; font-weight: 900; }
-.tab-fade { animation: fadeIn 0.3s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+/* --- Chat Bubble Tails (Optionnel) --- */
+.chat-me {
+  position: relative;
+  border-bottom-right-radius: 2px;
+}
+
+/* --- Background Noise (Texture Premium) --- */
+main::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3％3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
