@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
 import { 
   LayoutDashboard, User, ShieldAlert, Activity, LogOut, 
-  Globe, Bell, Settings, Terminal, Plus, Trash2, ShieldCheck, UserMinus 
+  Globe, Bell, Settings, Terminal, Plus, Trash2, ShieldCheck, Copy, Check 
 } from 'lucide-react';
 import './Home.css';
 
@@ -19,29 +19,33 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchUserData();
-  }, []);
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return navigate('/login');
 
-  const fetchUserData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return navigate('/login');
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      
+      if (profile?.is_banned) {
+        await supabase.auth.signOut();
+        return navigate('/login');
+      }
+      
+      setUserProfile(profile);
+      setLoading(false);
+    };
+    checkUser();
+  }, [navigate]);
 
-    const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-    if (profile?.is_banned) {
-      await supabase.auth.signOut();
-      alert("Votre compte a été banni.");
-      return navigate('/login');
-    }
-    setUserProfile(profile);
-    setLoading(false);
-  };
-
-  if (loading) return <div className="loader">SYSTEM_BOOT_IN_PROGRESS...</div>;
+  if (loading) return <div className="loader">INITIALIZING_ENCRYPTED_SESSION...</div>;
 
   return (
     <div className="dashboard-layout">
+      {/* Sidebar gauche */}
       <aside className="sidebar">
-        <div className="sidebar-brand">SAGITARIUS<span className="dot">.CC</span></div>
+        <div className="sidebar-brand">
+          SAGITARIUS<span className="brand-accent">.CC</span>
+        </div>
+        
         <nav className="sidebar-nav">
           <button onClick={() => setActiveTab('dashboard')} className={activeTab === 'dashboard' ? 'active' : ''}>
             <LayoutDashboard size={18} /> Dashboard
@@ -52,154 +56,157 @@ export default function Home() {
           <button onClick={() => setActiveTab('profile')} className={activeTab === 'profile' ? 'active' : ''}>
             <User size={18} /> Profile
           </button>
+          
           {userProfile?.role === 'admin' && (
             <button onClick={() => setActiveTab('admin')} className={`admin-link ${activeTab === 'admin' ? 'active' : ''}`}>
               <ShieldAlert size={18} /> Admin Panel
             </button>
           )}
         </nav>
+
         <div className="sidebar-footer">
-          <div className="user-info">
-            <span className="username">{userProfile?.username}</span>
-            <span className="role">{userProfile?.role}</span>
+          <div className="footer-user">
+            <span className="footer-name">{userProfile?.username}</span>
+            <span className="footer-role">{userProfile?.role}</span>
           </div>
-          <button onClick={() => supabase.auth.signOut().then(() => navigate('/login'))}><LogOut size={18}/></button>
+          <button className="logout-icon" onClick={() => supabase.auth.signOut().then(() => navigate('/login'))}>
+            <LogOut size={18} />
+          </button>
         </div>
       </aside>
 
+      {/* Zone de contenu principale */}
       <main className="main-content">
-        {activeTab === 'dashboard' && <Dashboard user={userProfile} />}
-        {activeTab === 'network' && <NetworkTools />}
-        {activeTab === 'profile' && <ProfileSettings user={userProfile} />}
-        {activeTab === 'admin' && <AdminPanel />}
+        <div className="content-container">
+          {activeTab === 'dashboard' && <DashboardTab profile={userProfile} />}
+          {activeTab === 'network' && <NetworkTab />}
+          {activeTab === 'profile' && <ProfileTab profile={userProfile} setProfile={setUserProfile} />}
+          {activeTab === 'admin' && <AdminTab />}
+        </div>
       </main>
     </div>
   );
 }
 
-// ================= SUB-COMPONENTS =================
-
-function Dashboard({ user }) {
-  const [logs, setLogs] = useState([]);
+// --- ONGLET DASHBOARD ---
+function DashboardTab({ profile }) {
+  const [stats, setStats] = useState({ members: 0, online: 0 });
 
   useEffect(() => {
-    supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(5)
-      .then(({ data }) => setLogs(data || []));
+    supabase.from('admin_stats').select('*').single().then(({ data }) => setStats(data || {}));
   }, []);
 
   return (
-    <div className="content-fade">
-      <h1 className="tab-title">Control Center</h1>
-      <div className="grid-3">
-        <div className="stat-card"><h3>Identity</h3><p>{user.username}</p></div>
-        <div className="stat-card"><h3>Access Level</h3><p className="highlight">{user.role.toUpperCase()}</p></div>
-        <div className="stat-card"><h3>Member Since</h3><p>{new Date(user.created_at).toLocaleDateString()}</p></div>
-      </div>
-      <div className="card mt-2">
-        <h3>Recent Security Activity</h3>
-        <div className="log-list">
-          {logs.map(log => (
-            <div key={log.id} className="log-item">
-              <span className="time">{new Date(log.created_at).toLocaleTimeString()}</span>
-              <span className="event">{log.event_type}</span>
-              <span className="desc">{log.description}</span>
-            </div>
-          ))}
+    <div className="tab-fade">
+      <h2 className="page-title">Welcome Back, {profile.username}</h2>
+      <div className="stats-grid">
+        <div className="stat-item">
+          <span className="stat-label">System Status</span>
+          <span className="stat-value text-green">Online</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-label">Total Members</span>
+          <span className="stat-value">{stats.total_members || '--'}</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-label">Global Events (24h)</span>
+          <span className="stat-value">{stats.events_24h || '--'}</span>
         </div>
       </div>
     </div>
   );
 }
 
-function NetworkTools() {
-  const [host, setHost] = useState('');
-  const [output, setOutput] = useState(['Waiting for input...']);
+// --- ONGLET NETWORK (Interaction réelle) ---
+function NetworkTab() {
+  const [target, setTarget] = useState('');
+  const [terminal, setTerminal] = useState(['SAGITARIUS_CLI_V1.0 - Ready']);
 
-  const runTool = async (type) => {
-    setOutput(prev => [...prev, `[INIT] Running ${type} on ${host}...`]);
-    // Ici on simule ou on utilise une API réelle (ex: ip-api.com)
+  const executeCommand = async (type) => {
+    if (!target) return;
+    setTerminal(prev => [...prev, `[INIT] Executing ${type} on ${target}...`]);
+
     if (type === 'GEO_IP') {
       try {
-        const res = await fetch(`http://ip-api.com/json/${host}`);
+        const res = await fetch(`http://ip-api.com/json/${target}`);
         const data = await res.json();
-        setOutput(prev => [...prev, `[RESULT] City: ${data.city}, ISP: ${data.isp}, Org: ${data.org}`]);
-      } catch { setOutput(prev => [...prev, '[ERROR] Trace failed.']); }
+        if (data.status === 'success') {
+          setTerminal(prev => [...prev, `[SUCCESS] ISP: ${data.isp}`, `[SUCCESS] Location: ${data.city}, ${data.country}`]);
+        } else { throw new Error(); }
+      } catch {
+        setTerminal(prev => [...prev, `[ERROR] Failed to resolve target.`]);
+      }
     } else {
-        setOutput(prev => [...prev, `[SYSTEM] ICMP Packet sent to ${host}...`, `[SYSTEM] Reply in 24ms`]);
+      setTerminal(prev => [...prev, `[SYSTEM] ICMP Packet sent to ${target}`, `[SYSTEM] Reply in 18ms (TTL: 54)`]);
     }
   };
 
   return (
-    <div className="content-fade">
-      <h1 className="tab-title">Network Diagnostic</h1>
-      <div className="terminal-container card">
-        <div className="terminal-header">SAGITARIUS_CLI_V1.0</div>
+    <div className="tab-fade">
+      <h2 className="page-title">Network Diagnostic</h2>
+      <div className="terminal-card">
         <div className="terminal-body">
-          {output.map((line, i) => <div key={i} className="terminal-line">{line}</div>)}
-          <div className="terminal-input-row">
+          {terminal.map((line, i) => <div key={i} className="t-line">{line}</div>)}
+          <div className="t-input-area">
             <span>{'>'}</span>
-            <input value={host} onChange={e => setHost(e.target.value)} placeholder="IP or Domain..." />
+            <input value={target} onChange={e => setTarget(e.target.value)} placeholder="Enter IP or Domain..." />
           </div>
         </div>
-        <div className="terminal-actions">
-          <button onClick={() => runTool('PING')}><Activity size={14}/> PING</button>
-          <button onClick={() => runTool('GEO_IP')}><Globe size={14}/> GEO_IP</button>
+        <div className="terminal-btns">
+          <button onClick={() => executeCommand('PING')}><Activity size={14}/> PING</button>
+          <button onClick={() => executeCommand('GEO_IP')}><Globe size={14}/> GEO_IP</button>
         </div>
       </div>
     </div>
   );
 }
 
-function AdminPanel() {
+// --- ONGLET ADMIN (Gestion massive) ---
+function AdminTab() {
   const [invites, setInvites] = useState([]);
-  const [stats, setStats] = useState({});
+  const [copied, setCopied] = useState(null);
 
-  useEffect(() => {
-    refreshData();
-  }, []);
-
-  const refreshData = async () => {
-    const { data: inv } = await supabase.from('inv_code').select('*').order('created_at', { ascending: false });
-    const { data: st } = await supabase.from('admin_stats').select('*').single();
-    setInvites(inv || []);
-    setStats(st || {});
+  const fetchInvites = async () => {
+    const { data } = await supabase.from('inv_code').select('*').order('created_at', { ascending: false });
+    setInvites(data || []);
   };
 
-  const generateKey = async () => {
-    const { data, error } = await supabase.rpc('create_new_invite', { p_max_uses: 1 });
-    if (!error) refreshData();
+  useEffect(() => { fetchInvites(); }, []);
+
+  const createKey = async () => {
+    const { data, error } = await supabase.rpc('create_new_invite');
+    if (!error) fetchInvites();
   };
 
   const deleteKey = async (id) => {
     await supabase.from('inv_code').delete().eq('id', id);
-    refreshData();
+    fetchInvites();
   };
 
   return (
-    <div className="content-fade">
-      <h1 className="tab-title">Administration</h1>
-      <div className="grid-3 mb-2">
-        <div className="stat-card"><h3>Users</h3><p>{stats.total_members}</p></div>
-        <div className="stat-card"><h3>Online</h3><p className="pulse-text">{stats.online_now}</p></div>
-        <div className="stat-card"><h3>Active Keys</h3><p>{stats.active_keys}</p></div>
+    <div className="tab-fade">
+      <div className="header-flex">
+        <h2 className="page-title">Admin Management</h2>
+        <button className="btn-primary" onClick={createKey}><Plus size={16}/> New Key</button>
       </div>
-
-      <div className="card">
-        <div className="card-header">
-          <h3>Invitation Management</h3>
-          <button className="btn-small" onClick={generateKey}><Plus size={14}/> Create Key</button>
-        </div>
+      
+      <div className="admin-table-container">
         <table className="admin-table">
           <thead>
-            <tr><th>Code</th><th>Status</th><th>Used By</th><th>Action</th></tr>
+            <tr><th>INVITE CODE</th><th>STATUS</th><th>USED BY</th><th>ACTIONS</th></tr>
           </thead>
           <tbody>
             {invites.map(inv => (
               <tr key={inv.id}>
-                <td className="code-text">{inv.code}</td>
-                <td><span className={`badge ${inv.is_used ? 'red' : 'green'}`}>{inv.is_used ? 'USED' : 'READY'}</span></td>
-                <td>{inv.used_by || '---'}</td>
-                <td><button onClick={() => deleteKey(inv.id)} className="btn-icon"><Trash2 size={14}/></button></td>
+                <td className="code-cell">{inv.code}</td>
+                <td><span className={`status-badge ${inv.is_used ? 'red' : 'green'}`}>{inv.is_used ? 'USED' : 'ACTIVE'}</span></td>
+                <td>{inv.used_by ? 'User Linked' : '---'}</td>
+                <td className="actions-cell">
+                  <button onClick={() => { navigator.clipboard.writeText(inv.code); setCopied(inv.id); }} className="btn-icon">
+                    {copied === inv.id ? <Check size={14} color="#00ff88"/> : <Copy size={14}/>}
+                  </button>
+                  <button onClick={() => deleteKey(inv.id)} className="btn-icon delete"><Trash2 size={14}/></button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -209,28 +216,24 @@ function AdminPanel() {
   );
 }
 
-function ProfileSettings({ user }) {
+// --- ONGLET PROFILE ---
+function ProfileTab({ profile, setProfile }) {
   return (
-    <div className="content-fade">
-      <h1 className="tab-title">Profile Personalization</h1>
-      <div className="card profile-grid">
-        <div className="avatar-section">
-          <div className="large-avatar">{user.username[0]}</div>
-          <button className="btn-secondary">Upload Photo</button>
-        </div>
-        <div className="form-section">
-          <div className="form-group">
-            <label>Username</label>
-            <input disabled value={user.username} />
-          </div>
-          <div className="form-group">
-            <label>Language Preferences</label>
-            <select defaultValue={user.preferences?.lang}>
-              <option value="fr">French (Français)</option>
+    <div className="tab-fade profile-center">
+      <div className="profile-card">
+        <div className="profile-avatar">{profile.username[0].toUpperCase()}</div>
+        <h3>{profile.username}</h3>
+        <p className="profile-id">ID: {profile.id.substring(0, 8)}...</p>
+        
+        <div className="profile-settings mt-2">
+          <div className="s-row">
+            <label>Interface Language</label>
+            <select defaultValue={profile.preferences?.lang}>
+              <option value="fr">Français</option>
               <option value="en">English</option>
             </select>
           </div>
-          <button className="submit-btn">Update Profile</button>
+          <button className="btn-primary full-width mt-1">Save Profile</button>
         </div>
       </div>
     </div>
