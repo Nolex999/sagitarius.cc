@@ -4,154 +4,157 @@ import { createClient } from '@supabase/supabase-js';
 import { 
   LogOut, User, Shield, LayoutDashboard, 
   FileText, Users, Bell, Settings, 
-  Check, X, AlertTriangle, Activity, Plus, Copy, Trash2
+  Check, X, AlertTriangle, Activity, Plus, Copy, Trash2,
+  Terminal as TerminalIcon, Globe, Lock, EyeOff, ShieldCheck
 } from 'lucide-react';
 import './Home.css';
 
-// Init Supabase
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function Home() {
   const navigate = useNavigate();
-  
-  // États Globaux
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
+  const [showTerminal, setShowTerminal] = useState(false);
 
-  // Chargement initial
   useEffect(() => {
     checkSession();
   }, []);
 
   const checkSession = async () => {
     try {
-      setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        navigate('/login');
-        return;
-      }
+      if (!user) return navigate('/login');
       setUser(user);
 
-      // Récupération du profil complet
-      const { data: profileData, error } = await supabase
+      const { data: profileData } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
-
-      if (profileData) {
-        // Vérification si BANNIS
-        if (profileData.is_banned) {
-          await supabase.auth.signOut();
-          alert("ACCÈS REFUSÉ : Ce compte a été suspendu par l'administration.");
-          navigate('/login');
-          return;
-        }
-
-        setProfile(profileData);
-        setIsAdmin(profileData.role === 'admin');
-        
-        // Log de connexion (Audit)
-        await supabase.rpc('log_activity', { 
-          p_event: 'AUTH_LOGIN', 
-          p_desc: 'Connexion utilisateur au dashboard' 
-        });
-
-      } else {
-        // Fallback (ne devrait pas arriver avec le bon SQL)
-        setProfile({ username: user.email, role: 'guest' });
+      if (profileData?.is_banned) {
+        await supabase.auth.signOut();
+        return navigate('/login');
       }
-
-    } catch (error) {
-      console.error('Erreur init:', error.message);
+      setProfile(profileData || { username: 'User', role: 'guest' });
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
+  const hasPermission = (requiredRole) => {
+    const roles = ['guest', 'member', 'moderator', 'admin'];
+    return roles.indexOf(profile?.role) >= roles.indexOf(requiredRole);
   };
 
-  if (loading) return <div className="loading-screen">SYSTEM LOADING...</div>;
+  if (loading) return <div className="loading-app">ACCESSING ENCRYPTED DATA...</div>;
 
   return (
     <div className="dashboard-container">
-      {/* --- SIDEBAR --- */}
+      {/* Sidebar - Theme Matched with App.jsx */}
       <aside className="sidebar">
-        <div className="sidebar-header">
-          <h2>SAGITARIUS</h2>
-          <span className="version">PRIVATE NETWORK v2.0</span>
+        <div className="sidebar-brand">
+          <h1>SAGITARIUS<span className="brand-dot">.CC</span></h1>
+          <p className="system-status">CORE SYSTEM ACTIVE</p>
         </div>
 
         <nav className="nav-menu">
-          <div className="divider"><span>MENU PRINCIPAL</span></div>
+          <div className="nav-label">General</div>
+          <NavBtn id="dashboard" icon={<LayoutDashboard size={18}/>} label="Overview" active={activeTab} set={setActiveTab} />
+          <NavBtn id="profile" icon={<User size={18}/>} label="Identity" active={activeTab} set={setActiveTab} />
           
-          <NavButton id="dashboard" icon={<LayoutDashboard size={20}/>} label="Dashboard" active={activeTab} set={setActiveTab} />
-          <NavButton id="profile" icon={<User size={20}/>} label="Mon Profil" active={activeTab} set={setActiveTab} />
-          
-          {isAdmin && (
+          {hasPermission('moderator') && (
             <>
-              <div className="divider"><span>ADMINISTRATION</span></div>
-              <NavButton id="admin_users" icon={<Users size={20}/>} label="Utilisateurs" active={activeTab} set={setActiveTab} />
-              <NavButton id="admin_invites" icon={<FileText size={20}/>} label="Invitations" active={activeTab} set={setActiveTab} />
-              <NavButton id="admin_logs" icon={<Shield size={20}/>} label="Audit Logs" active={activeTab} set={setActiveTab} />
+              <div className="nav-label">Management</div>
+              <NavBtn id="users" icon={<Users size={18}/>} label="Network Nodes" active={activeTab} set={setActiveTab} />
+              <NavBtn id="invites" icon={<Plus size={18}/>} label="Access Keys" active={activeTab} set={setActiveTab} />
+            </>
+          )}
+
+          {hasPermission('admin') && (
+            <>
+              <div className="nav-label">Security</div>
+              <NavBtn id="audit" icon={<Shield size={18}/>} label="Audit Logs" active={activeTab} set={setActiveTab} />
+              <NavBtn id="config" icon={<Settings size={18}/>} label="System Config" active={activeTab} set={setActiveTab} />
             </>
           )}
         </nav>
 
-        <div className="sidebar-footer">
-          <button onClick={handleLogout} className="logout-btn">
-            <LogOut size={18} />
-            <span>Déconnexion</span>
+        <div className="sidebar-bottom">
+          <button className="terminal-toggle" onClick={() => setShowTerminal(!showTerminal)}>
+            <TerminalIcon size={18} /> <span>Terminal</span>
+          </button>
+          <button className="logout-btn" onClick={() => supabase.auth.signOut().then(() => navigate('/login'))}>
+            <LogOut size={18} /> <span>Terminate Session</span>
           </button>
         </div>
       </aside>
 
-      {/* --- CONTENU PRINCIPAL --- */}
       <main className="main-content">
-        <header className="top-bar">
-          <h3>/{activeTab.replace('_', ' ').toUpperCase()}</h3>
-          <div className="user-badge">
-            <span className={`status-dot ${isAdmin ? 'admin-dot' : ''}`}></span>
-            {profile?.username} <span className="role-tag">[{profile?.role?.toUpperCase()}]</span>
+        <header className="top-header">
+          <div className="path">/root/{activeTab}</div>
+          <div className="user-info">
+            <span className={`rank-badge ${profile.role}`}>{profile.role.toUpperCase()}</span>
+            <span className="username">{profile.username}</span>
           </div>
         </header>
 
-        <div className="content-wrapper">
-          {activeTab === 'dashboard' && <DashboardTab user={user} isAdmin={isAdmin} />}
-          {activeTab === 'profile' && <ProfileTab user={user} profile={profile} refresh={checkSession} />}
-          
-          {/* Sections Admin */}
-          {isAdmin && activeTab === 'admin_users' && <AdminUsers />}
-          {isAdmin && activeTab === 'admin_invites' && <AdminInvites user={user} />}
-          {isAdmin && activeTab === 'admin_logs' && <AdminLogs />}
-        </div>
+        <section className="content">
+          {activeTab === 'dashboard' && <DashboardView profile={profile} />}
+          {activeTab === 'users' && <UsersView />}
+          {activeTab === 'invites' && <InvitesView user={user} />}
+          {activeTab === 'audit' && <AuditView />}
+        </section>
+
+        {showTerminal && <FakeTerminal user={profile.username} />}
       </main>
     </div>
   );
 }
 
-// --- COMPOSANT BOUTON NAV ---
-const NavButton = ({ id, icon, label, active, set }) => (
-  <button 
-    className={`nav-item ${active === id ? 'active' : ''}`}
-    onClick={() => set(id)}
-  >
-    {icon}
-    <span>{label}</span>
-  </button>
-);
+// Sub-components components (Simplified for brevity)
+function NavBtn({ id, icon, label, active, set }) {
+  return (
+    <button className={`nav-item ${active === id ? 'active' : ''}`} onClick={() => set(id)}>
+      {icon} <span>{label}</span>
+    </button>
+  );
+}
+
+function DashboardView({ profile }) {
+  return (
+    <div className="fade-in">
+      <div className="grid-3">
+        <div className="stat-box">
+          <label>Uptime</label>
+          <div className="value">99.9%</div>
+        </div>
+        <div className="stat-box">
+          <label>Encrypted Nodes</label>
+          <div className="value">1,240</div>
+        </div>
+        <div className="stat-box">
+          <label>Security Level</label>
+          <div className="value pink-text">MAXIMUM</div>
+        </div>
+      </div>
+      
+      <div className="panel mt-20">
+        <h3><Activity size={18}/> Recent Network Activity</h3>
+        <div className="log-line">[+] Connection established from 185.23.XX.XX</div>
+        <div className="log-line">[+] Encryption handshake successful</div>
+        <div className="log-line">[+] User {profile.username} accessed root directory</div>
+      </div>
+    </div>
+  );
+}
 
 // ============================================================================
 // 1. DASHBOARD TAB (Monitoring & Stats)
