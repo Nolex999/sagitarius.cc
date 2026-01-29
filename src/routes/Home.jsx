@@ -6,13 +6,39 @@ import {
   Globe, Bell, Settings, Terminal, Plus, Trash2, ShieldCheck,
   Copy, Check, Send, Zap, HardDrive, Cpu, Play, Server, Code, Wifi, Cloud, FileText, Download, UploadCloud
 } from 'lucide-react';
+import './Home.css';
 
-// ... (Imports & Init remain same)
+// --- INITIALISATION SUPABASE ---
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+// --- COMPOSANTS UI UTILITAIRES ---
+
+const Loader = () => (
+  <div className="flex h-screen w-full items-center justify-center bg-[#050505] text-xs font-mono tracking-widest text-zinc-500">
+    <div className="flex flex-col items-center gap-4 relative">
+      <div className="absolute inset-0 bg-indigo-500/20 blur-xl animate-pulse rounded-full"></div>
+      <Activity className="h-8 w-8 animate-spin text-indigo-500 relative z-10" />
+      <span className="animate-pulse text-indigo-400 font-bold">ESTABLISHING SECURE CONNECTION...</span>
+    </div>
+  </div>
+);
+
+const BannedScreen = () => (
+  <div className="flex h-screen w-full flex-col items-center justify-center bg-[#050505] text-red-500 p-4 text-center">
+    <div className="relative mb-6">
+      <div className="absolute inset-0 bg-red-500/10 blur-3xl rounded-full"></div>
+      <ShieldAlert className="h-24 w-24 relative z-10" />
+    </div>
+    <h1 className="text-4xl font-black uppercase tracking-tighter mb-2 text-white">Access Denied</h1>
+    <p className="font-mono text-sm text-red-400 bg-red-950/30 px-4 py-1 rounded border border-red-900/50">HWID FLAGGED: TERMINATED</p>
+  </div>
+);
 
 // Renamed from GlassCard to SolidCard for clarity in editing, though we kept prop name
 const SolidCard = ({ children, className = "" }) => (
-  // POLISH: Changed border-zinc-800 to border-white/10 for crisper contrast
-  // POLISH: Added hover:border-white/20 for interaction feedback
   <div className={`bg-[#0A0A0A] border border-white/10 rounded-lg p-6 relative overflow-hidden group shadow-lg transition-colors hover:border-white/20 ${className}`}>
     {children}
   </div>
@@ -47,21 +73,48 @@ export default function Home() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [connectStatus, setConnectStatus] = useState('IDLE'); // IDLE | CONNECTING | CONNECTED
 
-  // ... (Auth & Logout remain same)
+  // 1. AUTH & SECURITY
+  useEffect(() => {
+    let mounted = true;
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) { navigate('/login'); return; }
+        const { data: userProfile, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+        if (error) throw error;
+        if (mounted) { setSession(session); setProfile(userProfile); setLoading(false); }
+      } catch (error) { console.error("Auth Error:", error); navigate('/login'); }
+    };
+    checkAuth();
+    return () => { mounted = false; };
+  }, [navigate]);
 
-  // ... (Loader & Banned checks remain same)
+  const handleLogout = async () => { await supabase.auth.signOut(); navigate('/login'); };
+  const handleConnect = () => {
+    if (connectStatus === 'CONNECTING' || connectStatus === 'CONNECTED') return;
+    setConnectStatus('CONNECTING');
+    setTimeout(() => setConnectStatus('CONNECTED'), 2000);
+  };
+
+  if (loading) return <Loader />;
+  if (profile?.is_banned) return <BannedScreen />;
+  if (!session) return null;
 
   const isMod = ['admin', 'moderator'].includes(profile.role);
   const isAdmin = profile.role === 'admin';
 
   return (
     <div className="flex min-h-screen w-full bg-[#050505] text-zinc-300 font-sans selection:bg-indigo-500/30 overflow-hidden relative">
-      {/* ... (Background remains same) ... */}
+      {/* BACKGROUND NOISE & GRADIENTS */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-900/10 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-900/10 rounded-full blur-[120px]"></div>
+      </div>
 
       {/* SIDEBAR */}
       <aside className="w-20 lg:w-72 border-r border-white/5 bg-black/60 backdrop-blur-xl flex flex-col justify-between py-8 fixed h-full z-40 transition-all duration-300">
         <div className="px-0 lg:px-6 flex flex-col w-full">
-          {/* ... (Logo remains same) ... */}
+          {/* LOGO */}
           <div className="mb-12 flex items-center justify-center lg:justify-start w-full gap-4 group cursor-pointer lg:px-2">
             <div className="relative shrink-0">
               <div className="absolute inset-0 bg-indigo-600 blur-md opacity-50 group-hover:opacity-100 transition-opacity"></div>
@@ -88,7 +141,7 @@ export default function Home() {
           </nav>
         </div>
 
-        {/* ... (User Profile remains same) ... */}
+        {/* USER PROFILE */}
         <div className="px-3 lg:px-6 w-full">
           <div className="hidden lg:block mb-4 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-indigo-500/30 transition-colors group cursor-pointer">
             <div className="flex items-center gap-3">
@@ -117,7 +170,7 @@ export default function Home() {
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 ml-20 lg:ml-72 p-6 lg:p-12 max-w-[1600px] w-full relative z-10 transition-all duration-300">
 
-        {/* ... (Header & Connect Button remain same, updated title calc) ... */}
+        {/* TOP HEADER & CONNECT BUTTON */}
         <div className="flex justify-between items-center mb-10">
           <div>
             <h1 className="text-2xl font-bold text-white tracking-tight mb-1">
@@ -127,6 +180,7 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-6">
+            {/* CONNECT BUTTON */}
             <button
               onClick={handleConnect}
               className={`relative group overflow-hidden px-8 py-3 rounded-md font-bold text-sm tracking-wider transition-all duration-300 ${connectStatus === 'CONNECTED' ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]' :
@@ -144,6 +198,7 @@ export default function Home() {
               </div>
             </button>
 
+            {/* NOTIFICATIONS */}
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
@@ -171,6 +226,7 @@ export default function Home() {
   );
 }
 
+// --- SUB-COMPONENT: NAV BTN ---
 const NavBtn = ({ label, active, onClick, icon: Icon }) => (
   <button
     onClick={onClick}
@@ -195,6 +251,7 @@ const UserDashboard = ({ profile }) => (
     </div>
 
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* WELCOME / NEWS */}
       <div className="lg:col-span-2 space-y-6">
         <SolidCard className="bg-[#0A0A0A]">
           <h2 className="text-xl font-bold text-white mb-2">Welcome, {profile.username}.</h2>
@@ -211,7 +268,7 @@ const UserDashboard = ({ profile }) => (
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-900 text-indigo-400 font-mono border border-zinc-800">INFO</span>
-                  <span className="text-xs text-zinc-500">Today, 14:02</span>
+                  <span className="text-xs text-zinc-600">Today, 14:02</span>
                 </div>
                 <h4 className="text-white font-medium group-hover:text-indigo-400 transition-colors">Protocol updated to HTTPS/2</h4>
               </div>
@@ -219,7 +276,8 @@ const UserDashboard = ({ profile }) => (
           ))}
         </div>
       </div>
-      {/* ... (Side Widget remains as previous SolidCard implementation) ... */}
+
+      {/* SIDE WIDGET */}
       <div className="space-y-6">
         <SolidCard>
           <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4">Node Identity</h3>
