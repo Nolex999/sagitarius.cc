@@ -430,4 +430,3 @@ const SettingsModule = ({ profile }) => (
     </SolidCard>
   </div>
 );
-```
