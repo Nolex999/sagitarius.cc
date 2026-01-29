@@ -171,7 +171,18 @@ export default function Home() {
   );
 }
 
-// ... (NavBtn remains same) ...
+const NavBtn = ({ label, active, onClick, icon: Icon }) => (
+  <button
+    onClick={onClick}
+    className={`flex items-center justify-center lg:justify-start w-full px-4 py-3 rounded-lg transition-all duration-300 group ${active
+      ? 'bg-gradient-to-r from-indigo-600/10 to-transparent border-l-2 border-indigo-500 text-white'
+      : 'text-zinc-500 hover:text-white hover:bg-white/5 border-l-2 border-transparent'
+      }`}
+  >
+    <Icon className={`w-5 h-5 lg:mr-3 transition-colors ${active ? 'text-indigo-400' : 'text-zinc-500 group-hover:text-zinc-200'}`} />
+    <span className="hidden lg:inline text-sm font-medium tracking-wide whitespace-nowrap">{label}</span>
+  </button>
+);
 
 // --- MODULES ---
 
