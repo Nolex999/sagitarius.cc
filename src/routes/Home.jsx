@@ -29,37 +29,37 @@ const Loader = () => (
 const BannedScreen = () => (
   <div className="flex h-screen w-full flex-col items-center justify-center bg-[#050505] text-red-500 p-4 text-center">
     <div className="relative mb-6">
-      <div className="absolute inset-0 bg-red-500/20 blur-3xl rounded-full"></div>
-      <ShieldAlert className="h-24 w-24 relative z-10 animate-bounce" />
+      <div className="absolute inset-0 bg-red-500/10 blur-3xl rounded-full"></div>
+      <ShieldAlert className="h-24 w-24 relative z-10" />
     </div>
     <h1 className="text-4xl font-black uppercase tracking-tighter mb-2 text-white">Access Denied</h1>
     <p className="font-mono text-sm text-red-400 bg-red-950/30 px-4 py-1 rounded border border-red-900/50">HWID FLAGGED: TERMINATED</p>
   </div>
 );
 
-const GlassCard = ({ children, className = "" }) => (
-  <div className={`bg-zinc-900/40 backdrop-blur-md border border-white/5 rounded-xl p-6 relative overflow-hidden group ${className}`}>
-    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+// Renamed from GlassCard to SolidCard for clarity in editing, though we kept prop name
+const SolidCard = ({ children, className = "" }) => (
+  <div className={`bg-[#0A0A0A] border border-zinc-800 rounded-lg p-6 relative overflow-hidden group shadow-lg ${className}`}>
     {children}
   </div>
 );
 
 const StatCard = ({ icon: Icon, label, value, sub, color = "text-white" }) => (
-  <GlassCard className="flex flex-col justify-between hover:border-indigo-500/30 transition-colors duration-300">
+  <SolidCard className="flex flex-col justify-between hover:border-zinc-700 transition-colors duration-200">
     <div className="flex justify-between items-start mb-4">
-      <div className={`p-2 rounded-lg bg-black/40 border border-white/5 ${color}`}>
+      <div className={`p-2 rounded-lg bg-zinc-900 border border-zinc-800 ${color}`}>
         <Icon className="h-5 w-5" />
       </div>
-      <span className="text-zinc-600 text-[10px] uppercase tracking-wider font-bold">{label}</span>
+      <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-bold">{label}</span>
     </div>
     <div>
       <h2 className={`text-3xl font-mono font-bold text-white tracking-tighter`}>{value}</h2>
       {sub && <p className="text-xs text-zinc-500 mt-2 flex items-center gap-1">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
         {sub}
       </p>}
     </div>
-  </GlassCard>
+  </SolidCard>
 );
 
 // --- MAIN COMPONENT ---
@@ -181,8 +181,8 @@ export default function Home() {
             <button
               onClick={handleConnect}
               className={`relative group overflow-hidden px-8 py-3 rounded-md font-bold text-sm tracking-wider transition-all duration-300 ${connectStatus === 'CONNECTED' ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]' :
-                  connectStatus === 'CONNECTING' ? 'bg-zinc-800 text-zinc-500 cursor-wait' :
-                    'bg-white text-black hover:scale-105'
+                connectStatus === 'CONNECTING' ? 'bg-zinc-800 text-zinc-500 cursor-wait' :
+                  'bg-white text-black hover:scale-105'
                 }`}
             >
               <div className="flex items-center gap-2 relative z-10">
@@ -250,49 +250,49 @@ const UserDashboard = ({ profile }) => (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* WELCOME / NEWS */}
       <div className="lg:col-span-2 space-y-6">
-        <GlassCard className="bg-gradient-to-br from-indigo-900/20 to-zinc-900/50">
+        <SolidCard className="bg-[#0A0A0A]">
           <h2 className="text-xl font-bold text-white mb-2">Welcome, {profile.username}.</h2>
-          <p className="text-sm text-zinc-400 max-w-lg">
+          <p className="text-sm text-zinc-500 max-w-lg">
             The network is stable. You can now use the HTTP Client to simulate secure protocol exchanges or monitor global traffic.
           </p>
-        </GlassCard>
+        </SolidCard>
 
         <div className="space-y-3">
           <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider pl-1">System Logs</h3>
           {[1, 2, 3].map(i => (
-            <GlassCard key={i} className="py-4 flex gap-4 items-center group cursor-pointer hover:bg-white/5">
+            <SolidCard key={i} className="py-4 flex gap-4 items-center group cursor-pointer hover:bg-zinc-900 border-transparent hover:border-zinc-800 transition-all">
               <div className="h-2 w-2 bg-indigo-500 rounded-full"></div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">INFO</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-900 text-indigo-400 font-mono border border-zinc-800">INFO</span>
                   <span className="text-xs text-zinc-600">Today, 14:02</span>
                 </div>
-                <h4 className="text-white font-medium group-hover:text-indigo-300 transition-colors">Protocol updated to HTTPS/2</h4>
+                <h4 className="text-white font-medium group-hover:text-indigo-400 transition-colors">Protocol updated to HTTPS/2</h4>
               </div>
-            </GlassCard>
+            </SolidCard>
           ))}
         </div>
       </div>
 
       {/* SIDE WIDGET */}
       <div className="space-y-6">
-        <GlassCard>
+        <SolidCard>
           <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4">Node Identity</h3>
           <div className="space-y-4">
-            <div className="flex justify-between items-center pb-2 border-b border-white/5">
-              <span className="text-sm text-zinc-400">Handle</span>
+            <div className="flex justify-between items-center pb-2 border-b border-zinc-900">
+              <span className="text-sm text-zinc-500">Handle</span>
               <span className="font-mono text-xs text-indigo-400">{profile.username}</span>
             </div>
-            <div className="flex justify-between items-center pb-2 border-b border-white/5">
-              <span className="text-sm text-zinc-400">Location</span>
-              <span className="font-mono text-xs text-white">ENCRYPTED</span>
+            <div className="flex justify-between items-center pb-2 border-b border-zinc-900">
+              <span className="text-sm text-zinc-500">Location</span>
+              <span className="font-mono text-xs text-zinc-400">ENCRYPTED</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400">Signature</span>
+              <span className="text-sm text-zinc-500">Signature</span>
               <span className="font-mono text-xs text-emerald-500">VERIFIED</span>
             </div>
           </div>
-        </GlassCard>
+        </SolidCard>
       </div>
     </div>
   </div>
@@ -322,12 +322,12 @@ const HttpModule = () => {
 
   return (
     <div className="space-y-6">
-      <GlassCard>
+      <SolidCard>
         <div className="flex flex-col md:flex-row gap-4 mb-4">
           <select
             value={method}
             onChange={e => setMethod(e.target.value)}
-            className="bg-black/50 border border-white/10 rounded px-3 py-2 text-white font-mono focus:border-indigo-500 outline-none"
+            className="bg-zinc-900 border border-zinc-800 rounded px-3 py-2 text-white font-mono focus:border-indigo-500 outline-none"
           >
             <option>GET</option>
             <option>POST</option>
@@ -337,7 +337,7 @@ const HttpModule = () => {
           <input
             value={url}
             onChange={e => setUrl(e.target.value)}
-            className="flex-1 bg-black/50 border border-white/10 rounded px-4 py-2 text-white font-mono text-sm focus:border-indigo-500 outline-none"
+            className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-4 py-2 text-white font-mono text-sm focus:border-indigo-500 outline-none"
             placeholder="https://api.example.com/endpoint"
           />
           <button
@@ -349,24 +349,24 @@ const HttpModule = () => {
             SEND
           </button>
         </div>
-      </GlassCard>
+      </SolidCard>
 
       {response && (
         <div className="animate-in fade-in slide-in-from-bottom-2">
           <div className="flex gap-4 mb-4">
-            <GlassCard className="flex-1 py-3 px-4 !bg-black/40">
+            <SolidCard className="flex-1 py-3 px-4 !bg-zinc-900">
               <span className="text-xs text-zinc-500 block">STATUS</span>
               <span className={`text-xl font-mono font-bold ${response.error ? 'text-red-500' : 'text-green-400'}`}>
                 {response.error ? 'ERR' : response.status}
               </span>
-            </GlassCard>
-            <GlassCard className="flex-1 py-3 px-4 !bg-black/40">
+            </SolidCard>
+            <SolidCard className="flex-1 py-3 px-4 !bg-zinc-900">
               <span className="text-xs text-zinc-500 block">TIME</span>
               <span className="text-xl font-mono font-bold text-white">{response.time || 0}ms</span>
-            </GlassCard>
+            </SolidCard>
           </div>
-          <GlassCard className="font-mono text-xs">
-            <div className="flex justify-between items-center mb-2 border-b border-white/5 pb-2">
+          <SolidCard className="font-mono text-xs">
+            <div className="flex justify-between items-center mb-2 border-b border-zinc-800 pb-2">
               <span className="text-zinc-500">RESPONSE BODY</span>
               <button className="text-indigo-400 hover:text-white transition-colors" onClick={() => navigator.clipboard.writeText(JSON.stringify(response.data, null, 2))}>
                 <Copy className="w-3 h-3" />
@@ -375,7 +375,7 @@ const HttpModule = () => {
             <pre className="text-zinc-300 overflow-x-auto custom-scrollbar max-h-[400px]">
               {JSON.stringify(response.data || response.error, null, 2)}
             </pre>
-          </GlassCard>
+          </SolidCard>
         </div>
       )}
     </div>
@@ -383,8 +383,8 @@ const HttpModule = () => {
 };
 
 const NetworkModule = ({ profile }) => (
-  <GlassCard className="h-[600px] flex flex-col p-0">
-    <div className="p-4 border-b border-white/5 bg-black/20 flex justify-between items-center">
+  <SolidCard className="h-[600px] flex flex-col p-0">
+    <div className="p-4 border-b border-zinc-800 bg-zinc-900 flex justify-between items-center">
       <span className="font-bold text-white text-sm">GLOBAL ENCRYPTED CHAT</span>
       <div className="flex items-center gap-2">
         <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
@@ -395,32 +395,32 @@ const NetworkModule = ({ profile }) => (
       {/* Placeholder for complex chat logic from before to save space in this rewrite, assume imported or same logic */}
       <p className="font-mono animate-pulse">CONNECTING TO NODES...</p>
     </div>
-  </GlassCard>
+  </SolidCard>
 );
 
 const AdminModule = ({ profile }) => (
   <div className="space-y-6">
-    <GlassCard>
+    <SolidCard>
       <h3 className="font-bold text-white mb-4">Admin Dashboard</h3>
       <p className="text-sm text-zinc-400">Restricted area for system administrators.</p>
-    </GlassCard>
+    </SolidCard>
   </div>
 );
 
 const SettingsModule = ({ profile }) => (
   <div className="max-w-2xl space-y-6">
-    <GlassCard>
+    <SolidCard>
       <h3 className="font-bold text-white mb-6">Configuration</h3>
       <div className="space-y-4">
         {['Secure Mode', 'Developer Tools', 'Proxy Traffic'].map((setting, i) => (
-          <div key={i} className="flex justify-between items-center pb-4 border-b border-white/5 last:border-0">
+          <div key={i} className="flex justify-between items-center pb-4 border-b border-zinc-800 last:border-0 hover:bg-zinc-900/50 p-2 rounded transition-colors -mx-2 px-2 cursor-pointer">
             <span className="text-sm text-zinc-300">{setting}</span>
-            <div className={`w-10 h-5 rounded-full relative cursor-pointer ${i === 0 ? 'bg-indigo-600' : 'bg-zinc-700'}`}>
+            <div className={`w-10 h-5 rounded-full relative ${i === 0 ? 'bg-indigo-600' : 'bg-zinc-800 border border-zinc-700'}`}>
               <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-all ${i === 0 ? 'right-1' : 'left-1'}`}></div>
             </div>
           </div>
         ))}
       </div>
-    </GlassCard>
+    </SolidCard>
   </div>
 );
