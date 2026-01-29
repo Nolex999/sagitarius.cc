@@ -114,118 +114,120 @@ function LoginPage() {
   };
 
   return (
-    <div className="login-container">
-      <div className="logo-container">
-        <img src={logoMain} alt="logo"/>
-      </div>
+    <div className="login-page-wrapper">
+      <div className="login-container">
+        <div className="logo-container">
+          <img src={logoMain} alt="logo" />
+        </div>
 
-      <div class="header">
-        <h1>SAGITARIUS<span class="h1s">.CC</span></h1>
-        <p><center>Authentication Portal</center></p>
-      </div>
+        <div className="header">
+          <h1>SAGITARIUS<span className="h1s">.CC</span></h1>
+          <p><center>Authentication Portal</center></p>
+        </div>
 
-      <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-        {error && <div className="alert alert-error">{error}</div>}
-        {success && <div className="alert alert-success">{success}</div>}
+        <form onSubmit={handleSubmit} style={{ width: '100%' }}>
+          {error && <div className="alert alert-error">{error}</div>}
+          {success && <div className="alert alert-success">{success}</div>}
 
-        {!isLogin && (
+          {!isLogin && (
+            <div className="form-group">
+              <label>Invitation Code</label>
+              <div className="input-wrapper">
+                <Ticket size={18} />
+                <input
+                  name="inviteCode"
+                  type="text"
+                  placeholder="Enter invite code"
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+          )}
+
+          {!isLogin && (
+            <div className="form-group">
+              <label>Username</label>
+              <div className="input-wrapper">
+                <User size={18} />
+                <input
+                  name="username"
+                  type="text"
+                  placeholder="Enter username"
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+          )}
+
           <div className="form-group">
-            <label>Invitation Code</label>
+            <label>Email Address</label>
             <div className="input-wrapper">
-              <Ticket size={18} />
+              <Mail size={18} />
               <input
-                name="inviteCode"
-                type="text"
-                placeholder="Enter invite code"
+                name="email"
+                type="email"
+                placeholder="Enter email"
                 onChange={handleInputChange}
                 required
               />
             </div>
           </div>
-        )}
 
-        {!isLogin && (
           <div className="form-group">
-            <label>Username</label>
-            <div className="input-wrapper">
-              <User size={18} />
-              <input
-                name="username"
-                type="text"
-                placeholder="Enter username"
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-          </div>
-        )}
-
-        <div className="form-group">
-          <label>Email Address</label>
-          <div className="input-wrapper">
-            <Mail size={18} />
-            <input
-              name="email"
-              type="email"
-              placeholder="Enter email"
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label>Password</label>
-          <div className="input-wrapper">
-            <Lock size={18} />
-            <input
-              name="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Enter password"
-              onChange={handleInputChange}
-              required
-            />
-            <button
-              type="button"
-              className="eye-btn"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-        </div>
-
-        {!isLogin && (
-          <div className="form-group">
-            <label>Confirm Password</label>
+            <label>Password</label>
             <div className="input-wrapper">
               <Lock size={18} />
               <input
-                name="confirmPassword"
-                type="password"
-                placeholder="Confirm password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter password"
                 onChange={handleInputChange}
                 required
               />
+              <button
+                type="button"
+                className="eye-btn"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
-        )}
 
-        <button type="submit" className="submit-btn" disabled={loading}>
-          {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
+          {!isLogin && (
+            <div className="form-group">
+              <label>Confirm Password</label>
+              <div className="input-wrapper">
+                <Lock size={18} />
+                <input
+                  name="confirmPassword"
+                  type="password"
+                  placeholder="Confirm password"
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+          )}
+
+          <button type="submit" className="submit-btn" disabled={loading}>
+            {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
+          </button>
+        </form>
+
+        <button
+          className="toggle-btn"
+          onClick={() => {
+            setIsLogin(!isLogin);
+            setError(null);
+            setSuccess(null);
+          }}
+        >
+          {isLogin ? 'Need an account?' : 'Already registered?'}
         </button>
-      </form>
-
-      <button
-        className="toggle-btn"
-        onClick={() => {
-          setIsLogin(!isLogin);
-          setError(null);
-          setSuccess(null);
-        }}
-      >
-        {isLogin ? 'Need an account?' : 'Already registered?'}
-      </button>
+      </div>
     </div>
   );
 }
