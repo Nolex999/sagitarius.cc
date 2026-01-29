@@ -112,8 +112,9 @@ export default function Home() {
       </div>
 
       {/* SIDEBAR */}
-      <aside className="w-20 lg:w-72 border-r border-white/5 bg-black/80 backdrop-blur-xl flex flex-col justify-between py-8 fixed h-full z-50 transition-all duration-300 shrink-0">
-        <div className="px-3 lg:px-6 flex flex-col w-full h-full">
+      {/* CHANGED: From fixed to sticky for better layout stability */}
+      <aside className="sticky top-0 h-screen w-20 lg:w-72 border-r border-white/5 bg-black/80 backdrop-blur-xl flex flex-col justify-between py-8 z-50 transition-all duration-300 shrink-0 overflow-y-auto custom-scrollbar">
+        <div className="px-3 lg:px-6 flex flex-col w-full min-h-full">
           {/* LOGO */}
           <div className="mb-12 flex items-center justify-center lg:justify-start w-full gap-4 group cursor-pointer lg:px-2">
             <div className="relative shrink-0">
@@ -168,8 +169,9 @@ export default function Home() {
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 ml-20 lg:ml-72 p-6 lg:p-12 w-full relative z-10 transition-all duration-300">
-        <div className="max-w-7xl mx-auto w-full">
+      {/* CHANGED: Removed ml-margin, now flex-1 handles width. Added min-w-0 to prevent flex blowout. */}
+      <main className="flex-1 p-6 lg:p-12 w-full min-w-0 relative z-10 transition-all duration-300 overflow-y-auto h-screen">
+        <div className="max-w-7xl mx-auto w-full h-full">
 
           {/* TOP HEADER & CONNECT BUTTON */}
           <div className="flex justify-between items-center mb-10">
@@ -213,7 +215,7 @@ export default function Home() {
           </div>
 
           {/* CONTENT VIEWS */}
-          <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
+          <div className="animate-in fade-in slide-in-from-bottom-5 duration-500 pb-10">
             {view === 'dashboard' && <UserDashboard profile={profile} />}
             {view === 'cloud' && <FileShareModule isAdmin={isAdmin} />}
             {view === 'http' && <HttpModule />}
