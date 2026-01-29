@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import {
   LayoutDashboard, User, ShieldAlert, Activity, LogOut,
   Globe, Bell, Settings, Terminal, Plus, Trash2, ShieldCheck,
-  Copy, Check, Send, Zap, HardDrive, Cpu, Play
+  Copy, Check, Send, Zap, HardDrive, Cpu, Play, Server, Code, Wifi
 } from 'lucide-react';
 import './Home.css';
 
@@ -71,7 +71,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState('dashboard');
   const [showNotifications, setShowNotifications] = useState(false);
-  const [injectStatus, setInjectStatus] = useState('IDLE'); // IDLE | INJECTING | SUCCESS | ERROR
+  const [connectStatus, setConnectStatus] = useState('IDLE'); // IDLE | CONNECTING | CONNECTED
 
   // 1. AUTH & SECURITY
   useEffect(() => {
@@ -90,10 +90,10 @@ export default function Home() {
   }, [navigate]);
 
   const handleLogout = async () => { await supabase.auth.signOut(); navigate('/login'); };
-  const handleInject = () => {
-    if (injectStatus === 'INJECTING' || injectStatus === 'SUCCESS') return;
-    setInjectStatus('INJECTING');
-    setTimeout(() => setInjectStatus('SUCCESS'), 3000); // Fake inject delay
+  const handleConnect = () => {
+    if (connectStatus === 'CONNECTING' || connectStatus === 'CONNECTED') return;
+    setConnectStatus('CONNECTING');
+    setTimeout(() => setConnectStatus('CONNECTED'), 2000);
   };
 
   if (loading) return <Loader />;
@@ -115,24 +115,24 @@ export default function Home() {
       <aside className="w-20 lg:w-72 border-r border-white/5 bg-black/60 backdrop-blur-xl flex flex-col justify-between py-8 fixed h-full z-40 transition-all duration-300">
         <div className="px-0 lg:px-6 flex flex-col w-full">
           {/* LOGO */}
-          <div className="mb-12 flex items-center justify-center lg:justify-start w-full gap-4 group cursor-pointer">
-            <div className="relative">
+          <div className="mb-12 flex items-center justify-center lg:justify-start w-full gap-4 group cursor-pointer lg:px-2">
+            <div className="relative shrink-0">
               <div className="absolute inset-0 bg-indigo-600 blur-md opacity-50 group-hover:opacity-100 transition-opacity"></div>
               <div className="h-10 w-10 bg-gradient-to-br from-indigo-600 to-violet-700 rounded-lg flex items-center justify-center relative z-10 border border-white/10">
                 <Zap className="text-white w-6 h-6 fill-white" />
               </div>
             </div>
-            <div className="hidden lg:flex flex-col">
+            <div className="hidden lg:flex flex-col whitespace-nowrap overflow-hidden">
               <span className="font-black text-white text-xl tracking-tighter leading-none">SAGITARIUS</span>
-              <span className="text-[10px] text-indigo-400 font-mono tracking-widest uppercase">Premium Hook</span>
+              <span className="text-[10px] text-indigo-400 font-mono tracking-widest uppercase">Nexus Hub</span>
             </div>
           </div>
 
           {/* NAV */}
-          <nav className="space-y-2 w-full px-3 lg:px-0">
+          <nav className="space-y-2 w-full px-3 lg:px-2">
             <NavBtn label="Overview" active={view === 'dashboard'} onClick={() => setView('dashboard')} icon={LayoutDashboard} />
-            <NavBtn label="Library" active={view === 'library'} onClick={() => setView('library')} icon={HardDrive} />
-            <NavBtn label="Global Net" active={view === 'network'} onClick={() => setView('network')} icon={Globe} />
+            <NavBtn label="HTTP Client" active={view === 'http'} onClick={() => setView('http')} icon={Code} />
+            <NavBtn label="Network" active={view === 'network'} onClick={() => setView('network')} icon={Globe} />
             {isMod && (
               <NavBtn label="Admin" active={view === 'admin'} onClick={() => setView('admin')} icon={ShieldCheck} />
             )}
@@ -144,14 +144,14 @@ export default function Home() {
         <div className="px-3 lg:px-6 w-full">
           <div className="hidden lg:block mb-4 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-indigo-500/30 transition-colors group cursor-pointer">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-zinc-800 to-zinc-700 border border-white/10 flex items-center justify-center text-xs font-bold text-white relative">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-zinc-800 to-zinc-700 border border-white/10 flex items-center justify-center text-xs font-bold text-white relative shrink-0">
                 {profile.username.substring(0, 2).toUpperCase()}
                 <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#101010]"></div>
               </div>
               <div className="flex flex-col overflow-hidden">
                 <span className="text-sm font-bold text-white truncate group-hover:text-indigo-400 transition-colors">{profile.username}</span>
                 <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono">
-                  Till: <span className="text-zinc-300">LIFETIME</span>
+                  Role: <span className="text-zinc-300">{profile.role.toUpperCase()}</span>
                 </p>
               </div>
             </div>
@@ -167,31 +167,30 @@ export default function Home() {
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 ml-20 lg:ml-72 p-6 lg:p-12 max-w-[1600px] w-full relative z-10">
+      <main className="flex-1 ml-20 lg:ml-72 p-6 lg:p-12 max-w-[1600px] w-full relative z-10 transition-all duration-300">
 
-        {/* TOP HEADER & INJECT BUTTON */}
+        {/* TOP HEADER & CONNECT BUTTON */}
         <div className="flex justify-between items-center mb-10">
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight mb-1">{view.charAt(0).toUpperCase() + view.slice(1)}</h1>
-            <p className="text-xs text-zinc-500 font-mono">BUILD v2.4.9 // STABLE</p>
+            <h1 className="text-2xl font-bold text-white tracking-tight mb-1">{view === 'http' ? 'HTTP Protocol' : view.charAt(0).toUpperCase() + view.slice(1)}</h1>
+            <p className="text-xs text-zinc-500 font-mono">SYSTEM v2.5.0 // ONLINE</p>
           </div>
 
           <div className="flex items-center gap-6">
-            {/* INJECT BUTTON */}
+            {/* CONNECT BUTTON */}
             <button
-              onClick={handleInject}
-              className={`relative group overflow-hidden px-8 py-3 rounded-md font-bold text-sm tracking-wider transition-all duration-300 ${injectStatus === 'SUCCESS' ? 'bg-emerald-500 text-black' :
-                  injectStatus === 'INJECTING' ? 'bg-zinc-800 text-zinc-500 cursor-wait' :
+              onClick={handleConnect}
+              className={`relative group overflow-hidden px-8 py-3 rounded-md font-bold text-sm tracking-wider transition-all duration-300 ${connectStatus === 'CONNECTED' ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]' :
+                  connectStatus === 'CONNECTING' ? 'bg-zinc-800 text-zinc-500 cursor-wait' :
                     'bg-white text-black hover:scale-105'
                 }`}
             >
-              <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ${injectStatus !== 'IDLE' ? 'hidden' : ''}`}></div>
-              <div className="flex items-center gap-2">
-                {injectStatus === 'INJECTING' ? <Activity className="w-4 h-4 animate-spin" /> :
-                  injectStatus === 'SUCCESS' ? <Check className="w-4 h-4" /> : <Play className="w-4 h-4 fill-black" />}
+              <div className="flex items-center gap-2 relative z-10">
+                {connectStatus === 'CONNECTING' ? <Activity className="w-4 h-4 animate-spin" /> :
+                  connectStatus === 'CONNECTED' ? <Wifi className="w-4 h-4" /> : <Play className="w-4 h-4 fill-black" />}
                 <span>
-                  {injectStatus === 'IDLE' ? 'INJECT' :
-                    injectStatus === 'INJECTING' ? 'INJECTING...' : 'INJECTED'}
+                  {connectStatus === 'IDLE' ? 'CONNECT' :
+                    connectStatus === 'CONNECTING' ? 'ESTABLISHING...' : 'SECURE'}
                 </span>
               </div>
             </button>
@@ -213,7 +212,7 @@ export default function Home() {
         {/* CONTENT VIEWS */}
         <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
           {view === 'dashboard' && <UserDashboard profile={profile} />}
-          {view === 'library' && <LibraryModule />}
+          {view === 'http' && <HttpModule />}
           {view === 'network' && <NetworkModule profile={profile} />}
           {view === 'admin' && isAdmin && <AdminModule profile={profile} />}
           {view === 'settings' && <SettingsModule profile={profile} />}
@@ -229,12 +228,12 @@ const NavBtn = ({ label, active, onClick, icon: Icon }) => (
   <button
     onClick={onClick}
     className={`flex items-center justify-center lg:justify-start w-full px-4 py-3 rounded-lg transition-all duration-300 group ${active
-        ? 'bg-gradient-to-r from-indigo-600/10 to-transparent border-l-2 border-indigo-500 text-white'
-        : 'text-zinc-500 hover:text-white hover:bg-white/5 border-l-2 border-transparent'
+      ? 'bg-gradient-to-r from-indigo-600/10 to-transparent border-l-2 border-indigo-500 text-white'
+      : 'text-zinc-500 hover:text-white hover:bg-white/5 border-l-2 border-transparent'
       }`}
   >
     <Icon className={`w-5 h-5 lg:mr-3 transition-colors ${active ? 'text-indigo-400' : 'text-zinc-500 group-hover:text-zinc-200'}`} />
-    <span className="hidden lg:inline text-sm font-medium tracking-wide">{label}</span>
+    <span className="hidden lg:inline text-sm font-medium tracking-wide whitespace-nowrap">{label}</span>
   </button>
 );
 
@@ -243,32 +242,32 @@ const NavBtn = ({ label, active, onClick, icon: Icon }) => (
 const UserDashboard = ({ profile }) => (
   <div className="space-y-6">
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <StatCard icon={Activity} label="Status" value="UNDETECTED" sub="Last check: 2m ago" color="text-emerald-400 border-emerald-400/20" />
-      <StatCard icon={Cpu} label="Subscription" value="LIFETIME" sub="VIP Access" color="text-indigo-400 border-indigo-400/20" />
-      <StatCard icon={Terminal} label="Injections" value="1,342" sub="Total Global Uses" color="text-purple-400 border-purple-400/20" />
+      <StatCard icon={Activity} label="System Status" value="OPERATIONAL" sub="Latency: 24ms" color="text-emerald-400 border-emerald-400/20" />
+      <StatCard icon={Cpu} label="Tier" value="PROFESSIONAL" sub="Valid License" color="text-indigo-400 border-indigo-400/20" />
+      <StatCard icon={Terminal} label="API Requests" value="8,492" sub="Lifetime Calls" color="text-purple-400 border-purple-400/20" />
     </div>
 
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* WELCOME / NEWS */}
       <div className="lg:col-span-2 space-y-6">
         <GlassCard className="bg-gradient-to-br from-indigo-900/20 to-zinc-900/50">
-          <h2 className="text-xl font-bold text-white mb-2">Welcome back, Agent {profile.username}.</h2>
+          <h2 className="text-xl font-bold text-white mb-2">Welcome, {profile.username}.</h2>
           <p className="text-sm text-zinc-400 max-w-lg">
-            System integrity is at 100%. New configuration scripts for 'Counter-Strike 2' and 'Apex Legends' are available in the Library.
+            The network is stable. You can now use the HTTP Client to simulate secure protocol exchanges or monitor global traffic.
           </p>
         </GlassCard>
 
         <div className="space-y-3">
-          <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider pl-1">Latest Intelligence</h3>
+          <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider pl-1">System Logs</h3>
           {[1, 2, 3].map(i => (
             <GlassCard key={i} className="py-4 flex gap-4 items-center group cursor-pointer hover:bg-white/5">
-              <div className="h-10 w-1 p-0 bg-indigo-500 rounded-full"></div>
+              <div className="h-2 w-2 bg-indigo-500 rounded-full"></div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">UPDATE</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">INFO</span>
                   <span className="text-xs text-zinc-600">Today, 14:02</span>
                 </div>
-                <h4 className="text-white font-medium group-hover:text-indigo-300 transition-colors">Security Patch v4.2 Released</h4>
+                <h4 className="text-white font-medium group-hover:text-indigo-300 transition-colors">Protocol updated to HTTPS/2</h4>
               </div>
             </GlassCard>
           ))}
@@ -278,19 +277,19 @@ const UserDashboard = ({ profile }) => (
       {/* SIDE WIDGET */}
       <div className="space-y-6">
         <GlassCard>
-          <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4">Identity</h3>
+          <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4">Node Identity</h3>
           <div className="space-y-4">
             <div className="flex justify-between items-center pb-2 border-b border-white/5">
-              <span className="text-sm text-zinc-400">UID</span>
-              <span className="font-mono text-xs text-indigo-400">{profile.id.split('-')[0]}</span>
+              <span className="text-sm text-zinc-400">Handle</span>
+              <span className="font-mono text-xs text-indigo-400">{profile.username}</span>
             </div>
             <div className="flex justify-between items-center pb-2 border-b border-white/5">
-              <span className="text-sm text-zinc-400">Region</span>
-              <span className="font-mono text-xs text-white">EU-WEST</span>
+              <span className="text-sm text-zinc-400">Location</span>
+              <span className="font-mono text-xs text-white">ENCRYPTED</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400">HWID</span>
-              <span className="font-mono text-xs text-emerald-500">MATCHED</span>
+              <span className="text-sm text-zinc-400">Signature</span>
+              <span className="font-mono text-xs text-emerald-500">VERIFIED</span>
             </div>
           </div>
         </GlassCard>
@@ -299,34 +298,94 @@ const UserDashboard = ({ profile }) => (
   </div>
 );
 
-const LibraryModule = () => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {['CS2 Legit', 'CS2 Rage', 'Apex External', 'Rust Script', 'Valorant Colorbot'].map((title, i) => (
-      <GlassCard key={i} className="flex flex-col h-48 group">
-        <div className="flex justify-between items-start mb-4">
-          <div className="h-10 w-10 bg-indigo-600/10 rounded-lg flex items-center justify-center border border-indigo-500/20">
-            <Terminal className="text-indigo-400 w-5 h-5" />
-          </div>
-          <div className="px-2 py-1 bg-zinc-900 rounded text-[10px] text-zinc-400 border border-zinc-800">
-            v1.{i}.0
-          </div>
+const HttpModule = () => {
+  const [url, setUrl] = useState('https://jsonplaceholder.typicode.com/todos/1');
+  const [method, setMethod] = useState('GET');
+  const [response, setResponse] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const executeRequest = async () => {
+    setLoading(true);
+    setResponse(null);
+    try {
+      const start = Date.now();
+      const res = await fetch(url, { method });
+      const data = await res.json();
+      const time = Date.now() - start;
+      setResponse({ status: res.status, time, data });
+    } catch (e) {
+      setResponse({ error: e.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <GlassCard>
+        <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <select
+            value={method}
+            onChange={e => setMethod(e.target.value)}
+            className="bg-black/50 border border-white/10 rounded px-3 py-2 text-white font-mono focus:border-indigo-500 outline-none"
+          >
+            <option>GET</option>
+            <option>POST</option>
+            <option>PUT</option>
+            <option>DELETE</option>
+          </select>
+          <input
+            value={url}
+            onChange={e => setUrl(e.target.value)}
+            className="flex-1 bg-black/50 border border-white/10 rounded px-4 py-2 text-white font-mono text-sm focus:border-indigo-500 outline-none"
+            placeholder="https://api.example.com/endpoint"
+          />
+          <button
+            onClick={executeRequest}
+            disabled={loading}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-2 rounded transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {loading ? <Activity className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            SEND
+          </button>
         </div>
-        <h3 className="text-lg font-bold text-white mb-1 group-hover:text-indigo-400 transition-colors">{title}</h3>
-        <p className="text-xs text-zinc-500 mb-auto">Optimized for latest build. Undetected.</p>
-
-        <button className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded text-xs font-bold text-white transition-colors mt-4 flex items-center justify-center gap-2">
-          <Zap className="w-3 h-3" /> LOAD CONFIG
-        </button>
       </GlassCard>
-    ))}
-  </div>
-);
 
-// Re-using simplified versions of Network, Admin, Settings for brevity but styled
+      {response && (
+        <div className="animate-in fade-in slide-in-from-bottom-2">
+          <div className="flex gap-4 mb-4">
+            <GlassCard className="flex-1 py-3 px-4 !bg-black/40">
+              <span className="text-xs text-zinc-500 block">STATUS</span>
+              <span className={`text-xl font-mono font-bold ${response.error ? 'text-red-500' : 'text-green-400'}`}>
+                {response.error ? 'ERR' : response.status}
+              </span>
+            </GlassCard>
+            <GlassCard className="flex-1 py-3 px-4 !bg-black/40">
+              <span className="text-xs text-zinc-500 block">TIME</span>
+              <span className="text-xl font-mono font-bold text-white">{response.time || 0}ms</span>
+            </GlassCard>
+          </div>
+          <GlassCard className="font-mono text-xs">
+            <div className="flex justify-between items-center mb-2 border-b border-white/5 pb-2">
+              <span className="text-zinc-500">RESPONSE BODY</span>
+              <button className="text-indigo-400 hover:text-white transition-colors" onClick={() => navigator.clipboard.writeText(JSON.stringify(response.data, null, 2))}>
+                <Copy className="w-3 h-3" />
+              </button>
+            </div>
+            <pre className="text-zinc-300 overflow-x-auto custom-scrollbar max-h-[400px]">
+              {JSON.stringify(response.data || response.error, null, 2)}
+            </pre>
+          </GlassCard>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const NetworkModule = ({ profile }) => (
   <GlassCard className="h-[600px] flex flex-col p-0">
     <div className="p-4 border-b border-white/5 bg-black/20 flex justify-between items-center">
-      <span className="font-bold text-white text-sm">GLOBAL CHAT</span>
+      <span className="font-bold text-white text-sm">GLOBAL ENCRYPTED CHAT</span>
       <div className="flex items-center gap-2">
         <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
         <span className="text-xs text-zinc-400 font-mono">LIVE</span>
@@ -334,39 +393,30 @@ const NetworkModule = ({ profile }) => (
     </div>
     <div className="flex-1 flex items-center justify-center text-zinc-600 text-sm">
       {/* Placeholder for complex chat logic from before to save space in this rewrite, assume imported or same logic */}
-      <p className="font-mono animate-pulse">ESTABLISHING ENCRYPTED LINK...</p>
+      <p className="font-mono animate-pulse">CONNECTING TO NODES...</p>
     </div>
   </GlassCard>
 );
 
 const AdminModule = ({ profile }) => (
   <div className="space-y-6">
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <GlassCard>
-        <h3 className="font-bold text-white mb-4">Invite Generation</h3>
-        <div className="flex gap-2">
-          <input type="number" className="bg-black/50 border border-white/10 rounded p-2 text-white w-20 text-center" defaultValue={1} />
-          <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded text-sm">GENERATE</button>
-        </div>
-      </GlassCard>
-      <GlassCard>
-        <h3 className="font-bold text-white mb-4">User Management</h3>
-        <p className="text-xs text-zinc-500">Query users and manage bans.</p>
-      </GlassCard>
-    </div>
+    <GlassCard>
+      <h3 className="font-bold text-white mb-4">Admin Dashboard</h3>
+      <p className="text-sm text-zinc-400">Restricted area for system administrators.</p>
+    </GlassCard>
   </div>
 );
 
 const SettingsModule = ({ profile }) => (
   <div className="max-w-2xl space-y-6">
     <GlassCard>
-      <h3 className="font-bold text-white mb-6">Application Settings</h3>
+      <h3 className="font-bold text-white mb-6">Configuration</h3>
       <div className="space-y-4">
-        {['Stream Proof Mode', 'Discord RPC', 'Auto-Inject at Launch', 'Dark Mode (Forced)'].map((setting, i) => (
+        {['Secure Mode', 'Developer Tools', 'Proxy Traffic'].map((setting, i) => (
           <div key={i} className="flex justify-between items-center pb-4 border-b border-white/5 last:border-0">
             <span className="text-sm text-zinc-300">{setting}</span>
-            <div className={`w-10 h-5 rounded-full relative cursor-pointer ${i === 0 || i === 3 ? 'bg-indigo-600' : 'bg-zinc-700'}`}>
-              <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-all ${i === 0 || i === 3 ? 'right-1' : 'left-1'}`}></div>
+            <div className={`w-10 h-5 rounded-full relative cursor-pointer ${i === 0 ? 'bg-indigo-600' : 'bg-zinc-700'}`}>
+              <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-all ${i === 0 ? 'right-1' : 'left-1'}`}></div>
             </div>
           </div>
         ))}
