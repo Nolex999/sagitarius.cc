@@ -112,8 +112,8 @@ export default function Home() {
       </div>
 
       {/* SIDEBAR */}
-      <aside className="w-20 lg:w-72 border-r border-white/5 bg-black/60 backdrop-blur-xl flex flex-col justify-between py-8 fixed h-full z-40 transition-all duration-300">
-        <div className="px-0 lg:px-6 flex flex-col w-full">
+      <aside className="w-20 lg:w-72 border-r border-white/5 bg-black/80 backdrop-blur-xl flex flex-col justify-between py-8 fixed h-full z-50 transition-all duration-300 shrink-0">
+        <div className="px-3 lg:px-6 flex flex-col w-full h-full">
           {/* LOGO */}
           <div className="mb-12 flex items-center justify-center lg:justify-start w-full gap-4 group cursor-pointer lg:px-2">
             <div className="relative shrink-0">
@@ -129,7 +129,7 @@ export default function Home() {
           </div>
 
           {/* NAV */}
-          <nav className="space-y-2 w-full px-3 lg:px-2">
+          <nav className="space-y-2 w-full flex-1">
             <NavBtn label="Overview" active={view === 'dashboard'} onClick={() => setView('dashboard')} icon={LayoutDashboard} />
             <NavBtn label="File Cloud" active={view === 'cloud'} onClick={() => setView('cloud')} icon={Cloud} />
             <NavBtn label="HTTP Client" active={view === 'http'} onClick={() => setView('http')} icon={Code} />
@@ -139,87 +139,88 @@ export default function Home() {
             )}
             <NavBtn label="Settings" active={view === 'settings'} onClick={() => setView('settings')} icon={Settings} />
           </nav>
-        </div>
 
-        {/* USER PROFILE */}
-        <div className="px-3 lg:px-6 w-full">
-          <div className="hidden lg:block mb-4 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-indigo-500/30 transition-colors group cursor-pointer">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-zinc-800 to-zinc-700 border border-white/10 flex items-center justify-center text-xs font-bold text-white relative shrink-0">
-                {profile.username.substring(0, 2).toUpperCase()}
-                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#101010]"></div>
-              </div>
-              <div className="flex flex-col overflow-hidden">
-                <span className="text-sm font-bold text-white truncate group-hover:text-indigo-400 transition-colors">{profile.username}</span>
-                <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono">
-                  Role: <span className="text-zinc-300">{profile.role.toUpperCase()}</span>
-                </p>
+          {/* USER PROFILE */}
+          <div className="mt-auto pt-4 border-t border-white/5">
+            <div className="hidden lg:block mb-4 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-indigo-500/30 transition-colors group cursor-pointer">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-zinc-800 to-zinc-700 border border-white/10 flex items-center justify-center text-xs font-bold text-white relative shrink-0">
+                  {profile.username.substring(0, 2).toUpperCase()}
+                  <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#101010]"></div>
+                </div>
+                <div className="flex flex-col overflow-hidden text-left">
+                  <span className="text-sm font-bold text-white truncate group-hover:text-indigo-400 transition-colors">{profile.username}</span>
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono">
+                    Role: <span className="text-zinc-300">{profile.role.toUpperCase()}</span>
+                  </p>
+                </div>
               </div>
             </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center justify-center lg:justify-start w-full p-2 text-zinc-500 hover:text-red-400 transition-colors group rounded-md hover:bg-white/5"
+            >
+              <LogOut className="w-5 h-5 lg:mr-3 group-hover:-translate-x-1 transition-transform" />
+              <span className="hidden lg:inline text-xs font-bold tracking-wider">LOGOUT</span>
+            </button>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center justify-center lg:justify-start w-full p-2 text-zinc-500 hover:text-red-400 transition-colors group"
-          >
-            <LogOut className="w-5 h-5 lg:mr-3 group-hover:-translate-x-1 transition-transform" />
-            <span className="hidden lg:inline text-xs font-bold tracking-wider">LOGOUT</span>
-          </button>
         </div>
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 ml-20 lg:ml-72 p-6 lg:p-12 max-w-[1600px] w-full relative z-10 transition-all duration-300">
+      <main className="flex-1 ml-20 lg:ml-72 p-6 lg:p-12 w-full relative z-10 transition-all duration-300">
+        <div className="max-w-7xl mx-auto w-full">
 
-        {/* TOP HEADER & CONNECT BUTTON */}
-        <div className="flex justify-between items-center mb-10">
-          <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight mb-1">
-              {view === 'http' ? 'HTTP Protocol' : view === 'cloud' ? 'Secure Cloud Storage' : view.charAt(0).toUpperCase() + view.slice(1)}
-            </h1>
-            <p className="text-xs text-zinc-500 font-mono">SYSTEM v2.5.0 // ONLINE</p>
-          </div>
+          {/* TOP HEADER & CONNECT BUTTON */}
+          <div className="flex justify-between items-center mb-10">
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight mb-1">
+                {view === 'http' ? 'HTTP Protocol' : view === 'cloud' ? 'Secure Cloud Storage' : view.charAt(0).toUpperCase() + view.slice(1)}
+              </h1>
+              <p className="text-xs text-zinc-500 font-mono">SYSTEM v2.5.0 // ONLINE</p>
+            </div>
 
-          <div className="flex items-center gap-6">
-            {/* CONNECT BUTTON */}
-            <button
-              onClick={handleConnect}
-              className={`relative group overflow-hidden px-8 py-3 rounded-md font-bold text-sm tracking-wider transition-all duration-300 ${connectStatus === 'CONNECTED' ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]' :
-                connectStatus === 'CONNECTING' ? 'bg-zinc-800 text-zinc-500 cursor-wait' :
-                  'bg-white text-black hover:scale-105'
-                }`}
-            >
-              <div className="flex items-center gap-2 relative z-10">
-                {connectStatus === 'CONNECTING' ? <Activity className="w-4 h-4 animate-spin" /> :
-                  connectStatus === 'CONNECTED' ? <Wifi className="w-4 h-4" /> : <Play className="w-4 h-4 fill-black" />}
-                <span>
-                  {connectStatus === 'IDLE' ? 'CONNECT' :
-                    connectStatus === 'CONNECTING' ? 'ESTABLISHING...' : 'SECURE'}
-                </span>
-              </div>
-            </button>
-
-            {/* NOTIFICATIONS */}
-            <div className="relative">
+            <div className="flex items-center gap-6">
+              {/* CONNECT BUTTON */}
               <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="h-10 w-10 bg-zinc-900/50 backdrop-blur rounded-full flex items-center justify-center border border-white/10 hover:border-indigo-500/50 hover:bg-white/5 transition-all"
+                onClick={handleConnect}
+                className={`relative group overflow-hidden px-8 py-3 rounded-md font-bold text-sm tracking-wider transition-all duration-300 ${connectStatus === 'CONNECTED' ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]' :
+                  connectStatus === 'CONNECTING' ? 'bg-zinc-800 text-zinc-500 cursor-wait' :
+                    'bg-white text-black hover:scale-105'
+                  }`}
               >
-                <Bell className={`w-4 h-4 ${showNotifications ? 'text-indigo-400' : 'text-zinc-400'}`} />
-                <span className="absolute top-0 right-0 w-2 h-2 bg-indigo-500 rounded-full"></span>
+                <div className="flex items-center gap-2 relative z-10">
+                  {connectStatus === 'CONNECTING' ? <Activity className="w-4 h-4 animate-spin" /> :
+                    connectStatus === 'CONNECTED' ? <Wifi className="w-4 h-4" /> : <Play className="w-4 h-4 fill-black" />}
+                  <span>
+                    {connectStatus === 'IDLE' ? 'CONNECT' :
+                      connectStatus === 'CONNECTING' ? 'ESTABLISHING...' : 'SECURE'}
+                  </span>
+                </div>
               </button>
+
+              {/* NOTIFICATIONS */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="h-10 w-10 bg-zinc-900/50 backdrop-blur rounded-full flex items-center justify-center border border-white/10 hover:border-indigo-500/50 hover:bg-white/5 transition-all"
+                >
+                  <Bell className={`w-4 h-4 ${showNotifications ? 'text-indigo-400' : 'text-zinc-400'}`} />
+                  <span className="absolute top-0 right-0 w-2 h-2 bg-indigo-500 rounded-full"></span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* CONTENT VIEWS */}
-        <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
-          {view === 'dashboard' && <UserDashboard profile={profile} />}
-          {view === 'cloud' && <FileShareModule isAdmin={isAdmin} />}
-          {view === 'http' && <HttpModule />}
-          {view === 'network' && <NetworkModule profile={profile} />}
-          {view === 'admin' && isAdmin && <AdminModule profile={profile} />}
-          {view === 'settings' && <SettingsModule profile={profile} />}
-        </div>
+          {/* CONTENT VIEWS */}
+          <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
+            {view === 'dashboard' && <UserDashboard profile={profile} />}
+            {view === 'cloud' && <FileShareModule isAdmin={isAdmin} />}
+            {view === 'http' && <HttpModule />}
+            {view === 'network' && <NetworkModule profile={profile} />}
+            {view === 'admin' && isAdmin && <AdminModule profile={profile} />}
+            {view === 'settings' && <SettingsModule profile={profile} />}
+          </div>
 
       </main>
     </div>
@@ -230,13 +231,13 @@ export default function Home() {
 const NavBtn = ({ label, active, onClick, icon: Icon }) => (
   <button
     onClick={onClick}
-    className={`flex items-center justify-center lg:justify-start w-full px-4 py-3 rounded-lg transition-all duration-300 group ${active
+    className={`flex items-center justify-center lg:justify-start w-full px-4 py-3 rounded-lg transition-all duration-300 group gap-3 ${active
       ? 'bg-gradient-to-r from-indigo-600/10 to-transparent border-l-2 border-indigo-500 text-white'
       : 'text-zinc-500 hover:text-white hover:bg-white/5 border-l-2 border-transparent'
       }`}
   >
-    <Icon className={`w-5 h-5 lg:mr-3 transition-colors ${active ? 'text-indigo-400' : 'text-zinc-500 group-hover:text-zinc-200'}`} />
-    <span className="hidden lg:inline text-sm font-medium tracking-wide whitespace-nowrap">{label}</span>
+    <Icon className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-indigo-400' : 'text-zinc-500 group-hover:text-zinc-200'}`} />
+    <span className="hidden lg:inline text-sm font-medium tracking-wide whitespace-nowrap overflow-hidden text-ellipsis">{label}</span>
   </button>
 );
 
