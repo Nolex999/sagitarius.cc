@@ -1,58 +1,175 @@
-/* Home.css - Premium Cheat Loader UI */
-
-/* CUSTOM SCROLLBAR */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+:root {
+  --bg: #020202;
+  --panel: #080808;
+  --border: rgba(255, 255, 255, 0.05);
+  --accent: #6366f1;
+  --text-main: #e4e4e7;
+  --text-dim: #71717a;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
+body {
+  background-color: var(--bg);
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  overflow: hidden;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+/* BACKGROUND EFFECTS */
+.bg-glow {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.05) 0%, transparent 50%);
+  pointer-events: none;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.4);
+/* LAYOUT */
+.dashboard-root {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
 }
+
+.main-container {
+  width: 100%;
+  max-width: 1100px;
+  height: 80vh;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  display: flex;
+  overflow: hidden;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+  backdrop-filter: blur(20px);
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 260px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1rem;
+  background: rgba(0,0,0,0.2);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 1rem 2rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.brand-icon {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.nav-list { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 1rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.nav-item:hover { background: rgba(255,255,255,0.03); color: white; }
+.nav-item.active { background: rgba(99, 102, 241, 0.1); color: white; }
+
+/* CONTENT */
+.content-area { flex: 1; display: flex; flex-direction: column; background: #050505; }
+
+.content-header {
+  padding: 2rem 3rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.content-header h1 { font-size: 0.8rem; letter-spacing: 2px; color: var(--text-dim); }
+
+.status-badge {
+  background: rgba(255,255,255,0.03);
+  padding: 6px 12px;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex; align-items: center; gap: 8px;
+  border: 1px solid var(--border);
+}
+
+.dot { width: 6px; height: 6px; border-radius: 50%; background: #3f3f46; }
+.dot.active { background: #10b981; box-shadow: 0 0 10px #10b981; }
+
+.scroll-content { padding: 0 3rem 3rem; overflow-y: auto; flex: 1; }
+
+/* COMPONENTS */
+.profile-card {
+  display: flex; align-items: center; gap: 20px;
+  padding: 2rem; background: rgba(255,255,255,0.02);
+  border-radius: 20px; border: 1px solid var(--border);
+  margin-bottom: 2rem;
+}
+
+.avatar-large {
+  width: 60px; height: 60px; border-radius: 50%;
+  background: linear-gradient(45deg, #18181b, #27272a);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; font-weight: 700; border: 1px solid var(--border);
+}
+
+.info-box {
+  background: rgba(255,255,255,0.01);
+  border: 1px solid var(--border);
+  padding: 1.5rem; border-radius: 16px;
+  display: flex; gap: 15px;
+}
+
+.info-box .label { display: block; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; }
+.info-box .value { display: block; font-size: 0.9rem; font-weight: 600; margin-top: 4px; }
+
+.grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+/* BUTTONS & INPUTS */
+.input-group {
+  margin-top: 1.5rem; display: flex; gap: 10px;
+}
+
+input[type="text"] {
+  background: #000; border: 1px solid var(--border);
+  padding: 12px 1rem; border-radius: 10px; color: white;
+  flex: 1; outline: none; transition: border 0.3s;
+}
+
+input[type="text"]:focus { border-color: var(--accent); }
+
+button {
+  background: var(--accent); color: white; border: none;
+  padding: 10px 20px; border-radius: 10px; font-weight: 600;
+  cursor: pointer; transition: opacity 0.2s;
+}
+
+button:hover { opacity: 0.8; }
 
 /* ANIMATIONS */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.view-fade {
+  animation: fadeIn 0.4s ease-out;
 }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-in {
-  animation-fill-mode: forwards;
-}
-
-.fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
-.slide-in-from-top-4 {
-    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) reverse; /* Simulate slide down roughly or just use slideUp */
-}
-
-.slide-in-from-bottom-5 {
-  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.slide-in-from-bottom-2 {
-  animation: slideUp 0.3s ease-out;
-}
-
-/* UTILS */
-.glass-panel {
-  background: rgba(10, 10, 10, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
+/* CUSTOM SCROLLBAR */
+.scroll-content::-webkit-scrollbar { width: 4px; }
+.scroll-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
