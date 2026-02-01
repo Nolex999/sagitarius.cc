@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
 import {
-  LayoutDashboard, User, ShieldAlert, Activity, LogOut,
-  Globe, Bell, Settings, Terminal, Plus, Trash2, ShieldCheck,
-  Copy, Check, Send, Zap, HardDrive, Cpu, Play, Server, Code, Wifi, Cloud, FileText, Download, UploadCloud
+  User, Shield, Download, FileCode, CreditCard,
+  LogOut, Activity, Lock, Cpu, Zap, ChevronRight,
+  Terminal, ShieldAlert, CheckCircle2, AlertCircle
 } from 'lucide-react';
 import './Home.css';
 
@@ -14,492 +14,336 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
-// --- COMPOSANTS UI UTILITAIRES ---
+// --- COMPOSANTS UI ---
 
 const Loader = () => (
-  <div className="flex h-screen w-full items-center justify-center bg-[#050505] text-xs font-mono tracking-widest text-zinc-500">
-    <div className="flex flex-col items-center gap-4 relative">
-      <div className="absolute inset-0 bg-indigo-500/20 blur-xl animate-pulse rounded-full"></div>
-      <Activity className="h-8 w-8 animate-spin text-indigo-500 relative z-10" />
-      <span className="animate-pulse text-indigo-400 font-bold">ESTABLISHING SECURE CONNECTION...</span>
+  <div className="flex h-screen w-full flex-col items-center justify-center bg-[#020202] text-zinc-500">
+    <div className="relative">
+      <div className="absolute inset-0 bg-indigo-600/20 blur-2xl rounded-full animate-pulse"></div>
+      <Zap className="h-10 w-10 text-indigo-500 animate-bounce relative z-10" />
     </div>
+    <span className="mt-4 font-mono text-xs tracking-[0.2em] text-indigo-400 animate-pulse">INITIALIZING SAGITARIUS...</span>
   </div>
 );
 
 const BannedScreen = () => (
-  <div className="flex h-screen w-full flex-col items-center justify-center bg-[#050505] text-red-500 p-4 text-center">
-    <div className="relative mb-6">
-      <div className="absolute inset-0 bg-red-500/10 blur-3xl rounded-full"></div>
-      <ShieldAlert className="h-24 w-24 relative z-10" />
-    </div>
-    <h1 className="text-4xl font-black uppercase tracking-tighter mb-2 text-white">Access Denied</h1>
-    <p className="font-mono text-sm text-red-400 bg-red-950/30 px-4 py-1 rounded border border-red-900/50">HWID FLAGGED: TERMINATED</p>
+  <div className="flex h-screen w-full flex-col items-center justify-center bg-[#020202] text-red-500">
+    <ShieldAlert className="h-20 w-20 mb-4 opacity-80" />
+    <h1 className="text-3xl font-black uppercase tracking-widest text-white">Restricted</h1>
+    <p className="font-mono text-xs text-red-500 mt-2 bg-red-950/20 px-4 py-1 rounded border border-red-900/30">
+      HWID TERMINATED
+    </p>
   </div>
 );
 
-// Renamed from GlassCard to SolidCard for clarity in editing, though we kept prop name
-const SolidCard = ({ children, className = "" }) => (
-  <div className={`bg-[#0A0A0A] border border-white/10 rounded-lg p-6 relative overflow-hidden group shadow-lg transition-colors hover:border-white/20 ${className}`}>
-    {children}
-  </div>
-);
-
-const StatCard = ({ icon: Icon, label, value, sub, color = "text-white" }) => (
-  <SolidCard className="flex flex-col justify-between">
-    <div className="flex justify-between items-start mb-4">
-      <div className={`p-2 rounded-lg bg-zinc-900 border border-white/10 ${color}`}>
-        <Icon className="h-5 w-5" />
-      </div>
-      <span className="text-zinc-400 text-[10px] uppercase tracking-wider font-bold">{label}</span>
-    </div>
-    <div>
-      <h2 className={`text-3xl font-mono font-bold text-white tracking-tighter`}>{value}</h2>
-      {sub && <p className="text-xs text-zinc-500 mt-2 flex items-center gap-1">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-        {sub}
-      </p>}
-    </div>
-  </SolidCard>
-);
-
-// --- MAIN COMPONENT ---
+// --- COMPOSANT PRINCIPAL ---
 
 export default function Home() {
   const navigate = useNavigate();
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState('dashboard');
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [connectStatus, setConnectStatus] = useState('IDLE'); // IDLE | CONNECTING | CONNECTED
+  const [activeTab, setActiveTab] = useState('profile');
 
-  // 1. AUTH & SECURITY
+  // Auth Logic
   useEffect(() => {
-    let mounted = true;
     const checkAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) { navigate('/login'); return; }
+        
         const { data: userProfile, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
         if (error) throw error;
-        if (mounted) { setSession(session); setProfile(userProfile); setLoading(false); }
-      } catch (error) { console.error("Auth Error:", error); navigate('/login'); }
+        
+        setSession(session);
+        setProfile(userProfile);
+        setLoading(false);
+      } catch (error) { navigate('/login'); }
     };
     checkAuth();
-    return () => { mounted = false; };
   }, [navigate]);
 
   const handleLogout = async () => { await supabase.auth.signOut(); navigate('/login'); };
-  const handleConnect = () => {
-    if (connectStatus === 'CONNECTING' || connectStatus === 'CONNECTED') return;
-    setConnectStatus('CONNECTING');
-    setTimeout(() => setConnectStatus('CONNECTED'), 2000);
-  };
 
   if (loading) return <Loader />;
   if (profile?.is_banned) return <BannedScreen />;
-  if (!session) return null;
 
-  const isMod = ['admin', 'moderator'].includes(profile.role);
-  const isAdmin = profile.role === 'admin';
+  const isAdmin = profile?.role === 'admin';
 
-  return (
-    <div className="flex min-h-screen w-full bg-[#050505] text-zinc-300 font-sans selection:bg-indigo-500/30 overflow-hidden relative">
-      {/* BACKGROUND NOISE & GRADIENTS */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-900/10 rounded-full blur-[120px]"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-900/10 rounded-full blur-[120px]"></div>
-      </div>
-
-      {/* SIDEBAR */}
-      {/* CHANGED: From fixed to sticky for better layout stability */}
-      <aside className="sticky top-0 h-screen w-20 lg:w-72 border-r border-white/5 bg-black/80 backdrop-blur-xl flex flex-col justify-between py-8 z-50 transition-all duration-300 shrink-0 overflow-y-auto custom-scrollbar">
-        <div className="px-3 lg:px-6 flex flex-col w-full min-h-full">
-          {/* LOGO */}
-          <div className="mb-12 flex items-center justify-center lg:justify-start w-full gap-4 group cursor-pointer lg:px-2">
-            <div className="relative shrink-0">
-              <div className="absolute inset-0 bg-indigo-600 blur-md opacity-50 group-hover:opacity-100 transition-opacity"></div>
-              <div className="h-10 w-10 bg-gradient-to-br from-indigo-600 to-violet-700 rounded-lg flex items-center justify-center relative z-10 border border-white/10">
-                <Zap className="text-white w-6 h-6 fill-white" />
-              </div>
-            </div>
-            <div className="hidden lg:flex flex-col whitespace-nowrap overflow-hidden">
-              <span className="font-black text-white text-xl tracking-tighter leading-none">SAGITARIUS</span>
-              <span className="text-[10px] text-indigo-400 font-mono tracking-widest uppercase">Nexus Hub</span>
-            </div>
-          </div>
-
-          {/* NAV */}
-          <nav className="space-y-2 w-full flex-1">
-            <NavBtn label="Overview" active={view === 'dashboard'} onClick={() => setView('dashboard')} icon={LayoutDashboard} />
-            <NavBtn label="File Cloud" active={view === 'cloud'} onClick={() => setView('cloud')} icon={Cloud} />
-            <NavBtn label="HTTP Client" active={view === 'http'} onClick={() => setView('http')} icon={Code} />
-            <NavBtn label="Network" active={view === 'network'} onClick={() => setView('network')} icon={Globe} />
-            {isMod && (
-              <NavBtn label="Admin" active={view === 'admin'} onClick={() => setView('admin')} icon={ShieldCheck} />
-            )}
-            <NavBtn label="Settings" active={view === 'settings'} onClick={() => setView('settings')} icon={Settings} />
-          </nav>
-
-          {/* USER PROFILE */}
-          <div className="mt-auto pt-4 border-t border-white/5">
-            <div className="hidden lg:block mb-4 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-indigo-500/30 transition-colors group cursor-pointer">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-zinc-800 to-zinc-700 border border-white/10 flex items-center justify-center text-xs font-bold text-white relative shrink-0">
-                  {profile.username.substring(0, 2).toUpperCase()}
-                  <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#101010]"></div>
-                </div>
-                <div className="flex flex-col overflow-hidden text-left">
-                  <span className="text-sm font-bold text-white truncate group-hover:text-indigo-400 transition-colors">{profile.username}</span>
-                  <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono">
-                    Role: <span className="text-zinc-300">{profile.role.toUpperCase()}</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center justify-center lg:justify-start w-full p-2 text-zinc-500 hover:text-red-400 transition-colors group rounded-md hover:bg-white/5"
-            >
-              <LogOut className="w-5 h-5 lg:mr-3 group-hover:-translate-x-1 transition-transform" />
-              <span className="hidden lg:inline text-xs font-bold tracking-wider">LOGOUT</span>
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      {/* MAIN CONTENT AREA */}
-      {/* CHANGED: Removed ml-margin, now flex-1 handles width. Added min-w-0 to prevent flex blowout. */}
-      <main className="flex-1 p-6 lg:p-12 w-full min-w-0 relative z-10 transition-all duration-300 overflow-y-auto h-screen">
-        <div className="max-w-7xl mx-auto w-full h-full">
-
-          {/* TOP HEADER & CONNECT BUTTON */}
-          <div className="flex justify-between items-center mb-10">
-            <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight mb-1">
-                {view === 'http' ? 'HTTP Protocol' : view === 'cloud' ? 'Secure Cloud Storage' : view.charAt(0).toUpperCase() + view.slice(1)}
-              </h1>
-              <p className="text-xs text-zinc-500 font-mono">SYSTEM v2.5.0 // ONLINE</p>
-            </div>
-
-            <div className="flex items-center gap-6">
-              {/* CONNECT BUTTON */}
-              <button
-                onClick={handleConnect}
-                className={`relative group overflow-hidden px-8 py-3 rounded-md font-bold text-sm tracking-wider transition-all duration-300 ${connectStatus === 'CONNECTED' ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]' :
-                  connectStatus === 'CONNECTING' ? 'bg-zinc-800 text-zinc-500 cursor-wait' :
-                    'bg-white text-black hover:scale-105'
-                  }`}
-              >
-                <div className="flex items-center gap-2 relative z-10">
-                  {connectStatus === 'CONNECTING' ? <Activity className="w-4 h-4 animate-spin" /> :
-                    connectStatus === 'CONNECTED' ? <Wifi className="w-4 h-4" /> : <Play className="w-4 h-4 fill-black" />}
-                  <span>
-                    {connectStatus === 'IDLE' ? 'CONNECT' :
-                      connectStatus === 'CONNECTING' ? 'ESTABLISHING...' : 'SECURE'}
-                  </span>
-                </div>
-              </button>
-
-              {/* NOTIFICATIONS */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className="h-10 w-10 bg-zinc-900/50 backdrop-blur rounded-full flex items-center justify-center border border-white/10 hover:border-indigo-500/50 hover:bg-white/5 transition-all"
-                >
-                  <Bell className={`w-4 h-4 ${showNotifications ? 'text-indigo-400' : 'text-zinc-400'}`} />
-                  <span className="absolute top-0 right-0 w-2 h-2 bg-indigo-500 rounded-full"></span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* CONTENT VIEWS */}
-          <div className="animate-in fade-in slide-in-from-bottom-5 duration-500 pb-10">
-            {view === 'dashboard' && <UserDashboard profile={profile} />}
-            {view === 'cloud' && <FileShareModule isAdmin={isAdmin} />}
-            {view === 'http' && <HttpModule />}
-            {view === 'network' && <NetworkModule profile={profile} />}
-            {view === 'admin' && isAdmin && <AdminModule profile={profile} />}
-            {view === 'settings' && <SettingsModule profile={profile} />}
-          </div>
-
-        </div>
-      </main>
-    </div>
-  );
-}
-
-// --- SUB-COMPONENT: NAV BTN ---
-const NavBtn = ({ label, active, onClick, icon: Icon }) => (
-  <button
-    onClick={onClick}
-    className={`flex items-center justify-center lg:justify-start w-full px-4 py-3 rounded-lg transition-all duration-300 group gap-3 ${active
-      ? 'bg-gradient-to-r from-indigo-600/10 to-transparent border-l-2 border-indigo-500 text-white'
-      : 'text-zinc-500 hover:text-white hover:bg-white/5 border-l-2 border-transparent'
-      }`}
-  >
-    <Icon className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-indigo-400' : 'text-zinc-500 group-hover:text-zinc-200'}`} />
-    <span className="hidden lg:inline text-sm font-medium tracking-wide whitespace-nowrap overflow-hidden text-ellipsis">{label}</span>
-  </button>
-);
-
-// --- MODULES ---
-
-const UserDashboard = ({ profile }) => (
-  <div className="space-y-6">
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <StatCard icon={Activity} label="System Status" value="OPERATIONAL" sub="Latency: 24ms" color="text-emerald-400 border-white/10" />
-      <StatCard icon={Cpu} label="Tier" value="PROFESSIONAL" sub="Valid License" color="text-indigo-400 border-white/10" />
-      <StatCard icon={Terminal} label="API Requests" value="8,492" sub="Lifetime Calls" color="text-purple-400 border-white/10" />
-    </div>
-
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* WELCOME / NEWS */}
-      <div className="lg:col-span-2 space-y-6">
-        <SolidCard className="bg-[#0A0A0A]">
-          <h2 className="text-xl font-bold text-white mb-2">Welcome, {profile.username}.</h2>
-          <p className="text-sm text-zinc-400 max-w-lg">
-            The network is stable. You can now use the HTTP Client to simulate secure protocol exchanges or monitor global traffic.
-          </p>
-        </SolidCard>
-
-        <div className="space-y-3">
-          <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-wider pl-1">System Logs</h3>
-          {[1, 2, 3].map(i => (
-            <SolidCard key={i} className="py-4 flex gap-4 items-center group cursor-pointer hover:bg-zinc-900 border-transparent hover:border-zinc-800 transition-all">
-              <div className="h-2 w-2 bg-indigo-500 rounded-full"></div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-900 text-indigo-400 font-mono border border-zinc-800">INFO</span>
-                  <span className="text-xs text-zinc-600">Today, 14:02</span>
-                </div>
-                <h4 className="text-white font-medium group-hover:text-indigo-400 transition-colors">Protocol updated to HTTPS/2</h4>
-              </div>
-            </SolidCard>
-          ))}
-        </div>
-      </div>
-
-      {/* SIDE WIDGET */}
-      <div className="space-y-6">
-        <SolidCard>
-          <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4">Node Identity</h3>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center pb-2 border-b border-zinc-900">
-              <span className="text-sm text-zinc-400">Handle</span>
-              <span className="font-mono text-xs text-indigo-400">{profile.username}</span>
-            </div>
-            <div className="flex justify-between items-center pb-2 border-b border-zinc-900">
-              <span className="text-sm text-zinc-400">Location</span>
-              <span className="font-mono text-xs text-zinc-500">ENCRYPTED</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400">Signature</span>
-              <span className="font-mono text-xs text-emerald-500">VERIFIED</span>
-            </div>
-          </div>
-        </SolidCard>
-      </div>
-    </div>
-  </div>
-);
-
-const FileShareModule = ({ isAdmin }) => {
-  const [files, setFiles] = useState([
-    { id: 1, name: 'config_v2_stable.json', size: '2.4 KB', date: '2023-10-27', uploader: 'Admin' },
-    { id: 2, name: 'injector_log_dump.txt', size: '14 KB', date: '2023-10-26', uploader: 'System' },
-    { id: 3, name: 'bypass_module_x64.dll', size: '4.2 MB', date: '2023-10-25', uploader: 'Admin' },
-  ]);
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    if (!isAdmin) return;
-    const droppedFiles = Array.from(e.dataTransfer.files);
-
-    // Simulate upload
-    const newFiles = droppedFiles.map((file, i) => ({
-      id: Date.now() + i,
-      name: file.name,
-      size: (file.size / 1024).toFixed(1) + ' KB',
-      date: new Date().toISOString().split('T')[0],
-      uploader: 'You'
-    }));
-
-    setFiles(prev => [...newFiles, ...prev]);
-  };
-
-  return (
-    <div className="space-y-6 h-full flex flex-col">
-      {/* ADMIN UPLOAD ZONE */}
-      {isAdmin && (
-        <div
-          onDragOver={e => e.preventDefault()}
-          onDrop={handleDrop}
-          className="border-2 border-dashed border-zinc-800 rounded-xl p-10 flex flex-col items-center justify-center text-zinc-500 hover:border-indigo-500/50 hover:bg-zinc-900/50 transition-all cursor-pointer bg-[#0A0A0A]"
-        >
-          <UploadCloud className="w-12 h-12 mb-4 text-zinc-600" />
-          <h3 className="text-lg font-bold text-white">Drop files here to upload</h3>
-          <p className="text-sm text-zinc-500 mt-2">Only administrators can add files to the cloud.</p>
-        </div>
-      )}
-
-      {/* FILE LIST */}
-      <div className="grid grid-cols-1 gap-4">
-        {files.map(file => (
-          <SolidCard key={file.id} className="flex items-center justify-between group hover:border-zinc-700">
-            <div className="flex items-center gap-4">
-              <div className="h-10 w-10 bg-zinc-900 rounded flex items-center justify-center border border-zinc-800">
-                <FileText className="text-indigo-400 w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-white font-bold text-sm group-hover:text-indigo-400 transition-colors">{file.name}</h4>
-                <div className="flex gap-3 text-[10px] text-zinc-500 uppercase tracking-wider font-mono mt-1">
-                  <span>{file.size}</span>
-                  <span>•</span>
-                  <span>{file.date}</span>
-                  <span>•</span>
-                  <span>{file.uploader}</span>
-                </div>
-              </div>
-            </div>
-
-            <button className="p-2 hover:bg-zinc-800 rounded text-zinc-400 hover:text-white transition-colors">
-              <Download className="w-5 h-5" />
-            </button>
-          </SolidCard>
-        ))}
-
-        {files.length === 0 && (
-          <div className="text-center text-zinc-500 py-10 font-mono text-sm">NO FILES IN SECURE CLOUD</div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const HttpModule = () => {
-  const [url, setUrl] = useState('https://jsonplaceholder.typicode.com/todos/1');
-  const [method, setMethod] = useState('GET');
-  const [response, setResponse] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const executeRequest = async () => {
-    setLoading(true);
-    setResponse(null);
-    try {
-      const start = Date.now();
-      const res = await fetch(url, { method });
-      const data = await res.json();
-      const time = Date.now() - start;
-      setResponse({ status: res.status, time, data });
-    } catch (e) {
-      setResponse({ error: e.message });
-    } finally {
-      setLoading(false);
+  // --- CONTENU DES ONGLETS ---
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'profile':
+        return <ProfileView profile={profile} session={session} handleLogout={handleLogout} />;
+      case 'subscription':
+        return <SubscriptionView />;
+      case 'download':
+        return <DownloadView />;
+      case 'docs':
+        return <LuaDocsView />;
+      case 'admin':
+        return isAdmin ? <AdminView /> : <div className="text-red-500 font-mono">ACCESS DENIED</div>;
+      default:
+        return <ProfileView profile={profile} />;
     }
   };
 
   return (
-    <div className="space-y-6">
-      <SolidCard>
-        <div className="flex flex-col md:flex-row gap-4 mb-4">
-          <select
-            value={method}
-            onChange={e => setMethod(e.target.value)}
-            className="bg-zinc-900 border border-zinc-800 rounded px-3 py-2 text-white font-mono focus:border-indigo-500 outline-none"
-          >
-            <option>GET</option>
-            <option>POST</option>
-            <option>PUT</option>
-            <option>DELETE</option>
-          </select>
-          <input
-            value={url}
-            onChange={e => setUrl(e.target.value)}
-            className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-4 py-2 text-white font-mono text-sm focus:border-indigo-500 outline-none"
-            placeholder="https://api.example.com/endpoint"
-          />
-          <button
-            onClick={executeRequest}
-            disabled={loading}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-2 rounded transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {loading ? <Activity className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            SEND
-          </button>
-        </div>
-      </SolidCard>
+    <div className="min-h-screen w-full bg-[#020202] flex items-center justify-center p-4 md:p-8 overflow-hidden relative selection:bg-indigo-500/30">
+      
+      {/* BACKGROUND FX */}
+      <div className="fixed inset-0 grid-bg opacity-20 pointer-events-none"></div>
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-900/10 rounded-full blur-[120px] pointer-events-none"></div>
 
-      {response && (
-        <div className="animate-in fade-in slide-in-from-bottom-2">
-          <div className="flex gap-4 mb-4">
-            <SolidCard className="flex-1 py-3 px-4 !bg-zinc-900">
-              <span className="text-xs text-zinc-500 block">STATUS</span>
-              <span className={`text-xl font-mono font-bold ${response.error ? 'text-red-500' : 'text-green-400'}`}>
-                {response.error ? 'ERR' : response.status}
-              </span>
-            </SolidCard>
-            <SolidCard className="flex-1 py-3 px-4 !bg-zinc-900">
-              <span className="text-xs text-zinc-500 block">TIME</span>
-              <span className="text-xl font-mono font-bold text-white">{response.time || 0}ms</span>
-            </SolidCard>
-          </div>
-          <SolidCard className="font-mono text-xs">
-            <div className="flex justify-between items-center mb-2 border-b border-zinc-800 pb-2">
-              <span className="text-zinc-500">RESPONSE BODY</span>
-              <button className="text-indigo-400 hover:text-white transition-colors" onClick={() => navigator.clipboard.writeText(JSON.stringify(response.data, null, 2))}>
-                <Copy className="w-3 h-3" />
-              </button>
+      {/* MAIN CENTERED UI */}
+      <div className="relative w-full max-w-5xl h-[650px] bg-[#080808] border border-white/5 rounded-2xl shadow-2xl flex overflow-hidden backdrop-blur-sm ring-1 ring-white/5">
+        
+        {/* SIDEBAR */}
+        <div className="w-20 lg:w-64 border-r border-white/5 bg-[#050505] flex flex-col py-6">
+          {/* Header */}
+          <div className="px-6 mb-10 flex items-center gap-3">
+            <div className="h-8 w-8 bg-gradient-to-br from-indigo-600 to-violet-700 rounded flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <Zap className="h-4 w-4 text-white fill-white" />
             </div>
-            <pre className="text-zinc-300 overflow-x-auto custom-scrollbar max-h-[400px]">
-              {JSON.stringify(response.data || response.error, null, 2)}
-            </pre>
-          </SolidCard>
-        </div>
-      )}
-    </div>
-  );
-};
+            <span className="hidden lg:block font-bold text-white tracking-tight text-lg">SAGITARIUS</span>
+          </div>
 
-const NetworkModule = ({ profile }) => (
-  <SolidCard className="h-[600px] flex flex-col p-0">
-    <div className="p-4 border-b border-zinc-800 bg-zinc-900 flex justify-between items-center">
-      <span className="font-bold text-white text-sm">GLOBAL ENCRYPTED CHAT</span>
-      <div className="flex items-center gap-2">
-        <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-        <span className="text-xs text-zinc-400 font-mono">LIVE</span>
+          {/* Navigation */}
+          <nav className="flex-1 space-y-1 px-3">
+            <TabButton icon={User} label="Profile" active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
+            <TabButton icon={CreditCard} label="Subscription" active={activeTab === 'subscription'} onClick={() => setActiveTab('subscription')} />
+            <TabButton icon={Download} label="Download" active={activeTab === 'download'} onClick={() => setActiveTab('download')} />
+            <TabButton icon={FileCode} label="Lua Docs" active={activeTab === 'docs'} onClick={() => setActiveTab('docs')} />
+            {isAdmin && (
+              <>
+                <div className="my-4 h-px bg-white/5 mx-3"></div>
+                <TabButton icon={Shield} label="Admin Panel" active={activeTab === 'admin'} onClick={() => setActiveTab('admin')} isAdmin />
+              </>
+            )}
+          </nav>
+
+          {/* User Footer */}
+          <div className="px-3 pt-4 border-t border-white/5">
+            <button onClick={handleLogout} className="flex w-full items-center gap-3 px-3 py-3 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-white/5 transition-all group">
+              <LogOut className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+              <span className="hidden lg:block text-xs font-medium uppercase tracking-wider">Disconnect</span>
+            </button>
+          </div>
+        </div>
+
+        {/* CONTENT AREA */}
+        <div className="flex-1 bg-[#0A0A0A] relative flex flex-col">
+          {/* Top Bar Decoration */}
+          <div className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-[#0A0A0A]/50 backdrop-blur-md sticky top-0 z-20">
+            <h2 className="text-lg font-medium text-white tracking-wide">
+              {activeTab === 'docs' ? 'Documentation' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+            </h2>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-[10px] font-mono text-zinc-500 uppercase">System Stable</span>
+            </div>
+          </div>
+
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+            <div className="max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {renderContent()}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <div className="flex-1 flex items-center justify-center text-zinc-600 text-sm">
-      <p className="font-mono animate-pulse">CONNECTING TO NODES...</p>
-    </div>
-  </SolidCard>
+  );
+}
+
+// --- SOUS-COMPOSANTS ---
+
+const TabButton = ({ icon: Icon, label, active, onClick, isAdmin }) => (
+  <button
+    onClick={onClick}
+    className={`flex w-full items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${
+      active 
+        ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/20' 
+        : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-200 border border-transparent'
+    }`}
+  >
+    <Icon className={`h-4 w-4 ${active ? 'text-indigo-400' : 'text-zinc-500 group-hover:text-zinc-300'} ${isAdmin ? 'text-amber-500' : ''}`} />
+    <span className="hidden lg:block text-sm font-medium">{label}</span>
+    {active && <div className="ml-auto w-1 h-1 rounded-full bg-indigo-500 hidden lg:block shadow-[0_0_5px_#6366f1]" />}
+  </button>
 );
 
-const AdminModule = ({ profile }) => (
-  <div className="space-y-6">
-    <SolidCard>
-      <h3 className="font-bold text-white mb-4">Admin Dashboard</h3>
-      <p className="text-sm text-zinc-400">Restricted area for system administrators.</p>
-    </SolidCard>
+const Card = ({ children, className = "" }) => (
+  <div className={`bg-[#0F0F0F] border border-white/5 rounded-xl p-6 relative overflow-hidden ${className}`}>
+    {children}
   </div>
 );
 
-const SettingsModule = ({ profile }) => (
-  <div className="max-w-2xl space-y-6">
-    <SolidCard>
-      <h3 className="font-bold text-white mb-6">Configuration</h3>
-      <div className="space-y-4">
-        {['Secure Mode', 'Developer Tools', 'Proxy Traffic'].map((setting, i) => (
-          <div key={i} className="flex justify-between items-center pb-4 border-b border-zinc-800 last:border-0 hover:bg-zinc-900/50 p-2 rounded transition-colors -mx-2 px-2 cursor-pointer">
-            <span className="text-sm text-zinc-300">{setting}</span>
-            <div className={`w-10 h-5 rounded-full relative ${i === 0 ? 'bg-indigo-600' : 'bg-zinc-800 border border-zinc-700'}`}>
-              <div className={`absolute top-1 w-3 h-3 bg-white rounded-full shadow transition-all ${i === 0 ? 'right-1' : 'left-1'}`}></div>
+// --- VUES DES ONGLETS ---
+
+const ProfileView = ({ profile, session }) => (
+  <div className="space-y-6">
+    <div className="flex items-center gap-6 pb-6 border-b border-white/5">
+      <div className="h-20 w-20 rounded-full bg-gradient-to-tr from-zinc-800 to-black border border-white/10 flex items-center justify-center text-2xl font-bold text-white shadow-xl">
+        {profile.username.substring(0, 2).toUpperCase()}
+      </div>
+      <div>
+        <h3 className="text-2xl font-bold text-white mb-1">{profile.username}</h3>
+        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase">
+          {profile.role} User
+        </span>
+      </div>
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Card>
+        <div className="flex items-center gap-3 mb-4 text-zinc-400">
+          <Activity className="w-4 h-4" />
+          <span className="text-xs uppercase tracking-wider font-bold">Hardware ID</span>
+        </div>
+        <p className="font-mono text-sm text-zinc-500 truncate">7A-4F-91-BB-CC-22-HASHED</p>
+      </Card>
+      <Card>
+        <div className="flex items-center gap-3 mb-4 text-zinc-400">
+          <Lock className="w-4 h-4" />
+          <span className="text-xs uppercase tracking-wider font-bold">Security Level</span>
+        </div>
+        <p className="font-mono text-sm text-emerald-500">ENCRYPTED (AES-256)</p>
+      </Card>
+    </div>
+
+    <Card className="border-indigo-500/20 bg-indigo-900/5">
+      <h4 className="text-white font-bold mb-2">Announcement</h4>
+      <p className="text-sm text-zinc-400 leading-relaxed">
+        Welcome to Sagittarius v3.0. The new loader interface is now live. 
+        Please ensure your antivirus is disabled before injecting.
+      </p>
+    </Card>
+  </div>
+);
+
+const SubscriptionView = () => (
+  <div className="space-y-6">
+    <div className="relative overflow-hidden rounded-xl border border-indigo-500/30 bg-gradient-to-br from-indigo-900/20 to-black p-8 text-center">
+      <div className="absolute top-0 right-0 p-4 opacity-10"><Zap className="w-32 h-32 text-indigo-500" /></div>
+      <h3 className="text-3xl font-bold text-white mb-2">Lifetime Access</h3>
+      <p className="text-zinc-400 mb-6">Your subscription is active and valid indefinitely.</p>
+      <button className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-medium transition-colors shadow-lg shadow-indigo-600/20">
+        Manage Plan
+      </button>
+    </div>
+
+    <h4 className="text-sm font-bold text-zinc-500 uppercase tracking-wider mt-8 mb-4">Payment History</h4>
+    <div className="space-y-2">
+      {[1].map((_, i) => (
+        <div key={i} className="flex justify-between items-center p-4 rounded-lg bg-[#0F0F0F] border border-white/5 hover:border-white/10 transition-colors">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <div>
+              <p className="text-sm text-white font-medium">Lifetime License Key</p>
+              <p className="text-xs text-zinc-500">Oct 24, 2023</p>
             </div>
           </div>
-        ))}
+          <span className="font-mono text-sm text-white">$49.99</span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const DownloadView = () => (
+  <div className="flex flex-col items-center text-center space-y-8 py-10">
+    <div className="h-32 w-32 rounded-full bg-zinc-900 border-2 border-dashed border-zinc-700 flex items-center justify-center relative group">
+      <div className="absolute inset-0 bg-indigo-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full"></div>
+      <Download className="w-12 h-12 text-zinc-500 group-hover:text-indigo-400 transition-colors" />
+    </div>
+    
+    <div>
+      <h3 className="text-2xl font-bold text-white">Sagittarius Client v3.2</h3>
+      <p className="text-sm text-zinc-500 mt-2">Latest build compiled 2 hours ago.</p>
+    </div>
+
+    <button className="flex items-center gap-3 px-8 py-4 bg-white text-black hover:bg-zinc-200 font-bold rounded-lg transition-all hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+      <Download className="w-5 h-5" />
+      <span>DOWNLOAD LOADER</span>
+    </button>
+
+    <div className="w-full max-w-md bg-[#0F0F0F] rounded-lg p-4 border border-white/5 text-left mt-8">
+      <h4 className="text-xs font-bold text-zinc-500 uppercase mb-3">Changelog</h4>
+      <ul className="space-y-2 text-sm text-zinc-400 font-mono">
+        <li className="flex gap-2"><span className="text-green-500">[+]</span> Added new aimbot resolver</li>
+        <li className="flex gap-2"><span className="text-amber-500">[*]</span> Fixed crash on injection</li>
+        <li className="flex gap-2"><span className="text-blue-500">[-]</span> Removed legacy HUD</li>
+      </ul>
+    </div>
+  </div>
+);
+
+const LuaDocsView = () => (
+  <div className="space-y-4">
+    <div className="flex gap-2 mb-6">
+      <span className="px-3 py-1 rounded bg-indigo-500/10 text-indigo-400 text-xs font-mono border border-indigo-500/20">API v2</span>
+      <span className="px-3 py-1 rounded bg-zinc-800 text-zinc-400 text-xs font-mono border border-white/5">ReadOnly</span>
+    </div>
+    
+    {['Global', 'UserCmd', 'Render', 'Client'].map((category) => (
+      <div key={category} className="border border-white/5 rounded-lg overflow-hidden">
+        <div className="bg-[#121212] px-4 py-2 border-b border-white/5 flex justify-between items-center">
+          <span className="font-bold text-zinc-300 text-sm">{category}</span>
+          <ChevronRight className="w-4 h-4 text-zinc-600" />
+        </div>
+        <div className="bg-[#0A0A0A] p-4 space-y-2">
+          <div className="font-mono text-xs text-zinc-500 hover:text-white transition-colors cursor-pointer">
+            {category.toLowerCase()}.get_local_player()
+          </div>
+          <div className="font-mono text-xs text-zinc-500 hover:text-white transition-colors cursor-pointer">
+            {category.toLowerCase()}.is_key_down(key)
+          </div>
+        </div>
       </div>
-    </SolidCard>
+    ))}
+  </div>
+);
+
+const AdminView = () => (
+  <div className="space-y-6">
+    <div className="grid grid-cols-2 gap-4">
+      <Card className="bg-red-900/5 border-red-500/20">
+        <div className="text-red-400 text-xs font-bold uppercase mb-1">Detected Users</div>
+        <div className="text-2xl font-bold text-white">12</div>
+      </Card>
+      <Card className="bg-emerald-900/5 border-emerald-500/20">
+        <div className="text-emerald-400 text-xs font-bold uppercase mb-1">Active Subs</div>
+        <div className="text-2xl font-bold text-white">842</div>
+      </Card>
+    </div>
+
+    <div className="bg-[#0F0F0F] rounded-xl border border-white/5 overflow-hidden">
+      <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center">
+        <h3 className="font-bold text-white text-sm">User Management</h3>
+        <Terminal className="w-4 h-4 text-zinc-500" />
+      </div>
+      <table className="w-full text-left text-sm text-zinc-400">
+        <thead className="bg-white/5 text-zinc-200 font-medium">
+          <tr>
+            <th className="px-6 py-3">User</th>
+            <th className="px-6 py-3">Status</th>
+            <th className="px-6 py-3 text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-white/5">
+          <tr>
+            <td className="px-6 py-4">xX_Slayer_Xx</td>
+            <td className="px-6 py-4"><span className="text-emerald-500 text-xs bg-emerald-500/10 px-2 py-1 rounded">Active</span></td>
+            <td className="px-6 py-4 text-right"><button className="text-zinc-500 hover:text-white">Edit</button></td>
+          </tr>
+          <tr>
+            <td className="px-6 py-4">Cheater123</td>
+            <td className="px-6 py-4"><span className="text-red-500 text-xs bg-red-500/10 px-2 py-1 rounded">Banned</span></td>
+            <td className="px-6 py-4 text-right"><button className="text-zinc-500 hover:text-white">Edit</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 );
