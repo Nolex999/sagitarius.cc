@@ -1,84 +1,61 @@
-/* Home.css - Premium Cheat Loader UI */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;600;800&display=swap');
 
-/* CUSTOM SCROLLBAR for "Library" and "Logs" */
+/* GLOBAL RESET & FONT */
+:root {
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  background-color: #020202;
+  color: #e4e4e7;
+  overflow-x: hidden;
+}
+
+/* DEEP BLACK GRID BACKGROUND */
+.grid-bg {
+  background-size: 50px 50px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+}
+
+/* CUSTOM SCROLLBAR FOR CONTENT AREA */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
+  background: transparent;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(79, 70, 229, 0.4);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(79, 70, 229, 0.7);
+  background: rgba(99, 102, 241, 0.5); /* Indigo hover */
 }
 
-/* UTILITY ANIMATIONS (if not using tailwindcss-animate) */
-@keyframes fadeIn {
+/* ANIMATIONS */
+@keyframes fadeInUp {
   from {
     opacity: 0;
+    transform: translateY(10px);
   }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-@keyframes pulse-glow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 10px rgba(79, 70, 229, 0.2);
-  }
-
-  50% {
-    box-shadow: 0 0 25px rgba(79, 70, 229, 0.5);
-  }
-}
-
 .animate-in {
-  animation-fill-mode: forwards;
+  animation: fadeInUp 0.4s ease-out forwards;
 }
 
-.fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
-.slide-in-from-bottom-5 {
-  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.slide-in-from-bottom-2 {
-  animation: slideUp 0.3s ease-out;
-}
-
-/* GLASSMORPHISM UTILS */
-.glass-panel {
-  background: rgba(9, 9, 11, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* Cursor override */
-.cursor-wait {
-  cursor: wait;
+/* UTILITIES */
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
 }
