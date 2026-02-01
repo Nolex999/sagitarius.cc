@@ -7,6 +7,7 @@ import {
   Activity, Fingerprint, KeyRound, AlertTriangle
 } from 'lucide-react';
 import './Home.css';
+import logoMain from './assets/logo.svg';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
