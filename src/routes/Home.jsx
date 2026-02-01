@@ -68,7 +68,7 @@ export default function Home() {
         {/* SIDEBAR */}
         <aside className="sidebar">
           <div className="brand">
-            <div className="brand-icon"><img src={logoMain} alt="logo" /></></div>
+            <div className="brand-icon"><img src={logoMain} alt="logo" /></div>
             <span>SAGITARIUS</span>
           </div>
 
