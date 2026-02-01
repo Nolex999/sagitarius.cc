@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
 import {
-  User, Shield, Download, FileCode, Gem,
-  LogOut, Zap, Clock, Lock, CheckCircle2,
-  Trash2, Plus, Ban, Unlock, Ghost
+  LayoutDashboard, User, ShieldAlert, Activity, LogOut,
+  Gem, Bell, Settings, Terminal, Plus, Trash2, ShieldCheck,
+  Zap, Play, Download, Cloud, FileCode, CheckCircle2, Lock, Clock
 } from 'lucide-react';
 import './Home.css';
 
@@ -14,36 +14,69 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
-// --- COMPOSANTS UI ---
+// --- COMPOSANTS UI UTILITAIRES ---
 
 const Loader = () => (
-  <div className="flex h-screen w-full flex-col items-center justify-center bg-[#030303]">
-    <div className="relative">
-      <div className="absolute inset-0 bg-indigo-500/10 blur-3xl rounded-full animate-pulse"></div>
-      <Ghost className="h-12 w-12 text-zinc-600 animate-bounce relative z-10" />
+  <div className="flex h-screen w-full items-center justify-center bg-[#050505] text-xs font-mono tracking-widest text-zinc-500">
+    <div className="flex flex-col items-center gap-4 relative">
+      <div className="absolute inset-0 bg-indigo-500/20 blur-xl animate-pulse rounded-full"></div>
+      <Activity className="h-8 w-8 animate-spin text-indigo-500 relative z-10" />
+      <span className="animate-pulse text-indigo-400 font-bold">INITIALIZING SYSTEM...</span>
     </div>
   </div>
 );
 
 const BannedScreen = () => (
-  <div className="flex h-screen w-full flex-col items-center justify-center bg-[#030303]">
-    <h1 className="text-2xl font-medium tracking-widest text-zinc-500 uppercase">Access Restricted</h1>
+  <div className="flex h-screen w-full flex-col items-center justify-center bg-[#050505] text-red-500 p-4 text-center">
+    <div className="relative mb-6">
+      <div className="absolute inset-0 bg-red-500/10 blur-3xl rounded-full"></div>
+      <ShieldAlert className="h-24 w-24 relative z-10" />
+    </div>
+    <h1 className="text-4xl font-black uppercase tracking-tighter mb-2 text-white">Access Revoked</h1>
+    <p className="font-mono text-sm text-red-400 bg-red-950/30 px-4 py-1 rounded border border-red-900/50">ACCOUNT TERMINATED</p>
   </div>
 );
 
-// --- COMPOSANT PRINCIPAL ---
+// Composant Carte "Solide" (Style inspiré de ton upload)
+const SolidCard = ({ children, className = "", onClick }) => (
+  <div 
+    onClick={onClick}
+    className={`bg-[#0A0A0A] border border-white/5 rounded-xl p-6 relative overflow-hidden group shadow-lg transition-all duration-300 hover:border-white/10 ${onClick ? 'cursor-pointer hover:bg-[#0F0F0F] hover:-translate-y-1' : ''} ${className}`}
+  >
+    {children}
+  </div>
+);
+
+const StatCard = ({ icon: Icon, label, value, sub, color = "text-white" }) => (
+  <SolidCard className="flex flex-col justify-between h-full">
+    <div className="flex justify-between items-start mb-4">
+      <div className={`p-2 rounded-lg bg-zinc-900/50 border border-white/5 ${color}`}>
+        <Icon className="h-5 w-5" />
+      </div>
+      <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-bold">{label}</span>
+    </div>
+    <div>
+      <h2 className="text-2xl font-mono font-bold text-white tracking-tighter">{value}</h2>
+      {sub && <p className="text-xs text-zinc-500 mt-2 flex items-center gap-1">
+        <span className={`w-1.5 h-1.5 rounded-full ${sub.includes('Active') ? 'bg-emerald-500' : 'bg-zinc-600'}`}></span>
+        {sub}
+      </p>}
+    </div>
+  </SolidCard>
+);
+
+// --- MAIN COMPONENT ---
 
 export default function Home() {
   const navigate = useNavigate();
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('profile');
-  
-  // État local pour simuler l'abonnement dans cette démo
-  const [subExpiry, setSubExpiry] = useState(null); 
+  const [view, setView] = useState('dashboard'); // dashboard | sub | download | docs | admin
+  const [subExpiry, setSubExpiry] = useState(null);
+  const [injectStatus, setInjectStatus] = useState('IDLE'); // IDLE | INJECTING | INJECTED
 
-  // Auth Logic
+  // AUTH & DATA
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -56,9 +89,9 @@ export default function Home() {
         setSession(session);
         setProfile(userProfile);
         
-        // Simuler si l'user a déjà une sub en DB
+        // Simulation date sub
         if (userProfile.subscription_end) {
-            setSubExpiry(new Date(userProfile.subscription_end));
+           setSubExpiry(new Date(userProfile.subscription_end));
         }
 
         setLoading(false);
@@ -69,325 +102,359 @@ export default function Home() {
 
   const handleLogout = async () => { await supabase.auth.signOut(); navigate('/login'); };
 
-  // Fonction pour ajouter du temps (Simulée)
+  // Simulation Injection
+  const handleInject = () => {
+    if (injectStatus === 'INJECTING' || injectStatus === 'INJECTED') return;
+    setInjectStatus('INJECTING');
+    setTimeout(() => setInjectStatus('INJECTED'), 2500);
+  };
+
+  // Simulation Ajout Sub
   const handleAddSub = (days) => {
     const now = new Date();
     const currentExpiry = subExpiry && subExpiry > now ? subExpiry : now;
     const newDate = new Date(currentExpiry);
     newDate.setDate(newDate.getDate() + days);
     setSubExpiry(newDate);
-    // Ici, vous feriez normalement un appel Supabase pour update la DB
+    // TODO: Appel Supabase réel ici
   };
-
-  const isSubActive = subExpiry && subExpiry > new Date();
-  const isAdmin = profile?.role === 'admin';
 
   if (loading) return <Loader />;
   if (profile?.is_banned) return <BannedScreen />;
 
-  // --- CONTENU DES ONGLETS ---
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'profile':
-        return <ProfileView profile={profile} subExpiry={subExpiry} />;
-      case 'subscription':
-        return <SubscriptionView onAddSub={handleAddSub} subExpiry={subExpiry} />;
-      case 'download':
-        return <DownloadView isSubActive={isSubActive} />;
-      case 'docs':
-        return <ComingSoonView title="Documentation" />;
-      case 'admin':
-        return isAdmin ? <AdminView /> : <div className="text-zinc-600 font-mono text-center mt-20">RESTRICTED</div>;
-      default:
-        return <ProfileView profile={profile} />;
-    }
-  };
+  const isSubActive = subExpiry && subExpiry > new Date();
+  const isAdmin = profile?.role === 'admin';
 
   return (
-    <div className="min-h-screen w-full bg-[#030303] flex items-center justify-center p-6 overflow-hidden relative selection:bg-indigo-500/20 selection:text-indigo-200">
+    <div className="flex min-h-screen w-full bg-[#050505] text-zinc-300 font-sans selection:bg-indigo-500/30 overflow-hidden relative">
       
-      {/* BACKGROUND ATMOSPHERE - Plus subtil et pâle */}
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(20,20,25,0.4),#030303)] pointer-events-none"></div>
-      <div className="fixed top-0 left-1/4 w-[500px] h-[500px] bg-indigo-900/5 rounded-full blur-[150px] pointer-events-none"></div>
+      {/* BACKGROUND EFFECTS */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-indigo-900/5 rounded-full blur-[150px]"></div>
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-violet-900/5 rounded-full blur-[150px]"></div>
+      </div>
 
-      {/* MAIN CONTAINER - Arrondi et Fluide */}
-      <div className="relative w-full max-w-6xl h-[700px] bg-[#050505]/60 border border-white/5 rounded-[32px] flex overflow-hidden backdrop-blur-2xl shadow-2xl">
-        
-        {/* SIDEBAR - Minimaliste */}
-        <div className="w-20 lg:w-72 border-r border-white/5 bg-black/20 flex flex-col py-8 px-4">
-          <div className="mb-12 pl-2 lg:pl-4 flex items-center gap-3 opacity-80">
-            <div className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center border border-white/5">
-              <Ghost className="h-4 w-4 text-zinc-400" />
+      {/* SIDEBAR NAVIGATION */}
+      <aside className="sticky top-0 h-screen w-20 lg:w-72 border-r border-white/5 bg-[#050505]/80 backdrop-blur-xl flex flex-col justify-between py-8 z-50 shrink-0">
+        <div className="px-3 lg:px-6 flex flex-col w-full h-full">
+          {/* BRAND */}
+          <div className="mb-10 flex items-center justify-center lg:justify-start gap-4 group cursor-pointer lg:px-2">
+            <div className="relative shrink-0">
+              <div className="absolute inset-0 bg-indigo-600 blur-md opacity-40 group-hover:opacity-80 transition-opacity"></div>
+              <div className="h-10 w-10 bg-gradient-to-br from-zinc-900 to-black rounded-lg flex items-center justify-center relative z-10 border border-white/10">
+                <Zap className="text-indigo-500 w-5 h-5 fill-indigo-500/20" />
+              </div>
             </div>
-            <span className="hidden lg:block font-medium text-zinc-300 tracking-wide">SAGITARIUS</span>
+            <div className="hidden lg:flex flex-col">
+              <span className="font-bold text-white text-lg tracking-tight leading-none">SAGITARIUS</span>
+              <span className="text-[10px] text-zinc-500 font-mono tracking-widest uppercase">Client v3.5</span>
+            </div>
           </div>
 
-          <nav className="flex-1 space-y-2">
-            <NavBtn icon={User} label="Profile" active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
-            <NavBtn icon={Gem} label="Subscription" active={activeTab === 'subscription'} onClick={() => setActiveTab('subscription')} />
-            <NavBtn icon={Download} label="Client" active={activeTab === 'download'} onClick={() => setActiveTab('download')} />
-            <NavBtn icon={FileCode} label="Lua Docs" active={activeTab === 'docs'} onClick={() => setActiveTab('docs')} />
+          {/* NAV LINKS */}
+          <nav className="space-y-1 w-full flex-1">
+            <NavBtn label="Profile" active={view === 'dashboard'} onClick={() => setView('dashboard')} icon={User} />
+            <NavBtn label="Subscription" active={view === 'sub'} onClick={() => setView('sub')} icon={Gem} />
+            <NavBtn label="Download" active={view === 'download'} onClick={() => setView('download')} icon={Download} />
+            <NavBtn label="Lua Docs" active={view === 'docs'} onClick={() => setView('docs')} icon={FileCode} />
             {isAdmin && (
-              <>
-                <div className="my-6 h-px bg-white/5 w-full"></div>
-                <NavBtn icon={Shield} label="Admin" active={activeTab === 'admin'} onClick={() => setActiveTab('admin')} />
-              </>
+               <>
+                <div className="my-4 h-px bg-white/5 mx-2"></div>
+                <NavBtn label="Admin Panel" active={view === 'admin'} onClick={() => setView('admin')} icon={ShieldCheck} />
+               </>
             )}
           </nav>
 
-          <button onClick={handleLogout} className="mt-auto flex items-center gap-3 px-4 py-3 rounded-2xl text-zinc-600 hover:text-zinc-300 hover:bg-white/5 transition-all duration-300">
-            <LogOut className="h-4 w-4" />
-            <span className="hidden lg:block text-sm font-medium">Log out</span>
-          </button>
-        </div>
-
-        {/* CONTENT AREA */}
-        <div className="flex-1 relative flex flex-col bg-gradient-to-b from-white/[0.02] to-transparent">
-          <div className="flex-1 overflow-y-auto p-8 lg:p-12 custom-scrollbar">
-            <div className="max-w-4xl mx-auto animate-fade-in">
-              {renderContent()}
+          {/* USER FOOTER */}
+          <div className="mt-auto pt-4 border-t border-white/5">
+            <div className="hidden lg:flex items-center gap-3 mb-4 p-3 bg-white/[0.02] rounded-xl border border-white/5">
+                <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-400">
+                  {profile.username.substring(0, 2).toUpperCase()}
+                </div>
+                <div className="flex flex-col overflow-hidden">
+                  <span className="text-xs font-bold text-white truncate">{profile.username}</span>
+                  <span className="text-[10px] text-zinc-600 uppercase">{profile.role}</span>
+                </div>
             </div>
+            <button onClick={handleLogout} className="flex items-center justify-center lg:justify-start w-full p-2 text-zinc-500 hover:text-red-400 transition-colors rounded-lg hover:bg-white/5 group">
+              <LogOut className="w-5 h-5 lg:mr-3 group-hover:-translate-x-1 transition-transform" />
+              <span className="hidden lg:inline text-xs font-bold tracking-wider">DISCONNECT</span>
+            </button>
           </div>
         </div>
-      </div>
+      </aside>
+
+      {/* CONTENT AREA */}
+      <main className="flex-1 p-6 lg:p-12 w-full min-w-0 relative z-10 h-screen overflow-y-auto custom-scrollbar">
+        <div className="max-w-6xl mx-auto pb-10">
+          
+          {/* HEADER SECTION */}
+          <div className="flex justify-between items-center mb-10 animate-in fade-in slide-in-from-top-4 duration-500">
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight mb-1">
+                {view === 'docs' ? 'Documentation' : view === 'sub' ? 'Store & Plans' : view.charAt(0).toUpperCase() + view.slice(1)}
+              </h1>
+              <p className="text-xs text-zinc-500 font-mono flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                SYSTEM ONLINE // {new Date().toLocaleDateString()}
+              </p>
+            </div>
+
+            {/* ACTION & NOTIFS */}
+            <div className="flex items-center gap-4">
+              {view === 'download' && isSubActive && (
+                 <button
+                 onClick={handleInject}
+                 className={`relative overflow-hidden px-6 py-2.5 rounded-lg font-bold text-xs tracking-wider transition-all duration-300 ${injectStatus === 'INJECTED' ? 'bg-emerald-600 text-white' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'}`}
+               >
+                 <div className="flex items-center gap-2">
+                   {injectStatus === 'INJECTING' ? <Activity className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
+                   {injectStatus === 'IDLE' ? 'INJECT' : injectStatus === 'INJECTING' ? 'LOADING...' : 'READY'}
+                 </div>
+               </button>
+              )}
+              
+              <div className="h-10 w-10 bg-[#0A0A0A] rounded-full flex items-center justify-center border border-white/5 text-zinc-500 hover:text-white transition-colors cursor-pointer relative">
+                <Bell className="w-4 h-4" />
+                <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
+              </div>
+            </div>
+          </div>
+
+          {/* DYNAMIC VIEWS */}
+          <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
+            {view === 'dashboard' && <ProfileModule profile={profile} subExpiry={subExpiry} isSubActive={isSubActive} />}
+            {view === 'sub' && <SubscriptionModule onAddSub={handleAddSub} subExpiry={subExpiry} />}
+            {view === 'download' && <DownloadModule isSubActive={isSubActive} />}
+            {view === 'docs' && <DocsModule />}
+            {view === 'admin' && isAdmin && <AdminModule />}
+          </div>
+
+        </div>
+      </main>
     </div>
   );
 }
 
-// --- SOUS-COMPOSANTS UI ---
+// --- SUB-COMPONENTS ---
 
-const NavBtn = ({ icon: Icon, label, active, onClick }) => (
+const NavBtn = ({ label, active, onClick, icon: Icon }) => (
   <button
     onClick={onClick}
-    className={`flex w-full items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-500 ease-out group ${
-      active 
-        ? 'bg-white/5 text-zinc-100 shadow-[0_0_20px_rgba(255,255,255,0.02)]' 
-        : 'text-zinc-600 hover:text-zinc-300 hover:bg-white/[0.02]'
-    }`}
+    className={`flex items-center justify-center lg:justify-start w-full px-4 py-3 rounded-lg transition-all duration-300 group gap-3 relative ${active
+      ? 'text-white bg-white/[0.03]'
+      : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.01]'
+      }`}
   >
-    <Icon className={`h-4 w-4 transition-colors ${active ? 'text-indigo-300' : 'text-zinc-600 group-hover:text-zinc-400'}`} />
-    <span className="hidden lg:block text-sm font-medium">{label}</span>
+    {active && <div className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-indigo-500"></div>}
+    <Icon className={`w-5 h-5 shrink-0 transition-colors ${active ? 'text-indigo-400' : 'text-zinc-600 group-hover:text-zinc-400'}`} />
+    <span className="hidden lg:inline text-sm font-medium tracking-wide">{label}</span>
   </button>
 );
 
-const FluidCard = ({ children, className = "", onClick }) => (
-  <div 
-    onClick={onClick}
-    className={`bg-white/[0.02] border border-white/[0.03] backdrop-blur-md rounded-3xl p-6 relative overflow-hidden transition-all duration-500 ${onClick ? 'cursor-pointer hover:bg-white/[0.04] hover:border-white/10 hover:scale-[1.01]' : ''} ${className}`}
-  >
-    {children}
+// --- MODULES ---
+
+const ProfileModule = ({ profile, isSubActive, subExpiry }) => (
+  <div className="space-y-6">
+    {/* STATS ROW */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <StatCard 
+        icon={User} 
+        label="Account Type" 
+        value={isSubActive ? "PREMIUM" : "FREE USER"} 
+        sub={isSubActive ? "Prioritized" : "Limited Access"} 
+        color="text-indigo-400" 
+      />
+      <StatCard 
+        icon={ShieldCheck} 
+        label="Security Status" 
+        value="SECURE" 
+        sub="HWID Hidden" 
+        color="text-emerald-400" 
+      />
+      <StatCard 
+        icon={Clock} 
+        label="Days Remaining" 
+        value={isSubActive ? Math.ceil((subExpiry - new Date()) / (1000 * 60 * 60 * 24)) : "0"} 
+        sub={isSubActive ? "Active" : "Expired"} 
+        color="text-zinc-400" 
+      />
+    </div>
+
+    {/* INFO SECTION */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <SolidCard className="h-full">
+        <h3 className="text-lg font-bold text-white mb-4">User Details</h3>
+        <div className="space-y-4">
+          <div className="flex justify-between py-2 border-b border-white/5">
+            <span className="text-sm text-zinc-500">Username</span>
+            <span className="text-sm text-zinc-300 font-mono">{profile.username}</span>
+          </div>
+          <div className="flex justify-between py-2 border-b border-white/5">
+            <span className="text-sm text-zinc-500">User ID</span>
+            <span className="text-sm text-zinc-300 font-mono">{profile.id.split('-')[0]}...</span>
+          </div>
+          <div className="flex justify-between py-2 border-b border-white/5">
+            <span className="text-sm text-zinc-500">Registration</span>
+            <span className="text-sm text-zinc-300 font-mono">{new Date(profile.created_at).toLocaleDateString()}</span>
+          </div>
+        </div>
+      </SolidCard>
+
+      <SolidCard className="h-full bg-indigo-500/[0.02] border-indigo-500/10">
+        <h3 className="text-lg font-bold text-white mb-2">Welcome Back</h3>
+        <p className="text-sm text-zinc-400 leading-relaxed">
+          You are connected to the Sagitarius Node. 
+          {isSubActive 
+            ? " Your premium subscription unlocks all features including cloud configs and Lua scripting engine."
+            : " You currently have restricted access. Visit the Subscription tab to unlock the full potential."}
+        </p>
+        <div className="mt-6 flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            <span className="text-xs text-zinc-500 font-mono">Server Load: 12%</span>
+        </div>
+      </SolidCard>
+    </div>
   </div>
 );
 
-// --- VUES ---
-
-const ProfileView = ({ profile, subExpiry }) => {
-  const isActive = subExpiry && subExpiry > new Date();
-
-  return (
-    <div className="space-y-8 mt-4">
-      <div className="flex items-center gap-8">
-        <div className="h-24 w-24 rounded-full bg-zinc-900/50 border border-white/5 flex items-center justify-center text-3xl font-light text-zinc-500 shadow-inner">
-          {profile.username.substring(0, 2).toUpperCase()}
-        </div>
-        <div>
-          <h2 className="text-3xl font-medium text-zinc-200 tracking-tight mb-2">{profile.username}</h2>
-          <div className="flex gap-3">
-             <span className="px-3 py-1 rounded-full text-[10px] bg-white/5 text-zinc-400 border border-white/5 tracking-wider uppercase">
-               UID: {profile.id.split('-')[0]}
-             </span>
-             {isActive && (
-               <span className="px-3 py-1 rounded-full text-[10px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/10 tracking-wider uppercase shadow-[0_0_10px_rgba(99,102,241,0.1)]">
-                 Premium
-               </span>
-             )}
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FluidCard className="flex flex-col justify-between h-32">
-          <span className="text-xs text-zinc-600 font-medium uppercase tracking-widest">Status</span>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
-            <span className="text-xl text-zinc-300 font-light">Undetected</span>
-          </div>
-        </FluidCard>
-        
-        <FluidCard className="flex flex-col justify-between h-32">
-          <span className="text-xs text-zinc-600 font-medium uppercase tracking-widest">Subscription</span>
-          <span className={`text-xl font-light ${isActive ? 'text-indigo-300' : 'text-zinc-500'}`}>
-            {isActive ? `${Math.ceil((subExpiry - new Date()) / (1000 * 60 * 60 * 24))} Days Left` : 'Inactive'}
-          </span>
-        </FluidCard>
-      </div>
-    </div>
-  );
-};
-
-const SubscriptionView = ({ onAddSub, subExpiry }) => {
-  const options = [
-    { days: 14, label: '14 Days' },
-    { days: 30, label: '30 Days' },
-    { days: 60, label: '60 Days' },
-    { days: 180, label: '180 Days' },
-    { days: 360, label: '360 Days' },
+const SubscriptionModule = ({ onAddSub, subExpiry }) => {
+  const plans = [
+    { days: 14, label: '14 DAYS', price: 'Free', sub: 'Trial' },
+    { days: 30, label: '30 DAYS', price: 'Free', sub: 'Standard' },
+    { days: 90, label: '90 DAYS', price: 'Free', sub: 'Quarterly' },
+    { days: 360, label: 'LIFETIME', price: 'Free', sub: 'Ultimate' },
   ];
 
   return (
     <div className="space-y-6">
-      <div className="text-center mb-10">
-        <h2 className="text-2xl font-light text-zinc-200 mb-2">Extend Access</h2>
-        <p className="text-zinc-500 text-sm">Select a duration to instantly activate your license.</p>
-      </div>
+       <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center gap-4">
+          <Gem className="w-6 h-6 text-indigo-400" />
+          <div>
+            <h4 className="text-sm font-bold text-white">Unlock Full Access</h4>
+            <p className="text-xs text-indigo-200/70">Select a plan below. Activation is instant.</p>
+          </div>
+       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {options.map((opt) => (
-          <FluidCard 
-            key={opt.days} 
-            onClick={() => onAddSub(opt.days)}
-            className="group flex flex-col items-center justify-center py-8 hover:bg-white/[0.04]"
-          >
-            <Clock className="w-6 h-6 text-zinc-600 mb-4 group-hover:text-indigo-300 transition-colors duration-500" />
-            <span className="text-lg font-medium text-zinc-300 group-hover:text-white transition-colors">{opt.label}</span>
-            <span className="text-xs text-zinc-600 mt-1">Free Upgrade</span>
-          </FluidCard>
-        ))}
-      </div>
-
-      {subExpiry && subExpiry > new Date() && (
-        <div className="mt-8 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 text-center">
-          <span className="text-emerald-400/80 text-sm font-medium tracking-wide">
-            Active until {subExpiry.toLocaleDateString()}
-          </span>
-        </div>
-      )}
+       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+         {plans.map((plan) => (
+           <SolidCard 
+             key={plan.days} 
+             onClick={() => onAddSub(plan.days)}
+             className="flex flex-col items-center justify-center py-8 gap-4 hover:border-indigo-500/30 group"
+           >
+             <div className="p-3 rounded-full bg-zinc-900 group-hover:bg-indigo-500/10 transition-colors">
+               <Clock className="w-6 h-6 text-zinc-500 group-hover:text-indigo-400" />
+             </div>
+             <div className="text-center">
+               <h3 className="text-xl font-bold text-white">{plan.label}</h3>
+               <p className="text-xs text-zinc-500 uppercase tracking-widest mt-1">{plan.sub}</p>
+             </div>
+             <button className="mt-2 px-4 py-1 rounded-full text-xs font-medium bg-white/5 text-zinc-300 border border-white/5 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-transparent transition-all">
+               Activate
+             </button>
+           </SolidCard>
+         ))}
+       </div>
     </div>
   );
 };
 
-const DownloadView = ({ isSubActive }) => {
-  return (
-    <div className="flex flex-col items-center justify-center h-[500px] text-center space-y-8">
-      <div className={`
-        h-40 w-40 rounded-full flex items-center justify-center relative transition-all duration-700
-        ${isSubActive ? 'bg-indigo-500/5 shadow-[0_0_50px_rgba(99,102,241,0.1)]' : 'bg-zinc-900/20 grayscale'}
-      `}>
-        {isSubActive && <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full animate-pulse"></div>}
-        <Download className={`w-12 h-12 transition-colors duration-500 ${isSubActive ? 'text-indigo-300' : 'text-zinc-700'}`} />
-      </div>
+const DownloadModule = ({ isSubActive }) => (
+  <div className="flex flex-col items-center justify-center py-10 space-y-8">
+    <div className={`relative group transition-all duration-500 ${isSubActive ? '' : 'grayscale opacity-50'}`}>
+        {isSubActive && <div className="absolute inset-0 bg-indigo-500/30 blur-[60px] rounded-full"></div>}
+        <SolidCard className="w-64 h-64 flex flex-col items-center justify-center bg-[#080808] z-10 relative">
+           <Cloud className={`w-16 h-16 mb-6 ${isSubActive ? 'text-indigo-400' : 'text-zinc-600'}`} />
+           <h3 className="text-xl font-bold text-white">Client v3.5</h3>
+           <p className="text-xs text-zinc-500 mt-2 font-mono">Stable Build • x64</p>
+        </SolidCard>
+    </div>
 
-      <div>
-        <h2 className="text-2xl font-light text-zinc-200">Client Loader v3.4</h2>
-        <p className="text-zinc-600 text-sm mt-2">
-          {isSubActive ? 'Ready for injection.' : 'Subscription required to download.'}
+    <div className="text-center">
+        {!isSubActive && (
+            <div className="mb-4 px-4 py-2 rounded bg-red-500/10 border border-red-500/20 text-red-400 text-xs inline-flex items-center gap-2">
+                <Lock className="w-3 h-3" /> Subscription Required
+            </div>
+        )}
+        <p className="text-zinc-500 text-sm max-w-md mx-auto mb-6">
+            Ensure your antivirus is disabled before downloading. The loader is encrypted to prevent detection.
         </p>
-      </div>
-
-      <button
-        disabled={!isSubActive}
-        className={`
-          px-10 py-4 rounded-2xl font-medium tracking-wide transition-all duration-500
-          ${isSubActive 
-            ? 'bg-zinc-100 text-black hover:bg-white hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.05)]' 
-            : 'bg-zinc-900 text-zinc-600 cursor-not-allowed border border-white/5'}
-        `}
-      >
-        {isSubActive ? 'Initialize Download' : 'Locked'}
-      </button>
+        <button 
+            disabled={!isSubActive}
+            className={`px-8 py-3 rounded-lg font-bold text-sm tracking-wide transition-all ${isSubActive ? 'bg-white text-black hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.15)]' : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'}`}
+        >
+            DOWNLOAD LOADER
+        </button>
     </div>
-  );
-};
-
-const ComingSoonView = ({ title }) => (
-  <div className="flex flex-col items-center justify-center h-[500px]">
-    <Clock className="w-12 h-12 text-zinc-800 mb-6" />
-    <h2 className="text-3xl font-thin text-zinc-700 uppercase tracking-[0.3em]">{title}</h2>
-    <p className="text-zinc-800 mt-4 text-xs font-mono">MODULE_NOT_LOADED</p>
   </div>
 );
 
-const AdminView = () => {
-  const [view, setView] = useState('invites'); // invites | users
-  
-  // Mock Data Simulée
-  const [invites, setInvites] = useState(['SAG-8392-XKA', 'SAG-1129-LPO', 'SAG-9921-MZN']);
-  const [users, setUsers] = useState([
-    { id: 1, name: 'Slayer_One', status: 'active' },
-    { id: 2, name: 'Ghost_Rider', status: 'banned' },
-    { id: 3, name: 'Newbie22', status: 'active' },
-  ]);
-
-  const createInvite = () => {
-    const code = `SAG-${Math.floor(1000 + Math.random() * 9000)}-GEN`;
-    setInvites([...invites, code]);
-  };
-
-  const deleteInvite = (code) => {
-    setInvites(invites.filter(i => i !== code));
-  };
-
-  const toggleBan = (id) => {
-    setUsers(users.map(u => u.id === id ? { ...u, status: u.status === 'active' ? 'banned' : 'active' } : u));
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="flex gap-4 mb-8">
-        <button 
-          onClick={() => setView('invites')} 
-          className={`px-4 py-2 rounded-xl text-sm transition-colors ${view === 'invites' ? 'bg-white/10 text-white' : 'text-zinc-600 hover:text-zinc-400'}`}
-        >
-          Invitations
-        </button>
-        <button 
-          onClick={() => setView('users')} 
-          className={`px-4 py-2 rounded-xl text-sm transition-colors ${view === 'users' ? 'bg-white/10 text-white' : 'text-zinc-600 hover:text-zinc-400'}`}
-        >
-          User Management
-        </button>
+const DocsModule = () => (
+  <div className="flex flex-col items-center justify-center h-[500px]">
+      <div className="p-4 bg-zinc-900/50 rounded-full mb-6">
+        <FileCode className="w-10 h-10 text-zinc-600" />
       </div>
+      <h2 className="text-2xl font-bold text-zinc-300 mb-2">Documentation</h2>
+      <p className="text-zinc-500 font-mono text-sm uppercase tracking-widest">Module Coming Soon</p>
+      <div className="mt-8 w-64 h-1 bg-zinc-900 rounded-full overflow-hidden">
+          <div className="h-full bg-indigo-900/50 w-1/3 rounded-full"></div>
+      </div>
+  </div>
+);
 
-      {view === 'invites' && (
-        <div className="space-y-4 animate-fade-in">
-          <FluidCard onClick={createInvite} className="border-dashed border-white/10 flex items-center justify-center gap-3 py-4 opacity-70 hover:opacity-100">
-            <Plus className="w-4 h-4 text-indigo-300" />
-            <span className="text-sm text-zinc-300">Generate New Key</span>
-          </FluidCard>
-          
-          <div className="space-y-2">
-            {invites.map((code) => (
-              <div key={code} className="flex justify-between items-center p-4 rounded-2xl bg-white/[0.02] border border-white/5">
-                <span className="font-mono text-xs text-zinc-400 tracking-wider">{code}</span>
-                <button onClick={() => deleteInvite(code)} className="text-zinc-700 hover:text-red-400 transition-colors">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-            {invites.length === 0 && <div className="text-center text-zinc-700 text-xs py-4">No active invites.</div>}
-          </div>
-        </div>
-      )}
+const AdminModule = () => {
+    const [invites, setInvites] = useState(['SAG-KEY-8392', 'SAG-KEY-1120']);
+    const [users, setUsers] = useState([
+        { id: 1, name: 'Slayer_One', status: 'active' },
+        { id: 2, name: 'Ghost_Rider', status: 'banned' },
+    ]);
 
-      {view === 'users' && (
-        <div className="space-y-2 animate-fade-in">
-          {users.map((u) => (
-            <div key={u.id} className="flex justify-between items-center p-4 rounded-2xl bg-white/[0.02] border border-white/5 group">
-              <div className="flex items-center gap-3">
-                <div className={`w-2 h-2 rounded-full ${u.status === 'active' ? 'bg-emerald-500/40' : 'bg-red-500/40'}`}></div>
-                <span className={`text-sm ${u.status === 'banned' ? 'text-zinc-600 line-through' : 'text-zinc-300'}`}>{u.name}</span>
-              </div>
-              
-              <button 
-                onClick={() => toggleBan(u.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${u.status === 'active' ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'}`}
-              >
-                {u.status === 'active' ? 'Ban' : 'Unban'}
-              </button>
-            </div>
-          ))}
+    const addKey = () => setInvites([...invites, `SAG-KEY-${Math.floor(Math.random()*9000)}`]);
+    const toggleBan = (id) => setUsers(users.map(u => u.id === id ? {...u, status: u.status === 'active' ? 'banned' : 'active'} : u));
+    
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* INVITE MANAGER */}
+            <SolidCard>
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="font-bold text-white">Invitations</h3>
+                    <button onClick={addKey} className="p-2 bg-indigo-600 hover:bg-indigo-500 rounded text-white transition-colors">
+                        <Plus className="w-4 h-4" />
+                    </button>
+                </div>
+                <div className="space-y-2">
+                    {invites.map(key => (
+                        <div key={key} className="flex justify-between items-center p-3 bg-white/[0.02] border border-white/5 rounded-lg">
+                            <span className="font-mono text-xs text-zinc-400">{key}</span>
+                            <button onClick={() => setInvites(invites.filter(k => k !== key))} className="text-zinc-600 hover:text-red-400">
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </SolidCard>
+
+            {/* USER MANAGER */}
+            <SolidCard>
+                <h3 className="font-bold text-white mb-6">Users</h3>
+                <div className="space-y-2">
+                    {users.map(u => (
+                        <div key={u.id} className="flex justify-between items-center p-3 bg-white/[0.02] border border-white/5 rounded-lg">
+                             <div className="flex items-center gap-3">
+                                <div className={`w-2 h-2 rounded-full ${u.status === 'active' ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
+                                <span className="text-sm text-zinc-300">{u.name}</span>
+                             </div>
+                             <button 
+                                onClick={() => toggleBan(u.id)}
+                                className={`text-xs px-3 py-1 rounded font-medium ${u.status === 'active' ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'}`}
+                             >
+                                {u.status === 'active' ? 'Ban' : 'Unban'}
+                             </button>
+                        </div>
+                    ))}
+                </div>
+            </SolidCard>
         </div>
-      )}
-    </div>
-  );
+    );
 };
