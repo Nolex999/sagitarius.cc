@@ -7,7 +7,6 @@ import {
   Activity, Fingerprint, KeyRound, AlertTriangle
 } from 'lucide-react';
 import './Home.css';
-import logoMain from './assets/logo.svg';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -68,7 +67,8 @@ export default function Home() {
         {/* SIDEBAR */}
         <aside className="sidebar">
           <div className="brand">
-            <div className="brand-icon"><Zap size={20} fill="currentColor" /></div>
+            <div className="brand-icon"></div>
+            <img src={logoMain} alt="logo" />
             <span>SAGITARIUS</span>
           </div>
 
