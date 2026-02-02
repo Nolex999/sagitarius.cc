@@ -51,17 +51,19 @@ export default function Home() {
       };
     }
     
-    // 2. Vérifier si l'user a déjà utilisé un code (Subscription)
+    // 2. Vérifier abonnement : used_by OU subscription_ends_at
     const { data: invite } = await supabase.from('inv_code').select('id').eq('used_by', session.user.id).maybeSingle();
+    const subEnds = prof?.subscription_ends_at ? new Date(prof.subscription_ends_at) : null;
+    const hasActiveSub = !!invite && (!subEnds || subEnds > new Date());
     
     setProfile(prof);
-    setIsSubscribed(!!invite);
+    setIsSubscribed(!!hasActiveSub);
     setLoading(false);
   };
 
   const handleActivateCode = async () => {
     if (!inviteCode) return;
-    const { data } = await supabase.rpc('use_invite_code', { p_code: inviteCode.trim().toUpperCase() });
+    const { data } = await supabase.rpc('use_license_key', { p_code: inviteCode.trim().toUpperCase() });
     
     if (data?.success) {
       alert("Accès autorisé !");
@@ -82,7 +84,6 @@ export default function Home() {
       <div className="bg-animated">
         <div className="bg-orb bg-orb-1"></div>
         <div className="bg-orb bg-orb-2"></div>
-        <div className="bg-orb bg-orb-3"></div>
         <div className="bg-grid"></div>
       </div>
 
@@ -100,7 +101,7 @@ export default function Home() {
             <NavItem icon={Download} label="Download" active={activeTab === 'download'} onClick={() => setActiveTab('download')} />
             <NavItem icon={FileCode} label="Lua Docs" active={activeTab === 'docs'} onClick={() => setActiveTab('docs')} />
             {profile?.role === 'admin' && (
-              <NavItem icon={Shield} label="Admin" active={activeTab === 'admin'} onClick={() => setActiveTab('admin')} color="#a855f7" />
+              <NavItem icon={Shield} label="Admin" active={activeTab === 'admin'} onClick={() => setActiveTab('admin')} color="#3b82f6" />
             )}
           </nav>
 
@@ -129,6 +130,7 @@ export default function Home() {
             {activeTab === 'subscription' && (
               <SubscriptionView 
                 isSubscribed={isSubscribed} 
+                profile={profile}
                 inviteCode={inviteCode} 
                 setInviteCode={setInviteCode} 
                 handleActivate={handleActivateCode} 
@@ -180,44 +182,56 @@ const StatPill = ({ icon: Icon, value, label }) => (
 
 const NavItem = ({ icon: Icon, label, active, onClick, color }) => (
   <div className={`nav-item ${active ? 'active' : ''}`} onClick={onClick} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onClick?.()}>
-    <Icon size={18} style={{ color: active ? (color || '#6366f1') : '#52525b' }} />
+    <Icon size={18} style={{ color: active ? (color || '#3b82f6') : undefined }} />
     <span>{label}</span>
   </div>
 );
 
-const ProfileView = ({ profile, isSubscribed }) => (
-  <div className="view-fade">
-    <div className="profile-card">
-      <div className="avatar-large">{(profile?.username || 'U')[0].toUpperCase()}</div>
-      <div className="profile-info">
-        <h2>{profile?.username || 'User'}</h2>
-        <p>{(profile?.role || 'member').toUpperCase()} MEMBER</p>
+const ProfileView = ({ profile, isSubscribed }) => {
+  const subEnds = profile?.subscription_ends_at ? new Date(profile.subscription_ends_at) : null;
+  const subActive = subEnds && subEnds > new Date();
+  const subLabel = subActive ? (subEnds.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })) : '—';
+  return (
+    <div className="view-fade">
+      <div className="profile-card">
+        <div className="avatar-large">{(profile?.username || 'U')[0].toUpperCase()}</div>
+        <div className="profile-info">
+          <h2>{profile?.username || 'User'}</h2>
+          <p>{(profile?.role || 'member').toUpperCase()} MEMBER</p>
+        </div>
+      </div>
+      <div className="grid-info">
+        <InfoBox label="Hardware ID" value="Locked to session" icon={Fingerprint} />
+        <InfoBox label="Account Status" value={profile?.is_banned ? 'Banned' : 'Active'} icon={Activity} />
+        {isSubscribed && <InfoBox label="Subscription ends" value={subLabel} icon={Gem} />}
       </div>
     </div>
-    <div className="grid-info">
-      <InfoBox label="Hardware ID" value="Locked to session" icon={Fingerprint} />
-      <InfoBox label="Account Status" value={profile?.is_banned ? 'Banned' : 'Active'} icon={Activity} />
-    </div>
-  </div>
-);
+  );
+};
 
-const SubscriptionView = ({ isSubscribed, inviteCode, setInviteCode, handleActivate }) => (
+const SubscriptionView = ({ isSubscribed, profile, inviteCode, setInviteCode, handleActivate }) => {
+  const subEnds = profile?.subscription_ends_at ? new Date(profile.subscription_ends_at) : null;
+  const subActive = subEnds && subEnds > new Date();
+  return (
   <div className="view-fade">
     {isSubscribed ? (
       <div className="sub-active-card">
-        <CheckCircle2 size={48} className="text-indigo-500" />
+        <CheckCircle2 size={40} />
         <h3>Subscription Active</h3>
         <p>Your hardware is authorized for injection.</p>
+        {subActive && subEnds && (
+          <p className="sub-expiry">Valid until {subEnds.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+        )}
       </div>
     ) : (
       <div className="sub-form">
         <KeyRound size={40} className="mb-4 text-zinc-600" />
         <h3>Activate License</h3>
-        <p>Enter your invitation code to unlock the loader.</p>
+        <p>Enter your license key to unlock the loader.</p>
         <div className="input-group">
           <input 
             type="text" 
-            placeholder="SAG-XXXX-XXXX" 
+            placeholder="LIC-XXXX-XXXX-XXXX" 
             value={inviteCode} 
             onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
           />
@@ -226,7 +240,8 @@ const SubscriptionView = ({ isSubscribed, inviteCode, setInviteCode, handleActiv
       </div>
     )}
   </div>
-);
+  );
+};
 
 const DownloadView = ({ isSubscribed }) => (
   <div className="view-fade text-center py-12">
@@ -250,7 +265,7 @@ const DownloadView = ({ isSubscribed }) => (
 
 const AdminPanel = () => {
   const [keys, setKeys] = useState([]);
-  const [genLoading, setGenLoading] = useState(false);
+  const [genLoading, setGenLoading] = useState(null);
   const [newCode, setNewCode] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
@@ -263,22 +278,41 @@ const AdminPanel = () => {
     fetchKeys();
   }, []);
 
-  const handleGenerate = async () => {
-    setGenLoading(true);
+  const handleGenerateInvite = async () => {
+    setGenLoading('invite');
     setNewCode(null);
     try {
-      const { data, error } = await supabase.rpc('generate_invite_code', { p_expires_days: 30, p_max_uses: 1 });
+      const { data, error } = await supabase.rpc('generate_invite_code', { p_expires_days: 7, p_max_uses: 1 });
       if (error) throw error;
       if (data?.success) {
-        setNewCode(data.code);
+        setNewCode({ code: data.code, type: 'invite' });
         fetchKeys();
       } else {
-        alert(data?.message || 'Erreur lors de la génération');
+        alert(data?.message || 'Erreur');
       }
     } catch (err) {
-      alert(err?.message || 'Erreur: ' + JSON.stringify(err));
+      alert(err?.message || 'Erreur');
     } finally {
-      setGenLoading(false);
+      setGenLoading(null);
+    }
+  };
+
+  const handleGenerateLicense = async () => {
+    setGenLoading('license');
+    setNewCode(null);
+    try {
+      const { data, error } = await supabase.rpc('generate_license_key', { p_duration_days: 30, p_max_uses: 1, p_expires_days: 90 });
+      if (error) throw error;
+      if (data?.success) {
+        setNewCode({ code: data.code, type: 'license' });
+        fetchKeys();
+      } else {
+        alert(data?.message || 'Erreur');
+      }
+    } catch (err) {
+      alert(err?.message || 'Erreur');
+    } finally {
+      setGenLoading(null);
     }
   };
 
@@ -301,31 +335,61 @@ const AdminPanel = () => {
   };
 
   return (
-    <div className="view-fade space-y-4">
-      <div className="admin-header">
-        <h3>Invite Keys</h3>
-        <button type="button" className="btn-small" onClick={handleGenerate} disabled={genLoading}>
-          <Plus size={14} /> {genLoading ? '...' : 'Generate'}
-        </button>
-      </div>
-      {newCode && (
-        <div className="new-code-alert">
-          <strong>New code:</strong>{' '}
-          <code 
-            onClick={() => { navigator.clipboard?.writeText(newCode); alert('Copied!'); }} 
-            className="copyable-code"
-            title="Click to copy"
-          >
-            {newCode}
-          </code>
-          {' '}— Copy it now, it won't be shown again.
+    <div className="view-fade admin-panel">
+      <div className="admin-section">
+        <div className="admin-header">
+          <h3>Invite codes</h3>
+          <span className="admin-desc">Inscription — format INVT</span>
+          <button type="button" className="btn-small" onClick={handleGenerateInvite} disabled={genLoading}>
+            <Plus size={14} /> {genLoading === 'invite' ? '...' : 'Generate'}
+          </button>
         </div>
-      )}
-      <div className="key-list">
-        {keys.map(k => (
-          <div key={k.id} className="key-item">
-            <code>{k.code}</code>
-            <span className={k.is_used ? 'used' : 'unused'}>{k.is_used ? 'Used' : 'Available'}</span>
+        {newCode?.type === 'invite' && (
+          <div className="new-code-alert alert-invite">
+            <strong>Invite:</strong>{' '}
+            <code onClick={() => { navigator.clipboard?.writeText(newCode.code); alert('Copied!'); }} className="copyable-code" title="Click to copy">
+              {newCode.code}
+            </code>
+          </div>
+        )}
+        <div className="key-list">
+          {keys.filter(k => k.code_type === 'invite').map(k => (
+            <div key={k.id} className="key-item">
+              <code>{k.code}</code>
+              <span className={`key-type type-invite`}>INV</span>
+              <span className={k.is_used ? 'used' : 'unused'}>{k.is_used ? 'Used' : 'Available'}</span>
+              <button type="button" className="delete-btn" onClick={() => handleDelete(k.id)} disabled={deletingId === k.id} title="Delete">
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))}
+          {keys.filter(k => k.code_type === 'invite').length === 0 && (
+            <p className="key-empty">No invite codes yet</p>
+          )}
+        </div>
+      </div>
+      <div className="admin-section">
+        <div className="admin-header">
+          <h3>License keys</h3>
+          <span className="admin-desc">Abonnement — format LIC</span>
+          <button type="button" className="btn-small" onClick={handleGenerateLicense} disabled={genLoading}>
+            <Plus size={14} /> {genLoading === 'license' ? '...' : 'Generate'}
+          </button>
+        </div>
+        {newCode && (
+          <div className={`new-code-alert ${newCode.type === 'license' ? 'alert-license' : 'alert-invite'}`}>
+            <strong>{newCode.type === 'license' ? 'License' : 'Invite'}:</strong>{' '}
+            <code onClick={() => { navigator.clipboard?.writeText(newCode.code); alert('Copied!'); }} className="copyable-code" title="Click to copy">
+              {newCode.code}
+            </code>
+          </div>
+        )}
+        <div className="key-list">
+          {keys.filter(k => k.code_type === 'license' || !k.code_type).map(k => (
+            <div key={k.id} className="key-item">
+              <code>{k.code}</code>
+              <span className={`key-type type-license`}>LIC</span>
+              <span className={k.is_used ? 'used' : 'unused'}>{k.is_used ? 'Used' : 'Available'}</span>
             <button
               type="button"
               className="delete-btn"

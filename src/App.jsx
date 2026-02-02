@@ -152,11 +152,12 @@ function LoginPage() {
                 <input
                   name="inviteCode"
                   type="text"
-                  placeholder="Enter invite code"
+                  placeholder="INVT-XXXX-XXXX"
                   onChange={handleInputChange}
                   required
                 />
               </div>
+              <p className="form-hint">Format: INVT-XXXX-XXXX</p>
             </div>
           )}
 
