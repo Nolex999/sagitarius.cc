@@ -31,11 +31,28 @@ export default function Home() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { navigate('/login'); return; }
 
-    // 1. Récupérer le profil
-    const { data: prof } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+    // 1. Récupérer le profil (peut être null si trigger pas encore exécuté)
+    let { data: prof } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+    
+    // Fallback: profil pas encore créé (trigger en retard) - réessayer une fois
+    if (!prof) {
+      await new Promise(r => setTimeout(r, 1500));
+      const { data: retry } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+      prof = retry;
+    }
+    
+    // Fallback: utiliser les metadata si toujours pas de profil
+    if (!prof) {
+      prof = {
+        id: session.user.id,
+        username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User',
+        role: 'member',
+        is_banned: false
+      };
+    }
     
     // 2. Vérifier si l'user a déjà utilisé un code (Subscription)
-    const { data: invite } = await supabase.from('inv_code').select('*').eq('used_by', session.user.id).single();
+    const { data: invite } = await supabase.from('inv_code').select('id').eq('used_by', session.user.id).maybeSingle();
     
     setProfile(prof);
     setIsSubscribed(!!invite);
@@ -44,7 +61,7 @@ export default function Home() {
 
   const handleActivateCode = async () => {
     if (!inviteCode) return;
-    const { data, error } = await supabase.rpc('use_invite_code', { p_code: inviteCode });
+    const { data } = await supabase.rpc('use_invite_code', { p_code: inviteCode.trim().toUpperCase() });
     
     if (data?.success) {
       alert("Accès autorisé !");
@@ -129,15 +146,15 @@ const NavItem = ({ icon: Icon, label, active, onClick, color }) => (
 const ProfileView = ({ profile, isSubscribed }) => (
   <div className="view-fade">
     <div className="profile-card">
-      <div className="avatar-large">{profile.username[0].toUpperCase()}</div>
+      <div className="avatar-large">{(profile?.username || 'U')[0].toUpperCase()}</div>
       <div className="profile-info">
-        <h2>{profile.username}</h2>
-        <p>{profile.role.toUpperCase()} MEMBER</p>
+        <h2>{profile?.username || 'User'}</h2>
+        <p>{(profile?.role || 'member').toUpperCase()} MEMBER</p>
       </div>
     </div>
     <div className="grid-info">
       <InfoBox label="Hardware ID" value="Locked to session" icon={Fingerprint} />
-      <InfoBox label="Account Status" value={profile.is_banned ? 'Banned' : 'Active'} icon={Activity} />
+      <InfoBox label="Account Status" value={profile?.is_banned ? 'Banned' : 'Active'} icon={Activity} />
     </div>
   </div>
 );
@@ -191,20 +208,44 @@ const DownloadView = ({ isSubscribed }) => (
 
 const AdminPanel = () => {
   const [keys, setKeys] = useState([]);
+  const [genLoading, setGenLoading] = useState(false);
+  const [newCode, setNewCode] = useState(null);
+
+  const fetchKeys = async () => {
+    const { data } = await supabase.from('inv_code').select('*').order('created_at', { ascending: false });
+    setKeys(data || []);
+  };
+
   useEffect(() => {
-    const fetchKeys = async () => {
-      const { data } = await supabase.from('inv_code').select('*');
-      setKeys(data || []);
-    };
     fetchKeys();
   }, []);
+
+  const handleGenerate = async () => {
+    setGenLoading(true);
+    setNewCode(null);
+    const { data } = await supabase.rpc('generate_invite_code', { p_expires_days: 30, p_max_uses: 1 });
+    setGenLoading(false);
+    if (data?.success) {
+      setNewCode(data.code);
+      fetchKeys();
+    } else {
+      alert(data?.message || 'Erreur');
+    }
+  };
 
   return (
     <div className="view-fade space-y-4">
       <div className="admin-header">
         <h3>Invite Keys</h3>
-        <button className="btn-small"><Plus size={14} /> Generate</button>
+        <button className="btn-small" onClick={handleGenerate} disabled={genLoading}>
+          <Plus size={14} /> {genLoading ? '...' : 'Generate'}
+        </button>
       </div>
+      {newCode && (
+        <div className="new-code-alert">
+          <strong>New code:</strong> <code>{newCode}</code> — Copy it now, it won't be shown again.
+        </div>
+      )}
       <div className="key-list">
         {keys.map(k => (
           <div key={k.id} className="key-item">

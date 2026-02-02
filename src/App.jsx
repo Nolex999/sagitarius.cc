@@ -31,6 +31,7 @@ function LoginPage() {
   const navigate = useNavigate();
 
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -55,7 +56,14 @@ function LoginPage() {
     setLoading(true);
 
     try {
-      if (isLogin) {
+      if (isForgotPassword) {
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(formData.email, {
+          redirectTo: window.location.origin + '/login'
+        });
+        if (resetError) throw resetError;
+        setSuccess('Check your email for the password reset link.');
+        setIsForgotPassword(false);
+      } else if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
@@ -67,15 +75,10 @@ function LoginPage() {
         navigate('/home', { replace: true });
 
       } else {
-        const { data: inviteData, error: inviteError } = await supabase
-          .from('inv_code')
-          .select('*')
-          .eq('code', formData.inviteCode)
-          .eq('is_used', false)
-          .single();
-
-        if (inviteError || !inviteData) {
-          throw new Error("Invalid invite or already used one.");
+        // 1. Valider le code via RPC (bypass RLS)
+        const { data: validData } = await supabase.rpc('validate_invite_code', { p_code: formData.inviteCode });
+        if (!validData?.valid) {
+          throw new Error(validData?.message || "Code invalide ou déjà utilisé.");
         }
 
         if (formData.password !== formData.confirmPassword) {
@@ -87,24 +90,19 @@ function LoginPage() {
           password: formData.password,
           options: {
             data: { username: formData.username },
-            // Force la redirection vers ton site après clic sur le mail
             emailRedirectTo: window.location.origin + '/login'
           }
         });
 
         if (authError) throw authError;
 
-        const { error: updateError } = await supabase
-          .from('inv_code')
-          .update({
-            is_used: true,
-            used_by: authData.user.id
-          })
-          .eq('id', inviteData.id);
+        // 2. Marquer le code comme utilisé via RPC (bypass RLS)
+        const { data: useData } = await supabase.rpc('use_invite_code', { p_code: formData.inviteCode.trim().toUpperCase() });
+        if (useData && !useData.success) {
+          console.warn("Code use warning:", useData.message);
+        }
 
-        if (updateError) console.error("Update code error:", updateError);
-
-        setSuccess('Account created, check your email for confirm your sign-up.');
+        setSuccess('Account created, check your email to confirm your sign-up.');
       }
     } catch (err) {
       setError(err.message);
@@ -129,7 +127,22 @@ function LoginPage() {
           {error && <div className="alert alert-error">{error}</div>}
           {success && <div className="alert alert-success">{success}</div>}
 
-          {!isLogin && (
+          {isForgotPassword ? (
+            <div className="form-group">
+              <label>Email Address</label>
+              <div className="input-wrapper">
+                <Mail size={18} />
+                <input
+                  name="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <p className="form-hint">We'll send you a link to reset your password.</p>
+            </div>
+          ) : !isLogin && (
             <div className="form-group">
               <label>Invitation Code</label>
               <div className="input-wrapper">
@@ -161,6 +174,7 @@ function LoginPage() {
             </div>
           )}
 
+          {!isForgotPassword && (
           <div className="form-group">
             <label>Email Address</label>
             <div className="input-wrapper">
@@ -174,7 +188,9 @@ function LoginPage() {
               />
             </div>
           </div>
+          )}
 
+          {!isForgotPassword && (
           <div className="form-group">
             <label>Password</label>
             <div className="input-wrapper">
@@ -213,11 +229,13 @@ function LoginPage() {
           )}
 
           <button type="submit" className="submit-btn" disabled={loading}>
-            {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
+            {loading ? 'Processing...' : (isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Create Account'))}
           </button>
         </form>
 
+        {!isForgotPassword && (
         <button
+          type="button"
           className="toggle-btn"
           onClick={() => {
             setIsLogin(!isLogin);
@@ -227,6 +245,35 @@ function LoginPage() {
         >
           {isLogin ? 'Need an account?' : 'Already registered?'}
         </button>
+        )}
+
+        {isLogin && !isForgotPassword && (
+        <button
+          type="button"
+          className="toggle-btn forgot-btn"
+          onClick={() => {
+            setIsForgotPassword(true);
+            setError(null);
+            setSuccess(null);
+          }}
+        >
+          Forgot password?
+        </button>
+        )}
+
+        {isForgotPassword && (
+        <button
+          type="button"
+          className="toggle-btn"
+          onClick={() => {
+            setIsForgotPassword(false);
+            setError(null);
+            setSuccess(null);
+          }}
+        >
+          Back to login
+        </button>
+        )}
       </div>
     </div>
   );

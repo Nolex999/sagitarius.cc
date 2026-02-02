@@ -172,8 +172,20 @@ input:-webkit-autofill:active {
   color: #888;
   text-decoration: underline;
   font-size: 0.85rem;
-  margin-top: 1.5rem;
+  margin-top: 1rem;
   cursor: pointer;
+}
+
+.toggle-btn.forgot-btn {
+  display: block;
+  margin-top: 0.5rem;
+  text-decoration: none;
+}
+
+.form-hint {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 0.5rem;
 }
 
 .alert {
@@ -201,4 +213,16 @@ input:-webkit-autofill:active {
   background: rgba(0, 255, 0, 0.1);
   border: 1px solid green;
   color: #80ff80;
+}
+
+/* RESPONSIVE LOGIN */
+@media (max-width: 480px) {
+  .login-container { padding: 1.5rem; }
+  .logo-container img { height: 100px; }
+  .header h1 { font-size: 2.2rem; }
+}
+
+@media (max-width: 360px) {
+  .login-container { padding: 1rem; }
+  .header h1 { font-size: 1.8rem; }
 }

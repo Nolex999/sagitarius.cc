@@ -171,3 +171,64 @@ button:hover { opacity: 0.8; }
 /* CUSTOM SCROLLBAR */
 .scroll-content::-webkit-scrollbar { width: 4px; }
 .scroll-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+/* ADMIN */
+.admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.key-list { display: flex; flex-direction: column; gap: 8px; }
+.key-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 1rem; background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border); border-radius: 10px;
+}
+.key-item code { font-size: 0.85rem; }
+.key-item .used { color: #10b981; }
+.key-item .unused { color: var(--text-dim); }
+.btn-small { padding: 8px 14px; font-size: 0.8rem; }
+.new-code-alert {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+.new-code-alert code { background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 6px; }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .main-container { flex-direction: column; height: auto; min-height: 80vh; }
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 1rem;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { padding: 0 0 1rem; width: 100%; justify-content: center; }
+  .nav-list { flex-direction: row; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .nav-item { padding: 8px 12px; }
+  .logout-btn { margin-top: 0.5rem; }
+  .content-header { flex-direction: column; gap: 1rem; align-items: flex-start; padding: 1.5rem; }
+  .scroll-content { padding: 1rem 1.5rem; }
+  .grid-info { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .dashboard-root { padding: 0.5rem; }
+  .main-container { border-radius: 16px; }
+  .sidebar { padding: 0.75rem; }
+  .nav-list { gap: 4px; }
+  .nav-item span { display: none; }
+  .nav-item { padding: 12px; }
+  .content-header h1 { font-size: 0.7rem; }
+  .profile-card { flex-direction: column; text-align: center; }
+  .input-group { flex-direction: column; }
+  .input-group input { width: 100%; }
+}
+
+@media (max-width: 400px) {
+  .login-container { padding: 1rem; }
+  .header h1 { font-size: 2.5rem; }
+}
