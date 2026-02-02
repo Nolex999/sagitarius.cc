@@ -99,10 +99,15 @@ input:-webkit-autofill:active {
   align-items: center;
 }
 
-.input-wrapper svg {
+/* Icône gauche uniquement (pas celle du bouton œil) */
+.input-wrapper > svg:first-of-type {
   position: absolute;
   left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   color: #555;
+  flex-shrink: 0;
+  pointer-events: none;
 }
 
 .input-wrapper input {
@@ -110,7 +115,7 @@ input:-webkit-autofill:active {
   background: transparent;
   border: 1px solid #333;
   border-radius: 6px;
-  padding: 12px 12px 12px 40px;
+  padding: 12px 44px 12px 40px;
   color: white;
   font-size: 0.9rem;
   outline: none;
@@ -123,22 +128,35 @@ input:-webkit-autofill:active {
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
 }
 
-.input-wrapper input:focus+svg,
-.input-wrapper:focus-within svg {
+.input-wrapper:focus-within > svg:first-of-type {
   color: #fff;
-  transform: scale(1.1);
+  transform: translateY(-50%) scale(1.05);
   transition: all 0.2s;
 }
 
 .eye-btn {
   position: absolute;
   right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   color: #555;
   cursor: pointer;
-  right: 12px;
-  top: 10%;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.eye-btn:hover {
+  color: #fff;
+}
+
+/* Champs sans bouton œil (ex: Confirm Password) */
+.input-wrapper:not(:has(.eye-btn)) input {
+  padding-right: 12px;
 }
 
 .submit-btn {

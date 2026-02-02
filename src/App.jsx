@@ -4,6 +4,7 @@ import { Eye, EyeOff, Mail, Lock, User, Ticket } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import './App.css';
 import Home from './routes/Home.jsx';
+import ResetPassword from './routes/ResetPassword.jsx';
 import logoMain from './assets/logo.svg';
 
 // Utilisation des variables d'environnement (plus sécurisé)
@@ -18,6 +19,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/home" element={<Home />} />
       </Routes>
     </BrowserRouter>
@@ -58,7 +60,7 @@ function LoginPage() {
     try {
       if (isForgotPassword) {
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(formData.email, {
-          redirectTo: window.location.origin + '/login'
+          redirectTo: window.location.origin + '/reset-password'
         });
         if (resetError) throw resetError;
         setSuccess('Check your email for the password reset link.');
