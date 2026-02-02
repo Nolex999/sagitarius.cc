@@ -211,6 +211,7 @@ function LoginPage() {
               </button>
             </div>
           </div>
+          )}
 
           {!isLogin && (
             <div className="form-group">
