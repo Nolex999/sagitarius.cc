@@ -1,11 +1,11 @@
 :root {
   --bg: #0a0a0a;
   --panel: #111;
-  --border: rgba(255, 255, 255, 0.06);
-  --accent: white;
+  --border: #ffffff0f;
+  --accent: rgb(180, 150, 170);
   --accent-dim: rgba(255, 178, 249, 0.863);
   --text-main: rgb(255, 255, 255);
-  --text-dim: #000000;
+  --text-dim: #ffffff;
   --radius: 8px;
   --radius-sm: 6px;
 }
@@ -343,7 +343,7 @@ button:hover { opacity: 0.8; }
   border-radius: 4px;
   text-transform: uppercase;
 }
-.key-type.type-invite { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.key-type.type-invite { background: rgba(59, 130, 246, 0.15); color: rgba(255, 178, 249, 0.863); }
 .key-type.type-license { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
 .key-item code { font-size: 0.85rem; flex: 1; }
 .key-item .used { color: #10b981; }
@@ -377,7 +377,7 @@ button:hover { opacity: 0.8; }
 }
 .new-code-alert.alert-invite {
   background: rgba(59, 130, 246, 0.08);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(255, 178, 249, 0.863);
 }
 .new-code-alert.alert-license {
   background: rgba(34, 197, 94, 0.08);
