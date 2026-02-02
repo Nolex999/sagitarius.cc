@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
 import { 
   User, Shield, Download, FileCode, Gem, LogOut, 
-  Zap, CheckCircle2, Lock, Plus, Trash2, Ban, 
+  Users, Zap, CheckCircle2, Lock, Plus, Trash2, Ban, 
   Activity, Fingerprint, KeyRound, AlertTriangle
 } from 'lucide-react';
 import './Home.css';
@@ -78,10 +78,15 @@ export default function Home() {
 
   return (
     <div className="dashboard-root">
-      {/* Glow Effects */}
-      <div className="bg-glow"></div>
+      {/* Animated Background */}
+      <div className="bg-animated">
+        <div className="bg-orb bg-orb-1"></div>
+        <div className="bg-orb bg-orb-2"></div>
+        <div className="bg-orb bg-orb-3"></div>
+        <div className="bg-grid"></div>
+      </div>
 
-      <div className="main-container">
+      <div className="main-container glass-panel">
         {/* SIDEBAR */}
         <aside className="sidebar">
           <div className="brand">
@@ -107,7 +112,12 @@ export default function Home() {
         {/* CONTENT */}
         <main className="content-area">
           <header className="content-header">
-            <h1>{activeTab.toUpperCase()}</h1>
+            <div className="header-left">
+              <h1>{activeTab.toUpperCase()}</h1>
+              {profile?.role === 'admin' && (
+                <DashboardStats profile={profile} />
+              )}
+            </div>
             <div className="status-badge">
               <div className={`dot ${isSubscribed ? 'active' : ''}`}></div>
               {isSubscribed ? 'PREMIUM ACCESS' : 'NO LICENSE'}
@@ -136,8 +146,40 @@ export default function Home() {
 
 // --- SUBCOMPONENTS ---
 
+const DashboardStats = ({ profile }) => {
+  const [stats, setStats] = useState(null);
+  useEffect(() => {
+    if (profile?.role !== 'admin') return;
+    const fetchStats = async () => {
+      const { data } = await supabase.rpc('get_admin_stats');
+      if (data && !data.error) setStats(data);
+    };
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000);
+    return () => clearInterval(interval);
+  }, [profile?.role]);
+
+  if (!stats) return null;
+  return (
+    <div className="dashboard-stats">
+      <StatPill icon={Users} value={stats.total_members} label="Members" />
+      <StatPill icon={Zap} value={stats.online_now} label="Online" />
+      <StatPill icon={KeyRound} value={stats.active_keys} label="Keys" />
+      <StatPill icon={Activity} value={stats.events_24h} label="24h" />
+    </div>
+  );
+};
+
+const StatPill = ({ icon: Icon, value, label }) => (
+  <div className="stat-pill">
+    <Icon size={14} />
+    <span className="stat-value">{value ?? 0}</span>
+    <span className="stat-label">{label}</span>
+  </div>
+);
+
 const NavItem = ({ icon: Icon, label, active, onClick, color }) => (
-  <div className={`nav-item ${active ? 'active' : ''}`} onClick={onClick}>
+  <div className={`nav-item ${active ? 'active' : ''}`} onClick={onClick} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onClick?.()}>
     <Icon size={18} style={{ color: active ? (color || '#6366f1') : '#52525b' }} />
     <span>{label}</span>
   </div>
@@ -210,6 +252,7 @@ const AdminPanel = () => {
   const [keys, setKeys] = useState([]);
   const [genLoading, setGenLoading] = useState(false);
   const [newCode, setNewCode] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const fetchKeys = async () => {
     const { data } = await supabase.from('inv_code').select('*').order('created_at', { ascending: false });
@@ -223,13 +266,37 @@ const AdminPanel = () => {
   const handleGenerate = async () => {
     setGenLoading(true);
     setNewCode(null);
-    const { data } = await supabase.rpc('generate_invite_code', { p_expires_days: 30, p_max_uses: 1 });
-    setGenLoading(false);
-    if (data?.success) {
-      setNewCode(data.code);
-      fetchKeys();
-    } else {
-      alert(data?.message || 'Erreur');
+    try {
+      const { data, error } = await supabase.rpc('generate_invite_code', { p_expires_days: 30, p_max_uses: 1 });
+      if (error) throw error;
+      if (data?.success) {
+        setNewCode(data.code);
+        fetchKeys();
+      } else {
+        alert(data?.message || 'Erreur lors de la génération');
+      }
+    } catch (err) {
+      alert(err?.message || 'Erreur: ' + JSON.stringify(err));
+    } finally {
+      setGenLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Supprimer ce code ?')) return;
+    setDeletingId(id);
+    try {
+      const { data, error } = await supabase.rpc('delete_invite_code', { p_id: id });
+      if (error) throw error;
+      if (data?.success) {
+        fetchKeys();
+      } else {
+        alert(data?.message || 'Erreur');
+      }
+    } catch (err) {
+      alert(err?.message || 'Impossible de supprimer');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -237,13 +304,21 @@ const AdminPanel = () => {
     <div className="view-fade space-y-4">
       <div className="admin-header">
         <h3>Invite Keys</h3>
-        <button className="btn-small" onClick={handleGenerate} disabled={genLoading}>
+        <button type="button" className="btn-small" onClick={handleGenerate} disabled={genLoading}>
           <Plus size={14} /> {genLoading ? '...' : 'Generate'}
         </button>
       </div>
       {newCode && (
         <div className="new-code-alert">
-          <strong>New code:</strong> <code>{newCode}</code> — Copy it now, it won't be shown again.
+          <strong>New code:</strong>{' '}
+          <code 
+            onClick={() => { navigator.clipboard?.writeText(newCode); alert('Copied!'); }} 
+            className="copyable-code"
+            title="Click to copy"
+          >
+            {newCode}
+          </code>
+          {' '}— Copy it now, it won't be shown again.
         </div>
       )}
       <div className="key-list">
@@ -251,7 +326,15 @@ const AdminPanel = () => {
           <div key={k.id} className="key-item">
             <code>{k.code}</code>
             <span className={k.is_used ? 'used' : 'unused'}>{k.is_used ? 'Used' : 'Available'}</span>
-            <Trash2 size={14} className="delete-icon" />
+            <button
+              type="button"
+              className="delete-btn"
+              onClick={() => handleDelete(k.id)}
+              disabled={deletingId === k.id}
+              title="Delete"
+            >
+              <Trash2 size={14} />
+            </button>
           </div>
         ))}
       </div>

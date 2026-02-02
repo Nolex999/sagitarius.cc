@@ -161,10 +161,54 @@ grant execute on function generate_invite_code(int, int) to authenticated;
 
 
 -- ==========================================
--- 5. Policy : Permettre aux users de lire leur propre profil
--- (Vérification que la policy existe)
+-- 5. FONCTION : Stats admin (membres, online, clés, events)
 -- ==========================================
--- Les policies existantes devraient suffire. Si besoin:
+create or replace function public.get_admin_stats()
+returns json
+language plpgsql
+security definer
+as $$
+begin
+  if not exists (select 1 from profiles where id = auth.uid() and role = 'admin') then
+    return json_build_object('error', 'Non autorisé');
+  end if;
+  return (
+    select json_build_object(
+      'total_members', (select count(*)::int from profiles),
+      'online_now', (select count(*)::int from profiles where last_login > now() - interval '15 minutes'),
+      'active_keys', (select count(*)::int from inv_code where is_active = true and (is_used = false or (max_uses > 1 and current_uses < max_uses))),
+      'events_24h', (select count(*)::int from audit_logs where created_at > now() - interval '24 hours')
+    )
+  );
+end;
+$$;
+
+grant execute on function get_admin_stats() to authenticated;
+
+
+-- ==========================================
+-- 6. FONCTION : Supprimer un code d'invitation (Admin)
+-- ==========================================
+create or replace function public.delete_invite_code(p_id uuid)
+returns json
+language plpgsql
+security definer
+as $$
+begin
+  if not exists (select 1 from profiles where id = auth.uid() and role = 'admin') then
+    return json_build_object('success', false, 'message', 'Non autorisé');
+  end if;
+  delete from inv_code where id = p_id;
+  return json_build_object('success', true);
+end;
+$$;
+
+grant execute on function delete_invite_code(uuid) to authenticated;
+
+
+-- ==========================================
+-- 7. Policy : Users insert own profile
+-- ==========================================
 drop policy if exists "Users can insert own profile" on profiles;
 create policy "Users can insert own profile" on profiles
 for insert with check (auth.uid() = id);
