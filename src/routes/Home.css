@@ -4,8 +4,8 @@
   --border: rgba(255, 255, 255, 0.06);
   --accent: white;
   --accent-dim: rgba(255, 178, 249, 0.863);
-  --text-main: #000000ff;
-  --text-dim: #6b7280;
+  --text-main: rgb(255, 255, 255);
+  --text-dim: #000000;
   --radius: 8px;
   --radius-sm: 6px;
 }
