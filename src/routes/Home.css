@@ -317,7 +317,6 @@ button:hover { opacity: 0.8; }
 
 /* ADMIN */
 .admin-panel { display: flex; flex-direction: column; gap: 2rem; }
-.admin-section { }
 .admin-header { 
   display: flex; 
   flex-wrap: wrap;
@@ -377,7 +376,7 @@ button:hover { opacity: 0.8; }
 }
 .new-code-alert.alert-invite {
   background: rgba(59, 130, 246, 0.08);
-  border: 1px solid rgba(255, 178, 249, 0.863);
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 .new-code-alert.alert-license {
   background: rgba(34, 197, 94, 0.08);
@@ -387,6 +386,228 @@ button:hover { opacity: 0.8; }
 .new-code-alert .copyable-code { cursor: pointer; transition: background 0.2s; }
 .new-code-alert .copyable-code:hover { background: rgba(0,0,0,0.5); }
 
+/* PURCHASE PLANS */
+.purchase-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.purchase-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.plan-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  text-align: center;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.plan-card:hover {
+  border-color: var(--accent);
+  background: rgba(255,255,255,0.03);
+}
+
+.plan-popular {
+  border-color: var(--accent);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.plan-badge {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.plan-duration {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+}
+
+.plan-price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.75rem;
+}
+
+.plan-btn {
+  width: 100%;
+  padding: 8px;
+  font-size: 0.8rem;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.plan-btn:hover {
+  opacity: 0.9;
+}
+
+/* LUA DOCS */
+.lua-docs {
+  display: flex;
+  gap: 2rem;
+  height: 100%;
+}
+
+.docs-sidebar {
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.docs-sidebar h3 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text-dim);
+}
+
+.docs-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.docs-nav-item {
+  padding: 8px 12px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s;
+}
+
+.docs-nav-item:hover {
+  background: rgba(255,255,255,0.03);
+  color: var(--text-main);
+}
+
+.docs-nav-item.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.docs-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.docs-section {
+  max-width: 800px;
+}
+
+.docs-section h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+}
+
+.docs-section p {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.docs-section code {
+  background: rgba(255,255,255,0.05);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-family: 'Courier New', monospace;
+  color: var(--accent);
+}
+
+.docs-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+}
+
+.docs-table thead {
+  background: rgba(255,255,255,0.02);
+}
+
+.docs-table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border);
+}
+
+.docs-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+.docs-table tbody tr:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+.docs-table code {
+  background: rgba(255,255,255,0.05);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+@media (max-width: 900px) {
+  .lua-docs {
+    flex-direction: column;
+  }
+  .docs-sidebar {
+    width: 100%;
+  }
+  .docs-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .plans-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .plans-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* RESPONSIVE */
 @media (max-width: 900px) {
   .bg-orb { animation-duration: 35s; opacity: 0.08; }
 }

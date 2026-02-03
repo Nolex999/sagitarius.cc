@@ -137,7 +137,7 @@ export default function Home() {
               />
             )}
             {activeTab === 'download' && <DownloadView isSubscribed={isSubscribed} />}
-            {activeTab === 'docs' && <ComingSoon title="LUA DOCUMENTATION" />}
+            {activeTab === 'docs' && <LuaDocsView />}
             {activeTab === 'admin' && <AdminPanel />}
           </div>
         </main>
@@ -212,6 +212,20 @@ const ProfileView = ({ profile, isSubscribed }) => {
 const SubscriptionView = ({ isSubscribed, profile, inviteCode, setInviteCode, handleActivate }) => {
   const subEnds = profile?.subscription_ends_at ? new Date(profile.subscription_ends_at) : null;
   const subActive = subEnds && subEnds > new Date();
+  
+  const plans = [
+    { days: 7, label: '1 Week', price: 4.99, popular: false },
+    { days: 30, label: '1 Month', price: 14.99, popular: true },
+    { days: 77, label: '77 Days', price: 29.99, popular: false },
+    { days: 180, label: '180 Days', price: 59.99, popular: false }
+  ];
+
+  const handlePurchase = (days, price) => {
+    // TODO: Intégrer Stripe/Paddle ici
+    const stripeUrl = `https://buy.stripe.com/checkout?price=${price}&duration=${days}`;
+    window.open(stripeUrl, '_blank');
+  };
+
   return (
   <div className="view-fade">
     {isSubscribed ? (
@@ -224,20 +238,41 @@ const SubscriptionView = ({ isSubscribed, profile, inviteCode, setInviteCode, ha
         )}
       </div>
     ) : (
-      <div className="sub-form">
-        <KeyRound size={40} className="mb-4 text-zinc-600" />
-        <h3>Activate License</h3>
-        <p>Enter your license key to unlock the loader.</p>
-        <div className="input-group">
-          <input 
-            type="text" 
-            placeholder="LIC-XXXX-XXXX-XXXX" 
-            value={inviteCode} 
-            onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-          />
-          <button onClick={handleActivate}>Activate</button>
+      <>
+        <div className="sub-form">
+          <KeyRound size={40} className="mb-4 text-zinc-600" />
+          <h3>Activate License</h3>
+          <p>Enter your license key to unlock the loader.</p>
+          <div className="input-group">
+            <input 
+              type="text" 
+              placeholder="SAG-XXXX-XXXX-XXXX" 
+              value={inviteCode} 
+              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+            />
+            <button onClick={handleActivate}>Activate</button>
+          </div>
         </div>
-      </div>
+        
+        <div className="purchase-section">
+          <h4 className="purchase-title">Or purchase a subscription</h4>
+          <div className="plans-grid">
+            {plans.map((plan) => (
+              <div key={plan.days} className={`plan-card ${plan.popular ? 'plan-popular' : ''}`}>
+                {plan.popular && <span className="plan-badge">Popular</span>}
+                <div className="plan-duration">{plan.label}</div>
+                <div className="plan-price">${plan.price}</div>
+                <button 
+                  className="plan-btn" 
+                  onClick={() => handlePurchase(plan.days, plan.price)}
+                >
+                  Purchase
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </>
     )}
   </div>
   );
@@ -339,7 +374,7 @@ const AdminPanel = () => {
       <div className="admin-section">
         <div className="admin-header">
           <h3>Invite codes</h3>
-          <span className="admin-desc">Inscription — format INVT</span>
+          <span className="admin-desc">Inscription — format UUID</span>
           <button type="button" className="btn-small" onClick={handleGenerateInvite} disabled={genLoading}>
             <Plus size={14} /> {genLoading === 'invite' ? '...' : 'Generate'}
           </button>
@@ -371,7 +406,7 @@ const AdminPanel = () => {
       <div className="admin-section">
         <div className="admin-header">
           <h3>License keys</h3>
-          <span className="admin-desc">Abonnement — format LIC</span>
+          <span className="admin-desc">Abonnement — format SAG</span>
           <button type="button" className="btn-small" onClick={handleGenerateLicense} disabled={genLoading}>
             <Plus size={14} /> {genLoading === 'license' ? '...' : 'Generate'}
           </button>
@@ -388,7 +423,7 @@ const AdminPanel = () => {
           {keys.filter(k => k.code_type === 'license' || !k.code_type).map(k => (
             <div key={k.id} className="key-item">
               <code>{k.code}</code>
-              <span className={`key-type type-license`}>LIC</span>
+              <span className={`key-type type-license`}>SAG</span>
               <span className={k.is_used ? 'used' : 'unused'}>{k.is_used ? 'Used' : 'Available'}</span>
             <button
               type="button"
@@ -417,10 +452,182 @@ const InfoBox = ({ label, value, icon: Icon }) => (
   </div>
 );
 
-const ComingSoon = ({ title }) => (
-  <div className="coming-soon">
-    <AlertTriangle size={32} />
-    <h3>{title}</h3>
-    <p>This module is currently under development.</p>
-  </div>
-);
+const LuaDocsView = () => {
+  const [activeSection, setActiveSection] = useState('globals');
+  
+  const sections = [
+    { id: 'globals', title: 'Globals' },
+    { id: 'callbacks', title: 'Callbacks' },
+    { id: 'usercmd', title: 'UserCmd' },
+    { id: 'engine', title: 'Engine' },
+    { id: 'entity', title: 'Entity' },
+    { id: 'render', title: 'Render' },
+    { id: 'trace', title: 'Trace' },
+    { id: 'utils', title: 'Utils' }
+  ];
+
+  return (
+    <div className="lua-docs">
+      <div className="docs-sidebar">
+        <h3>Table of Contents</h3>
+        <nav className="docs-nav">
+          {sections.map(s => (
+            <button
+              key={s.id}
+              className={`docs-nav-item ${activeSection === s.id ? 'active' : ''}`}
+              onClick={() => setActiveSection(s.id)}
+            >
+              {s.title}
+            </button>
+          ))}
+        </nav>
+      </div>
+      <div className="docs-content">
+        {activeSection === 'globals' && (
+          <div className="docs-section">
+            <h2>Globals</h2>
+            <p>Global variables and functions available everywhere.</p>
+            <table className="docs-table">
+              <thead><tr><th>Function</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>print(...)</code></td><td>Print to console.</td></tr>
+                <tr><td><code>realtime()</code></td><td>Get time since game start.</td></tr>
+                <tr><td><code>curtime()</code></td><td>Get current server time.</td></tr>
+                <tr><td><code>frametime()</code></td><td>Get time taken to render last frame.</td></tr>
+                <tr><td><code>tickcount()</code></td><td>Get current tick count.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+        {activeSection === 'callbacks' && (
+          <div className="docs-section">
+            <h2>Callbacks</h2>
+            <p>Register functions to be called at specific events.</p>
+            <p><code>callbacks.register(event_name, unique_name, function)</code></p>
+            <table className="docs-table">
+              <thead><tr><th>Event Name</th><th>Description</th><th>Arguments</th></tr></thead>
+              <tbody>
+                <tr><td><code>paint</code></td><td>Called every frame for rendering.</td><td><code>none</code></td></tr>
+                <tr><td><code>createmove</code></td><td>Called every tick for movement.</td><td><code>cmd</code></td></tr>
+                <tr><td><code>draw_model</code></td><td>Called before drawing a model (chams).</td><td><code>context</code></td></tr>
+                <tr><td><code>fire_event</code></td><td>Called when a game event fires.</td><td><code>event</code></td></tr>
+                <tr><td><code>unload</code></td><td>Called when script is unloaded.</td><td><code>none</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+        {activeSection === 'usercmd' && (
+          <div className="docs-section">
+            <h2>UserCmd</h2>
+            <p>Control player input. (Object passed in <code>createmove</code>)</p>
+            <table className="docs-table">
+              <thead><tr><th>Field/Method</th><th>Description</th><th>Type</th></tr></thead>
+              <tbody>
+                <tr><td><code>cmd.command_number</code></td><td>Command sequence number.</td><td><code>int</code></td></tr>
+                <tr><td><code>cmd.tick_count</code></td><td>Tick count for this command.</td><td><code>int</code></td></tr>
+                <tr><td><code>cmd.viewangles</code></td><td>Player view angles.</td><td><code>QAngle</code></td></tr>
+                <tr><td><code>cmd.forwardmove</code></td><td>Forward/Backward movement.</td><td><code>float</code></td></tr>
+                <tr><td><code>cmd.sidemove</code></td><td>Left/Right movement.</td><td><code>float</code></td></tr>
+                <tr><td><code>cmd.buttons</code></td><td>Input buttons bitmask.</td><td><code>int</code></td></tr>
+                <tr><td><code>cmd:get_mouse_x()</code></td><td>Mouse delta X.</td><td><code>int</code></td></tr>
+                <tr><td><code>cmd:get_mouse_y()</code></td><td>Mouse delta Y.</td><td><code>int</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+        {activeSection === 'engine' && (
+          <div className="docs-section">
+            <h2>Engine</h2>
+            <p>Interact with the game engine.</p>
+            <table className="docs-table">
+              <thead><tr><th>Function</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>engine.in_game()</code></td><td>Check if connected and in-game.</td></tr>
+                <tr><td><code>engine.is_connected()</code></td><td>Check if connected to server.</td></tr>
+                <tr><td><code>engine.get_local_player()</code></td><td>Get local player entity index.</td></tr>
+                <tr><td><code>engine.get_screen_size()</code></td><td>Get screen width and height.</td></tr>
+                <tr><td><code>engine.get_view_angles()</code></td><td>Get current view angles.</td></tr>
+                <tr><td><code>engine.set_view_angles(ang)</code></td><td>Set view angles.</td></tr>
+                <tr><td><code>engine.get_max_clients()</code></td><td>Get max players on server.</td></tr>
+                <tr><td><code>engine.exec(cmd)</code></td><td>Execute console command.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+        {activeSection === 'entity' && (
+          <div className="docs-section">
+            <h2>Entity</h2>
+            <p>Interact with game entities.</p>
+            <p><code>entity.get(index)</code> → returns Entity Object</p>
+            <p><code>entity.get_local_player()</code> → returns Entity Object</p>
+            <table className="docs-table">
+              <thead><tr><th>Method</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>ent:get_index()</code></td><td>Get entity index.</td></tr>
+                <tr><td><code>ent:is_valid()</code></td><td>Check if entity is valid.</td></tr>
+                <tr><td><code>ent:is_alive()</code></td><td>Check if player is alive.</td></tr>
+                <tr><td><code>ent:is_dormant()</code></td><td>Check if entity is dormant.</td></tr>
+                <tr><td><code>ent:get_class_id()</code></td><td>Get class ID.</td></tr>
+                <tr><td><code>ent:get_prop_int(name)</code></td><td>Get integer netvar/prop.</td></tr>
+                <tr><td><code>ent:get_prop_float(name)</code></td><td>Get float netvar/prop.</td></tr>
+                <tr><td><code>ent:get_prop_vector(name)</code></td><td>Get vector netvar/prop.</td></tr>
+                <tr><td><code>ent:get_origin()</code></td><td>Get entity position.</td></tr>
+                <tr><td><code>ent:get_eye_pos()</code></td><td>Get eye position.</td></tr>
+                <tr><td><code>ent:get_bbox()</code></td><td>Get bounding box {x, y, w, h}.</td></tr>
+                <tr><td><code>ent:get_name()</code></td><td>Get player name.</td></tr>
+                <tr><td><code>ent:get_weapon()</code></td><td>Get active weapon entity.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+        {activeSection === 'render' && (
+          <div className="docs-section">
+            <h2>Render</h2>
+            <p>Draw shapes and text to the screen. (Use in <code>paint</code> callback)</p>
+            <table className="docs-table">
+              <thead><tr><th>Function</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>render.rect(x, y, w, h, color)</code></td><td>Draw outlined rectangle.</td></tr>
+                <tr><td><code>render.filled_rect(x, y, w, h, color)</code></td><td>Draw filled rectangle.</td></tr>
+                <tr><td><code>render.line(x1, y1, x2, y2, color)</code></td><td>Draw line.</td></tr>
+                <tr><td><code>render.circle(x, y, radius, color)</code></td><td>Draw circle.</td></tr>
+                <tr><td><code>render.text(font, x, y, color, text)</code></td><td>Draw text.</td></tr>
+                <tr><td><code>render.create_font(name, size, weight, flags)</code></td><td>Create a font.</td></tr>
+                <tr><td><code>render.get_text_size(font, text)</code></td><td>Get width and height of text.</td></tr>
+                <tr><td><code>render.world_to_screen(vec)</code></td><td>Convert world pos to screen pos.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+        {activeSection === 'trace' && (
+          <div className="docs-section">
+            <h2>Trace</h2>
+            <p>Raycasting utilities.</p>
+            <table className="docs-table">
+              <thead><tr><th>Function</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>trace.line(start, end, mask, skip_ent)</code></td><td>Trace a ray.</td></tr>
+                <tr><td><code>trace.hull(start, end, min, max, mask, skip_ent)</code></td><td>Trace a hull (box).</td></tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+        {activeSection === 'utils' && (
+          <div className="docs-section">
+            <h2>Utils</h2>
+            <p>Helper functions.</p>
+            <table className="docs-table">
+              <thead><tr><th>Function</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>utils.create_interface(module, name)</code></td><td>Get raw interface pointer.</td></tr>
+                <tr><td><code>utils.pattern_scan(module, signature)</code></td><td>Find pattern in memory.</td></tr>
+                <tr><td><code>utils.color(r, g, b, a)</code></td><td>Create a color object.</td></tr>
+                <tr><td><code>utils.vector(x, y, z)</code></td><td>Create a vector object.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

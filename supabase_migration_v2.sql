@@ -18,7 +18,7 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS subscription_tier text DEFAULT 'fr
 
 -- ==========================================
 -- VALIDATION : Code d'invitation (inscription uniquement)
--- Format: INVT-XXXX-XXXX
+-- Format: UUID (6696a32-c314-4fac-94ea-ecb3ad115a98)
 -- ==========================================
 CREATE OR REPLACE FUNCTION public.validate_invite_code(p_code text)
 RETURNS json LANGUAGE plpgsql SECURITY DEFINER AS $$
@@ -39,7 +39,7 @@ END; $$;
 
 -- ==========================================
 -- VALIDATION : Clé de licence (activation abonnement)
--- Format: LIC-XXXX-XXXX-XXXX
+-- Format: SAG-XXXX-XXXX-XXXX
 -- ==========================================
 CREATE OR REPLACE FUNCTION public.validate_license_key(p_code text)
 RETURNS json LANGUAGE plpgsql SECURITY DEFINER AS $$
@@ -107,20 +107,20 @@ GRANT EXECUTE ON FUNCTION use_invite_code(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION use_license_key(text) TO authenticated;
 
 -- ==========================================
--- GÉNÉRATION : Code d'invitation (INVT-XXXX-XXXX)
+-- GÉNÉRATION : Code d'invitation (UUID format)
+-- Format: 6696a32-c314-4fac-94ea-ecb3ad115a98
 -- ==========================================
 CREATE OR REPLACE FUNCTION public.generate_invite_code(p_expires_days int DEFAULT 7, p_max_uses int DEFAULT 1)
 RETURNS json LANGUAGE plpgsql SECURITY DEFINER AS $$
-DECLARE v_code text; v_chars text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; v_i int; v_id uuid;
+DECLARE v_code text; v_id uuid;
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin') THEN
     RETURN json_build_object('success', false, 'message', 'Non autorisé.');
   END IF;
-  v_code := 'INVT-';
-  FOR v_i IN 1..8 LOOP
-    v_code := v_code || substr(v_chars, floor(random() * length(v_chars) + 1)::int, 1);
-    IF v_i = 4 THEN v_code := v_code || '-'; END IF;
-  END LOOP;
+  -- Générer UUID sans les tirets au début, format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  v_code := lower(replace(gen_random_uuid()::text, '-', ''));
+  -- Ajouter les tirets au bon format: 6696a32-c314-4fac-94ea-ecb3ad115a98
+  v_code := substr(v_code, 1, 7) || '-' || substr(v_code, 8, 4) || '-' || substr(v_code, 12, 4) || '-' || substr(v_code, 16, 4) || '-' || substr(v_code, 20);
   INSERT INTO inv_code (code, code_type, max_uses, expires_at, created_by, is_active)
   VALUES (v_code, 'invite', p_max_uses,
     CASE WHEN p_expires_days > 0 THEN now() + (p_expires_days || ' days')::interval ELSE NULL END,
@@ -129,7 +129,7 @@ BEGIN
 END; $$;
 
 -- ==========================================
--- GÉNÉRATION : Clé de licence (LIC-XXXX-XXXX-XXXX)
+-- GÉNÉRATION : Clé de licence (SAG-XXXX-XXXX-XXXX)
 -- ==========================================
 CREATE OR REPLACE FUNCTION public.generate_license_key(p_duration_days int DEFAULT 30, p_max_uses int DEFAULT 1, p_expires_days int DEFAULT 90)
 RETURNS json LANGUAGE plpgsql SECURITY DEFINER AS $$
@@ -138,7 +138,7 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin') THEN
     RETURN json_build_object('success', false, 'message', 'Non autorisé.');
   END IF;
-  v_code := 'LIC-';
+  v_code := 'SAG-';
   FOR v_i IN 1..12 LOOP
     v_code := v_code || substr(v_chars, floor(random() * length(v_chars) + 1)::int, 1);
     IF v_i IN (4, 8) THEN v_code := v_code || '-'; END IF;

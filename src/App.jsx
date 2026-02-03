@@ -157,7 +157,7 @@ function LoginPage() {
                   required
                 />
               </div>
-              <p className="form-hint">Format: INVT-XXXX-XXXX</p>
+              <p className="form-hint">Format: UUID (ex: 6696a32-c314-4fac-94ea-ecb3ad115a98)</p>
             </div>
           )}
 
