@@ -8,9 +8,11 @@ ALTER TABLE inv_code ADD COLUMN IF NOT EXISTS expires_at timestamptz;
 ALTER TABLE inv_code ADD COLUMN IF NOT EXISTS code_type text DEFAULT 'license' CHECK (code_type IN ('invite', 'license'));
 ALTER TABLE inv_code ADD COLUMN IF NOT EXISTS duration_days int DEFAULT 30;
 
--- 2. Colonne subscription sur profiles (pour paiement futur)
+-- 2. Colonnes subscription sur profiles (pour paiement + upgrade)
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS subscription_ends_at timestamptz;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS subscription_tier text DEFAULT 'free' CHECK (subscription_tier IN ('free', 'basic', 'premium'));
+-- Montant déjà payé pour l'abonnement actuel (crédité lors d'un upgrade)
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS subscription_amount_paid numeric(10,2) DEFAULT 0;
 
 -- 3. Mettre à jour les codes existants
   UPDATE inv_code SET code_type = 'license' WHERE code_type IS NULL OR code_type = '';

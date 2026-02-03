@@ -209,34 +209,72 @@ const ProfileView = ({ profile, isSubscribed }) => {
   );
 };
 
+const PLANS = [
+  { days: 7, label: '1 Week', price: 4.99, popular: false },
+  { days: 30, label: '1 Month', price: 14.99, popular: true },
+  { days: 77, label: '77 Days', price: 29.99, popular: false },
+  { days: 180, label: '180 Days', price: 59.99, popular: false }
+];
+
 const SubscriptionView = ({ isSubscribed, profile, inviteCode, setInviteCode, handleActivate }) => {
   const subEnds = profile?.subscription_ends_at ? new Date(profile.subscription_ends_at) : null;
   const subActive = subEnds && subEnds > new Date();
-  
-  const plans = [
-    { days: 7, label: '1 Week', price: 4.99, popular: false },
-    { days: 30, label: '1 Month', price: 14.99, popular: true },
-    { days: 77, label: '77 Days', price: 29.99, popular: false },
-    { days: 180, label: '180 Days', price: 59.99, popular: false }
-  ];
+  const amountPaid = Number(profile?.subscription_amount_paid ?? 0);
 
-  const handlePurchase = (days, price) => {
-    // TODO: Intégrer Stripe/Paddle ici
-    const stripeUrl = `https://buy.stripe.com/checkout?price=${price}&duration=${days}`;
+  const handlePurchase = (days, price, isUpgrade = false) => {
+    const amountToCharge = isUpgrade ? Math.max(0, price - amountPaid) : price;
+    if (isUpgrade && amountToCharge === 0) return;
+    // TODO: Intégrer Stripe avec amountToCharge et duration days
+    const stripeUrl = `https://buy.stripe.com/checkout?price=${amountToCharge}&duration=${days}&upgrade=${isUpgrade}`;
     window.open(stripeUrl, '_blank');
   };
 
   return (
   <div className="view-fade">
     {isSubscribed ? (
-      <div className="sub-active-card">
-        <CheckCircle2 size={40} />
-        <h3>Subscription Active</h3>
-        <p>Your hardware is authorized for injection.</p>
-        {subActive && subEnds && (
-          <p className="sub-expiry">Valid until {subEnds.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-        )}
-      </div>
+      <>
+        <div className="sub-active-card">
+          <CheckCircle2 size={40} />
+          <h3>Subscription Active</h3>
+          <p>Your hardware is authorized for injection.</p>
+          {subActive && subEnds && (
+            <p className="sub-expiry">Valid until {subEnds.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+          )}
+          {amountPaid > 0 && (
+            <p className="sub-credit">Credit toward upgrade: ${amountPaid.toFixed(2)}</p>
+          )}
+        </div>
+
+        <div className="purchase-section upgrade-section">
+          <h4 className="purchase-title">Upgrade your plan</h4>
+          <p className="purchase-desc">Pay the difference: new plan price minus what you already paid.</p>
+          <div className="plans-grid">
+            {PLANS.map((plan) => {
+              const upgradePrice = Math.max(0, plan.price - amountPaid);
+              const isAlreadyCovered = upgradePrice === 0;
+              return (
+                <div key={plan.days} className={`plan-card ${plan.popular ? 'plan-popular' : ''}`}>
+                  {plan.popular && <span className="plan-badge">Popular</span>}
+                  <div className="plan-duration">{plan.label}</div>
+                  <div className="plan-price">${plan.price.toFixed(2)}</div>
+                  {amountPaid > 0 && (
+                    <div className="plan-upgrade-price">
+                      {isAlreadyCovered ? 'Already covered' : `Upgrade for $${upgradePrice.toFixed(2)}`}
+                    </div>
+                  )}
+                  <button
+                    className="plan-btn"
+                    onClick={() => handlePurchase(plan.days, plan.price, true)}
+                    disabled={isAlreadyCovered}
+                  >
+                    {isAlreadyCovered ? 'Included' : 'Upgrade'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </>
     ) : (
       <>
         <div className="sub-form">
@@ -257,14 +295,14 @@ const SubscriptionView = ({ isSubscribed, profile, inviteCode, setInviteCode, ha
         <div className="purchase-section">
           <h4 className="purchase-title">Or purchase a subscription</h4>
           <div className="plans-grid">
-            {plans.map((plan) => (
+            {PLANS.map((plan) => (
               <div key={plan.days} className={`plan-card ${plan.popular ? 'plan-popular' : ''}`}>
                 {plan.popular && <span className="plan-badge">Popular</span>}
                 <div className="plan-duration">{plan.label}</div>
-                <div className="plan-price">${plan.price}</div>
+                <div className="plan-price">${plan.price.toFixed(2)}</div>
                 <button 
                   className="plan-btn" 
-                  onClick={() => handlePurchase(plan.days, plan.price)}
+                  onClick={() => handlePurchase(plan.days, plan.price, false)}
                 >
                   Purchase
                 </button>
