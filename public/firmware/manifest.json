@@ -1,0 +1,22 @@
+{
+  "name": "GHOST Firmware",
+  "version": "2.4",
+  "builds": [
+    {
+      "chipFamily": "ESP32",
+      "parts": [
+        { "path": "m5stickc-plus/bootloader.bin", "offset": 4096 },
+        { "path": "m5stickc-plus/partitions.bin", "offset": 32768 },
+        { "path": "m5stickc-plus/firmware.bin", "offset": 65536 }
+      ]
+    },
+    {
+      "chipFamily": "ESP32-S3",
+      "parts": [
+        { "path": "esp32s3/bootloader.bin", "offset": 0 },
+        { "path": "esp32s3/partitions.bin", "offset": 32768 },
+        { "path": "esp32s3/firmware.bin", "offset": 65536 }
+      ]
+    }
+  ]
+}

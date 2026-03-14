@@ -1,7 +1,9 @@
-import PlaceholderPage from '@/components/dashboard/PlaceholderPage';
+import Flasher from '@/components/dashboard/Flasher';
 
 export default function SoftwarePage() {
   return (
-    <PlaceholderPage title="SOFTWARE" subtitle="Coming soon" />
+    <div className="flex flex-1 flex-col items-center justify-center">
+      <Flasher />
+    </div>
   );
 }
