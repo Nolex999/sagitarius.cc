@@ -63,25 +63,23 @@ export default function LyceeColumn({
           </button>
         }
       >
-        <div className="flex flex-col">
-          <div className="flex-1">
-            {entries.length === 0 ? (
-              <div className="px-4 py-8 text-center text-[13px] text-[var(--text-muted)]">
-                Aucune entrée
-              </div>
-            ) : (
-              entries.map((e) => (
-                <EntryCard 
-                  key={e.id} 
-                  name={e.name} 
-                  info={e.info} 
-                  email={e.email}
-                  habitation={e.habitation}
-                  telephone={e.telephone}
-                />
-              ))
-            )}
-          </div>
+        <div className="flex-1">
+          {entries.length === 0 ? (
+            <div className="px-4 py-8 text-center text-[13px] text-[var(--text-muted)]">
+              Aucune entrée
+            </div>
+          ) : (
+            entries.map((e) => (
+              <EntryCard 
+                key={e.id} 
+                name={e.name} 
+                info={e.info} 
+                email={e.email}
+                habitation={e.habitation}
+                telephone={e.telephone}
+              />
+            ))
+          )}
         </div>
       </DBColumn>
       <AddEntryDrawer

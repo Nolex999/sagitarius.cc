@@ -39,7 +39,7 @@ export default function Sidebar({ user }: { user: AuthUser }) {
       <div className="flex items-center gap-2 px-4 py-6">
         <Image src="/logo.svg" alt="Logo" width={32} height={24} />
         <span className="font-mono text-sm font-medium tracking-tight text-[var(--text-primary)]">
-          SAGITARIUS
+          SAGITARIUS.CC
         </span>
       </div>
       <nav className="flex-1 space-y-0.5 px-3 py-2">
