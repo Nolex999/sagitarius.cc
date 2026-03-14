@@ -100,3 +100,81 @@ input:-webkit-autofill:active {
 .animate-slide-in-right {
   animation: slideInRight 0.25s ease-out forwards;
 }
+
+/* ========== SPLASH OVERLAY ========== */
+
+@keyframes splashFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes splashFadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes splashTitleReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.95);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes splashLineExpand {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes splashSubReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.splash-fade-in {
+  animation: splashFadeIn 0.4s ease-out forwards;
+}
+
+.splash-fade-out {
+  animation: splashFadeOut 1.0s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.splash-fade-in .splash-title {
+  opacity: 0;
+  animation: splashTitleReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+}
+
+.splash-fade-in .splash-line {
+  transform: scaleX(0);
+  animation: splashLineExpand 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+}
+
+.splash-fade-in .splash-sub {
+  opacity: 0;
+  animation: splashSubReveal 0.5s ease-out 0.7s forwards;
+}
