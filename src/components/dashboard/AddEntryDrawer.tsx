@@ -57,30 +57,30 @@ export default function AddEntryDrawer({
         aria-hidden
       />
       <aside
-        className="animate-slide-in-right fixed right-0 top-0 z-50 h-full w-[360px] border-l border-[var(--border)] bg-[#0f0f0f] shadow-lg"
+        className="animate-slide-in-right fixed right-4 top-4 z-50 h-[calc(100vh-2rem)] w-[400px] border border-white/10 bg-black/60 backdrop-blur-2xl shadow-2xl rounded-[var(--radius-xl)] flex flex-col overflow-hidden"
         role="dialog"
         aria-label={title}
       >
         <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
-            <h2 className="font-mono text-[13px] font-medium uppercase tracking-wide text-[var(--text-primary)]">
+          <div className="flex items-center justify-between border-b border-white/5 px-6 py-5">
+            <h2 className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--text-primary)]">
               {title}
             </h2>
             <button
               type="button"
               onClick={onClose}
-              className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+              className="text-[var(--text-muted)] transition-colors hover:text-white"
             >
-              <X size={18} strokeWidth={1.5} />
+              <X size={20} strokeWidth={1.5} />
             </button>
           </div>
           <form
             onSubmit={handleSubmit}
-            className="flex flex-1 flex-col gap-4 overflow-y-auto p-4"
+            className="flex flex-1 flex-col gap-6 overflow-y-auto p-6"
           >
             {fields.map((f) => (
               <div key={f.name}>
-                <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-wider text-[var(--text-secondary)]">
+                <label className="mb-2 block font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-secondary)]">
                   {f.label}
                 </label>
                 <input
@@ -88,22 +88,22 @@ export default function AddEntryDrawer({
                   type="text"
                   placeholder={f.placeholder}
                   required={f.required}
-                  className="w-full border border-[var(--border)] bg-transparent px-3 py-2 text-[13px] text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--border-active)]"
+                  className="w-full rounded-xl border border-white/[0.05] bg-white/[0.02] px-4 py-3 text-[13px] text-white outline-none transition-all placeholder:text-[#333] focus:border-white/20 focus:bg-white/[0.05]"
                 />
               </div>
             ))}
             {children}
-            <div className="mt-auto flex gap-3 pt-4">
+            <div className="mt-auto flex flex-col gap-3 pt-6">
               <button
                 type="submit"
-                className="bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-[var(--bg-base)] transition-opacity hover:opacity-90"
+                className="w-full bg-white px-6 py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-black transition-all hover:scale-[1.02] active:scale-[0.98] rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.1)]"
               >
                 Confirm
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="text-[13px] text-[#555] hover:text-[var(--text-secondary)]"
+                className="w-full px-6 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#444] transition-colors hover:text-white"
               >
                 Cancel
               </button>

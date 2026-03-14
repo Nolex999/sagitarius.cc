@@ -8,15 +8,16 @@ type DBColumnProps = {
 
 export default function DBColumn({ title, children, actions }: DBColumnProps) {
   return (
-    <div className="flex min-h-[500px] w-[320px] shrink-0 flex-col rounded-sm border border-[#1f1f1f] bg-[var(--bg-surface)]">
-      <div className="flex items-center justify-between px-4 py-3">
-        <span className="font-mono text-[13px] font-medium uppercase tracking-wide text-[var(--text-primary)]">
+    <div className="flex min-h-[500px] w-[340px] shrink-0 flex-col overflow-hidden border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-[var(--glass-blur)] rounded-[var(--radius-xl)] shadow-2xl">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--glass-border)]">
+        <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-primary)]">
           {title}
         </span>
         {actions}
       </div>
-      <div className="border-b border-[#1f1f1f]" />
-      <div className="flex-1 overflow-y-auto">{children}</div>
+      <div className="flex-1 overflow-y-auto">
+        {children}
+      </div>
     </div>
   );
 }

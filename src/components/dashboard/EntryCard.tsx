@@ -16,19 +16,19 @@ export default function EntryCard({
   telephone 
 }: EntryCardProps) {
   return (
-    <div className="group border-b border-[var(--bg-elevated)] px-4 py-3 transition-colors hover:bg-[#161616]">
-      <div className="flex items-center justify-between">
-        <p className="text-[13px] font-medium text-[var(--text-primary)]">{name}</p>
+    <div className="group relative mx-3 my-2 border border-white/[0.03] bg-white/[0.02] px-4 py-4 backdrop-blur-sm transition-all hover:bg-white/[0.05] hover:border-white/[0.08] rounded-[var(--radius-lg)]">
+      <div className="flex items-center justify-between mb-1.5">
+        <p className="text-[13px] font-semibold text-[var(--text-primary)] tracking-tight">{name}</p>
         {telephone && (
-          <span className="font-mono text-[10px] text-[var(--accent)]">{telephone}</span>
+          <span className="font-mono text-[9px] font-bold uppercase tracking-wider text-[var(--text-secondary)] bg-white/5 px-2 py-0.5 rounded-full">{telephone}</span>
         )}
       </div>
       {(category || info || email || habitation) && (
-        <div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-[var(--text-muted)]">
-          {category && <span>{category}</span>}
-          {info && <span>{info}</span>}
-          {email && <span className="text-[var(--text-secondary)]">{email}</span>}
-          {habitation && <span>{habitation}</span>}
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[var(--text-secondary)]">
+          {category && <span className="text-[var(--text-primary)]/70">{category}</span>}
+          {info && <span className="italic">{info}</span>}
+          {email && <span className="opacity-80 decoration-white/20 underline underline-offset-4">{email}</span>}
+          {habitation && <span className="opacity-60">{habitation}</span>}
         </div>
       )}
     </div>

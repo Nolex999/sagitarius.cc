@@ -3,16 +3,24 @@
 @tailwind utilities;
 
 :root {
-  --bg-base: #080808;
-  --bg-surface: #111111;
-  --bg-elevated: #1a1a1a;
-  --border: #242424;
-  --border-active: #3d3d3d;
-  --text-primary: #f5f5f5;
-  --text-secondary: #888888;
-  --text-muted: #444444;
+  --bg-base: #020202;
+  --bg-surface: #0a0a0a;
+  --bg-elevated: #111111;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-active: rgba(255, 255, 255, 0.2);
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1a1;
+  --text-muted: #525252;
   --accent: #ffffff;
   --accent-dim: rgba(255, 255, 255, 0.06);
+  
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: blur(12px);
+  --radius-xl: 1.25rem;
+  --radius-lg: 0.75rem;
+  --radius-md: 0.5rem;
 }
 
 * {
