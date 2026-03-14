@@ -17,7 +17,7 @@ import type { User as AuthUser } from '@supabase/supabase-js';
 
 const navItems = [
   { href: '/dashboard/db', label: 'DB', icon: Database },
-  { href: '/dashboard/software', label: 'Software', icon: Cpu },
+  { href: '/dashboard/firmware', label: 'Firmware', icon: Cpu },
   { href: '/dashboard/s3', label: 'Section 3', icon: Box },
   { href: '/dashboard/s4', label: 'Section 4', icon: FolderOpen },
   { href: '/dashboard/s5', label: 'Section 5', icon: FileText },

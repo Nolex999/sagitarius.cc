@@ -22,6 +22,9 @@ export default function CelebriteColumn({ items }: { items: Celebrity[] }) {
       .insert({
         name: values.name,
         category: values.category || null,
+        email: values.email || null,
+        habitation: values.habitation || null,
+        telephone: values.telephone || null,
         created_by: user.user?.id ?? null,
       })
       .select()
@@ -55,6 +58,9 @@ export default function CelebriteColumn({ items }: { items: Celebrity[] }) {
               key={item.id}
               name={item.name}
               category={item.category}
+              email={item.email}
+              habitation={item.habitation}
+              telephone={item.telephone}
             />
           ))
         )}
@@ -66,6 +72,9 @@ export default function CelebriteColumn({ items }: { items: Celebrity[] }) {
         fields={[
           { name: 'name', label: 'Nom', required: true },
           { name: 'category', label: 'Catégorie' },
+          { name: 'email', label: 'Email' },
+          { name: 'habitation', label: 'Habitation' },
+          { name: 'telephone', label: 'Téléphone' },
         ]}
         onSubmit={handleAdd}
       />

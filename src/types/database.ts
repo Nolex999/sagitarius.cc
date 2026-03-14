@@ -14,6 +14,9 @@ export interface Database {
           id: string;
           name: string;
           category: string | null;
+          email: string | null;
+          habitation: string | null;
+          telephone: string | null;
           created_at: string;
           created_by: string | null;
         };
@@ -21,6 +24,9 @@ export interface Database {
           id?: string;
           name: string;
           category?: string | null;
+          email?: string | null;
+          habitation?: string | null;
+          telephone?: string | null;
           created_at?: string;
           created_by?: string | null;
         };
@@ -28,6 +34,9 @@ export interface Database {
           id?: string;
           name?: string;
           category?: string | null;
+          email?: string | null;
+          habitation?: string | null;
+          telephone?: string | null;
           created_at?: string;
           created_by?: string | null;
         };
@@ -58,6 +67,9 @@ export interface Database {
           class_id: string;
           name: string;
           info: string | null;
+          email: string | null;
+          habitation: string | null;
+          telephone: string | null;
           created_at: string;
           created_by: string | null;
         };
@@ -66,6 +78,9 @@ export interface Database {
           class_id: string;
           name: string;
           info?: string | null;
+          email?: string | null;
+          habitation?: string | null;
+          telephone?: string | null;
           created_at?: string;
           created_by?: string | null;
         };
@@ -74,6 +89,9 @@ export interface Database {
           class_id?: string;
           name?: string;
           info?: string | null;
+          email?: string | null;
+          habitation?: string | null;
+          telephone?: string | null;
           created_at?: string;
           created_by?: string | null;
         };
