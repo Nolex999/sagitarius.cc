@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import CelebriteColumn from '@/components/dashboard/CelebriteColumn';
 import LyceeColumn from '@/components/dashboard/LyceeColumn';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DBPage() {
   const supabase = await createClient();
 

@@ -48,7 +48,7 @@ export default function LoginForm() {
           <Mail
             size={18}
             strokeWidth={1.5}
-            className="absolute left-3 text-[var(--text-muted)]"
+            className="absolute left-3 text-[var(--text-muted)] transition-colors"
           />
           <input
             name="email"
@@ -71,7 +71,7 @@ export default function LoginForm() {
           <Lock
             size={18}
             strokeWidth={1.5}
-            className="absolute left-3 text-[var(--text-muted)]"
+            className="absolute left-3 text-[var(--text-muted)] transition-colors"
           />
           <input
             name="password"
@@ -87,7 +87,7 @@ export default function LoginForm() {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+            className="absolute right-3 text-[var(--text-muted)] transition-colors hover:text-[var(--text-secondary)]"
           >
             {showPassword ? (
               <EyeOff size={18} strokeWidth={1.5} />
@@ -100,13 +100,20 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-[var(--accent)] py-2.5 text-[13px] font-medium text-[var(--bg-base)] transition-opacity hover:opacity-95 disabled:opacity-60"
+        className="w-full bg-[var(--accent)] py-2.5 text-[13px] font-medium text-[var(--bg-base)] transition-opacity hover:opacity-90 disabled:opacity-60"
       >
-        {loading ? 'Processing...' : 'Sign In'}
+        {loading ? (
+          <span className="inline-flex items-center gap-2">
+            <span className="h-3 w-3 animate-spin rounded-full border border-[var(--bg-base)]/30 border-t-[var(--bg-base)]" />
+            Processing...
+          </span>
+        ) : (
+          'Sign In'
+        )}
       </button>
       <Link
         href="/auth/register"
-        className="mt-4 block text-center text-[13px] text-[var(--text-secondary)] underline hover:text-[var(--text-primary)]"
+        className="mt-4 block text-center text-[13px] text-[var(--text-secondary)] underline transition-colors hover:text-[var(--text-primary)]"
       >
         Need an account?
       </Link>

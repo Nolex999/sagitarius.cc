@@ -1,10 +1,12 @@
 import LoginForm from '@/components/auth/LoginForm';
 import Image from 'next/image';
 
+export const dynamic = 'force-dynamic';
+
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--bg-base)]">
-      <div className="flex w-full max-w-[400px] flex-col items-center px-8 py-8">
+      <div className="animate-fade-in flex w-full max-w-[400px] flex-col items-center px-8 py-8">
         <div className="mb-8 text-center">
           <Image
             src="/logo.svg"

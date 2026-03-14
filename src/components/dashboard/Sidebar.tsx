@@ -49,11 +49,10 @@ export default function Sidebar({ user }: { user: AuthUser }) {
             <Link
               key={href}
               href={href}
-              className={`flex h-9 items-center gap-3 rounded px-3 text-sm transition-colors ${
-                isActive
+              className={`flex h-9 items-center gap-3 rounded px-3 text-sm transition-colors ${isActive
                   ? 'bg-[var(--bg-elevated)] text-[var(--text-primary)]'
                   : 'text-[#666] hover:text-[#aaa]'
-              }`}
+                }`}
             >
               <Icon size={18} strokeWidth={1.5} />
               {label}

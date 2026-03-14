@@ -57,7 +57,7 @@ export default function AddEntryDrawer({
         aria-hidden
       />
       <aside
-        className="fixed right-0 top-0 z-50 h-full w-[360px] border-l border-[var(--border)] bg-[#0f0f0f] shadow-lg"
+        className="animate-slide-in-right fixed right-0 top-0 z-50 h-full w-[360px] border-l border-[var(--border)] bg-[#0f0f0f] shadow-lg"
         role="dialog"
         aria-label={title}
       >
@@ -96,7 +96,7 @@ export default function AddEntryDrawer({
             <div className="mt-auto flex gap-3 pt-4">
               <button
                 type="submit"
-                className="bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-[var(--bg-base)] transition-opacity hover:opacity-95"
+                className="bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-[var(--bg-base)] transition-opacity hover:opacity-90"
               >
                 Confirm
               </button>

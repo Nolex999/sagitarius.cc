@@ -94,11 +94,10 @@ export default function LyceeColumn({
                   key={c.id}
                   type="button"
                   onClick={() => setActiveClassId(c.id)}
-                  className={`shrink-0 px-3 py-2.5 font-mono text-[11px] uppercase tracking-wider transition-colors ${
-                    isActive
+                  className={`shrink-0 px-3 py-2.5 font-mono text-[11px] uppercase tracking-wider transition-colors ${isActive
                       ? 'border-b border-[var(--text-primary)] text-[var(--text-primary)]'
                       : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-                  }`}
+                    }`}
                 >
                   {c.name}
                 </button>

@@ -569,11 +569,17 @@ video {
 .flex {
   display: flex;
 }
+.inline-flex {
+  display: inline-flex;
+}
 .hidden {
   display: none;
 }
 .h-10 {
   height: 2.5rem;
+}
+.h-3 {
+  height: 0.75rem;
 }
 .h-8 {
   height: 2rem;
@@ -592,6 +598,9 @@ video {
 }
 .min-h-screen {
   min-height: 100vh;
+}
+.w-3 {
+  width: 0.75rem;
 }
 .w-8 {
   width: 2rem;
@@ -619,6 +628,15 @@ video {
 }
 .shrink-0 {
   flex-shrink: 0;
+}
+@keyframes spin {
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 .flex-col {
   flex-direction: column;
@@ -669,6 +687,9 @@ video {
 .rounded {
   border-radius: 0.25rem;
 }
+.rounded-full {
+  border-radius: 9999px;
+}
 .rounded-sm {
   border-radius: 0.125rem;
 }
@@ -703,6 +724,9 @@ video {
 }
 .border-\[var\(--text-primary\)\] {
   border-color: var(--text-primary);
+}
+.border-t-\[var\(--bg-base\)\] {
+  border-top-color: var(--bg-base);
 }
 .bg-\[\#0d0d0d\] {
   --tw-bg-opacity: 1;
@@ -946,6 +970,24 @@ body {
   min-height: 100vh;
 }
 
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #222;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}
+
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
@@ -953,6 +995,40 @@ input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 30px var(--bg-surface) inset !important;
   -webkit-text-fill-color: var(--text-primary) !important;
   caret-color: var(--text-primary);
+  -webkit-transition: background-color 5000s ease-in-out 0s;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Subtle fade-in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.35s ease-out forwards;
+}
+
+/* Slide in from right for drawer */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.25s ease-out forwards;
 }
 
 .placeholder\:text-\[var\(--text-muted\)\]::-moz-placeholder {
@@ -981,8 +1057,8 @@ input:-webkit-autofill:active {
   color: var(--text-secondary);
 }
 
-.hover\:opacity-95:hover {
-  opacity: 0.95;
+.hover\:opacity-90:hover {
+  opacity: 0.9;
 }
 
 .focus\:border-\[var\(--border-active\)\]:focus {
@@ -992,4 +1068,3 @@ input:-webkit-autofill:active {
 .disabled\:opacity-60:disabled {
   opacity: 0.6;
 }
-

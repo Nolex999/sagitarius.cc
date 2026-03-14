@@ -31,7 +31,7 @@ export default function RegisterForm() {
       if (!validData?.valid) {
         throw new Error(
           (validData as { message?: string })?.message ||
-            'Code invalide ou déjà utilisé.'
+          'Code invalide ou déjà utilisé.'
         );
       }
 
@@ -67,6 +67,9 @@ export default function RegisterForm() {
     }
   };
 
+  const inputClass =
+    'w-full border border-[var(--border)] bg-transparent py-2.5 pl-10 pr-3 text-[13px] text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--border-active)]';
+
   return (
     <form onSubmit={handleSubmit} className="w-full">
       {error && (
@@ -93,7 +96,7 @@ export default function RegisterForm() {
             }
             placeholder="UUID (ex: 6696a32-c314-4fac-94ea-ecb3ad115a98)"
             required
-            className="w-full border border-[var(--border)] bg-transparent py-2.5 pl-10 pr-3 text-[13px] text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--border-active)]"
+            className={inputClass}
           />
         </div>
       </div>
@@ -116,7 +119,7 @@ export default function RegisterForm() {
             }
             placeholder="Enter your email"
             required
-            className="w-full border border-[var(--border)] bg-transparent py-2.5 pl-10 pr-3 text-[13px] text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--border-active)]"
+            className={inputClass}
           />
         </div>
       </div>
@@ -173,20 +176,27 @@ export default function RegisterForm() {
             }
             placeholder="Confirm password"
             required
-            className="w-full border border-[var(--border)] bg-transparent py-2.5 pl-10 pr-3 text-[13px] text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--border-active)]"
+            className={inputClass}
           />
         </div>
       </div>
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-[var(--accent)] py-2.5 text-[13px] font-medium text-[var(--bg-base)] transition-opacity hover:opacity-95 disabled:opacity-60"
+        className="w-full bg-[var(--accent)] py-2.5 text-[13px] font-medium text-[var(--bg-base)] transition-opacity hover:opacity-90 disabled:opacity-60"
       >
-        {loading ? 'Processing...' : 'Create account'}
+        {loading ? (
+          <span className="inline-flex items-center gap-2">
+            <span className="h-3 w-3 animate-spin rounded-full border border-[var(--bg-base)]/30 border-t-[var(--bg-base)]" />
+            Processing...
+          </span>
+        ) : (
+          'Create account'
+        )}
       </button>
       <Link
         href="/auth/login"
-        className="mt-4 block text-center text-[13px] text-[var(--text-secondary)] underline hover:text-[var(--text-primary)]"
+        className="mt-4 block text-center text-[13px] text-[var(--text-secondary)] underline transition-colors hover:text-[var(--text-primary)]"
       >
         Already registered?
       </Link>
