@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import DBColumn from './DBColumn';
 import EntryCard from './EntryCard';
@@ -14,6 +14,11 @@ export default function CelebriteColumn({ items }: { items: Celebrity[] }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [list, setList] = useState<Celebrity[]>(items);
   const supabase = createClient();
+
+  // Sync state with props
+  useEffect(() => {
+    setList(items);
+  }, [items]);
 
   const handleAdd = async (values: Record<string, string>) => {
     const { data: user } = await supabase.auth.getUser();
@@ -29,8 +34,15 @@ export default function CelebriteColumn({ items }: { items: Celebrity[] }) {
       })
       .select()
       .single();
-    if (!error && data) {
-      setList((p) => [...p, data]);
+
+    if (error) {
+      console.error('Error adding celebrity:', error);
+      alert('Erreur lors de l\'ajout: ' + error.message);
+      return;
+    }
+
+    if (data) {
+      setList((p) => [data, ...p]);
     }
   };
 

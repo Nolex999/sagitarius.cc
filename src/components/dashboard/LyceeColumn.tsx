@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import DBColumn from './DBColumn';
 import EntryCard from './EntryCard';
@@ -22,6 +22,12 @@ export default function LyceeColumn({
   entries: LyceeEntry[];
 }) {
   const [entries, setEntries] = useState<LyceeEntry[]>(initialEntries);
+
+  // Sync state with props
+  useEffect(() => {
+    setEntries(initialEntries);
+  }, [initialEntries]);
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const supabase = createClient();
 
@@ -29,8 +35,11 @@ export default function LyceeColumn({
   const defaultClassId = classes[0]?.id;
 
   const handleAddEntry = async (values: Record<string, string>) => {
-    if (!defaultClassId) return;
-    const { data: user } = await supabase.auth.getUser();
+    if (!defaultClassId) {
+      alert("Erreur: Aucune classe lycée trouvée dans la base de données. Veuillez lancer le script SQL.");
+      return;
+    }
+    const { data: userData } = await supabase.auth.getUser();
     const { data, error } = await supabase
       .from('lycee_entries')
       .insert({
@@ -40,12 +49,19 @@ export default function LyceeColumn({
         email: values.email || null,
         habitation: values.habitation || null,
         telephone: values.telephone || null,
-        created_by: user.user?.id ?? null,
+        created_by: userData.user?.id ?? null,
       })
       .select()
       .single();
-    if (!error && data) {
-      setEntries((p) => [...p, data]);
+
+    if (error) {
+      console.error('Error adding lycee entry:', error);
+      alert('Erreur lors de l\'ajout (Lycée): ' + error.message);
+      return;
+    }
+
+    if (data) {
+      setEntries((p) => [data, ...p]);
     }
   };
 
