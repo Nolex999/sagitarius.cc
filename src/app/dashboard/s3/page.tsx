@@ -1,86 +1,192 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { Save, Globe, Copy, Check, ExternalLink, Loader2 } from 'lucide-react';
 import BioEditor from '@/components/dashboard/bio/BioEditor';
 import BioPreview from '@/components/dashboard/bio/BioPreview';
+import { createClient } from '@/lib/supabase/client';
 import type { BioConfig } from '@/types/bio';
 
 const defaultConfig: BioConfig = {
-  // Profile
-  username: 'sagitarius',
-  displayName: 'Sagitarius',
-  bio: 'élite member • no limits',
+  username: '',
+  displayName: '',
+  bio: '',
   avatarUrl: '',
   pronouns: '',
-  
-  // Badges
-  badges: ['Developer', 'Elite'],
-  
-  // Theme
+  badges: [],
   theme: {
     primaryColor: '#a855f7',
     secondaryColor: '#6366f1',
     accentColor: '#ec4899',
-    bgType: 'gradient', // 'solid' | 'gradient' | 'image'
+    bgType: 'gradient',
     bgColor1: '#0a0a0a',
     bgColor2: '#1a0a2e',
     bgImageUrl: '',
     fontFamily: 'Inter',
-    cardStyle: 'glass', // 'glass' | 'solid' | 'outline' | 'neon'
+    cardStyle: 'glass',
     borderRadius: 16,
     glowEnabled: true,
     glowColor: '#a855f7',
     glowIntensity: 50,
   },
-  
-  // Effects
   effects: {
-    bgEffect: 'particles', // 'none' | 'particles' | 'matrix' | 'stars' | 'rain' | 'snow' | 'fireflies'
+    bgEffect: 'particles',
     bgEffectIntensity: 50,
     bgEffectColor: '#a855f7',
-    cursorTrail: 'none', // 'none' | 'glow' | 'sparkle' | 'trail' | 'fire'
+    cursorTrail: 'none',
     cursorTrailColor: '#a855f7',
-    avatarEffect: 'glow-pulse', // 'none' | 'glow-pulse' | 'rotate-border' | 'glitch' | 'breathe'
-    textEffect: 'none', // 'none' | 'gradient' | 'glitch' | 'typewriter' | 'neon-flicker'
-    entranceAnimation: 'fade-up', // 'none' | 'fade-up' | 'scale' | 'slide-left' | 'glitch-in'
+    avatarEffect: 'glow-pulse',
+    textEffect: 'none',
+    entranceAnimation: 'fade-up',
   },
-  
-  // Social Links
-  socials: [
-    { platform: 'discord', url: '', label: 'Discord' },
-    { platform: 'telegram', url: '', label: 'Telegram' },
-  ],
-  
-  // Custom Links
-  customLinks: [
-    { title: 'My Project', url: 'https://example.com', icon: 'link', enabled: true },
-  ],
-  
-  // Music
+  socials: [],
+  customLinks: [],
   music: {
     enabled: false,
-    type: 'spotify', // 'spotify' | 'soundcloud' | 'custom'
+    type: 'spotify',
     url: '',
     autoplay: false,
   },
-  
-  // Stats
   stats: {
     showViews: true,
     showJoinDate: true,
-    customStats: [
-      { label: 'Projects', value: '12' },
-      { label: 'Contributions', value: '1.2k' },
-    ],
+    customStats: [],
   },
-  
-  // Advanced
   customCss: '',
 };
 
 export default function S3Page() {
   const [config, setConfig] = useState<BioConfig>(defaultConfig);
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [isPublished, setIsPublished] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [profileId, setProfileId] = useState<string | null>(null);
+
+  const supabase = createClient();
+
+  // Load existing profile on mount
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data } = await supabase
+          .from('bio_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (data) {
+          setProfileId(data.id);
+          setIsPublished(data.is_published);
+          setConfig(data.config as BioConfig);
+        } else {
+          // Set default username from email
+          setConfig((prev: BioConfig) => ({
+            ...prev,
+            username: user.email?.split('@')[0] || '',
+            displayName: user.email?.split('@')[0] || '',
+          }));
+        }
+      } catch {
+        // No profile yet, that's ok
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProfile();
+  }, []);
+
+  // Save profile
+  const handleSave = useCallback(async () => {
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not logged in');
+
+      if (!config.username.trim()) {
+        alert('Tu dois choisir un username !');
+        setSaving(false);
+        return;
+      }
+
+      if (profileId) {
+        // Update existing
+        const { error } = await supabase
+          .from('bio_profiles')
+          .update({
+            username: config.username.toLowerCase().trim(),
+            config: config as any,
+            is_published: isPublished,
+          })
+          .eq('id', profileId);
+
+        if (error) throw error;
+      } else {
+        // Insert new
+        const { data, error } = await supabase
+          .from('bio_profiles')
+          .insert({
+            user_id: user.id,
+            username: config.username.toLowerCase().trim(),
+            config: config as any,
+            is_published: isPublished,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (data) setProfileId(data.id);
+      }
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err: any) {
+      console.error('Save error:', err);
+      if (err?.message?.includes('duplicate') || err?.message?.includes('unique')) {
+        alert('Ce username est déjà pris !');
+      } else {
+        alert('Erreur lors de la sauvegarde: ' + (err?.message || 'Unknown error'));
+      }
+    } finally {
+      setSaving(false);
+    }
+  }, [config, profileId, isPublished, supabase]);
+
+  // Toggle publish
+  const handleTogglePublish = useCallback(async () => {
+    const newState = !isPublished;
+    setIsPublished(newState);
+    
+    if (profileId) {
+      await supabase
+        .from('bio_profiles')
+        .update({ is_published: newState })
+        .eq('id', profileId);
+    }
+  }, [isPublished, profileId, supabase]);
+
+  // Copy URL
+  const handleCopyUrl = useCallback(() => {
+    const url = `${window.location.origin}/bio/${config.username.toLowerCase().trim()}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [config.username]);
+
+  const publicUrl = config.username ? `/bio/${config.username.toLowerCase().trim()}` : '';
+
+  if (loading) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <Loader2 size={20} className="animate-spin text-[var(--text-muted)]" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full">
@@ -93,26 +199,84 @@ export default function S3Page() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Preview Controls */}
         <div className="flex items-center justify-between px-6 py-3 border-b border-[var(--border)]">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)] font-bold">Preview</span>
-            <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+          <div className="flex items-center gap-4">
+            {/* Desktop / Mobile toggle */}
+            <div className="flex items-center gap-1 rounded-lg bg-white/[0.03] border border-white/[0.06] p-0.5">
+              <button 
+                onClick={() => setPreviewMode('desktop')}
+                className={`px-3 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold transition-all ${
+                  previewMode === 'desktop' ? 'bg-white/10 text-white' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                }`}
+              >
+                Desktop
+              </button>
+              <button 
+                onClick={() => setPreviewMode('mobile')}
+                className={`px-3 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold transition-all ${
+                  previewMode === 'mobile' ? 'bg-white/10 text-white' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                }`}
+              >
+                Mobile
+              </button>
+            </div>
+
+            {/* Public URL */}
+            {config.username && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleCopyUrl}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[10px] text-[var(--text-secondary)] hover:text-white hover:border-white/15 transition-all"
+                >
+                  {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} />}
+                  <span className="font-mono">{publicUrl}</span>
+                </button>
+                {isPublished && (
+                  <a
+                    href={publicUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] text-green-400/70 hover:text-green-400 transition-all"
+                  >
+                    <ExternalLink size={11} />
+                  </a>
+                )}
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-1 rounded-lg bg-white/[0.03] border border-white/[0.06] p-0.5">
-            <button 
-              onClick={() => setPreviewMode('desktop')}
-              className={`px-3 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold transition-all ${
-                previewMode === 'desktop' ? 'bg-white/10 text-white' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            {/* Publish toggle */}
+            <button
+              onClick={handleTogglePublish}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-wider font-bold transition-all border ${
+                isPublished
+                  ? 'bg-green-500/10 border-green-400/20 text-green-400'
+                  : 'bg-white/[0.02] border-white/[0.06] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
             >
-              Desktop
+              <Globe size={12} />
+              {isPublished ? 'En ligne' : 'Hors ligne'}
             </button>
-            <button 
-              onClick={() => setPreviewMode('mobile')}
-              className={`px-3 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold transition-all ${
-                previewMode === 'mobile' ? 'bg-white/10 text-white' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-              }`}
+
+            {/* Save button */}
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[10px] uppercase tracking-wider font-bold transition-all border ${
+                saved
+                  ? 'bg-green-500/15 border-green-400/25 text-green-400'
+                  : 'bg-white/10 border-white/15 text-white hover:bg-white/15'
+              } disabled:opacity-50`}
             >
-              Mobile
+              {saving ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : saved ? (
+                <Check size={12} />
+              ) : (
+                <Save size={12} />
+              )}
+              {saving ? 'Saving...' : saved ? 'Saved!' : 'Sauvegarder'}
             </button>
           </div>
         </div>

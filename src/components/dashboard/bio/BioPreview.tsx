@@ -305,7 +305,7 @@ function getTextClass(effect: string): string {
 
 // =================== MAIN PREVIEW ===================
 
-export default function BioPreview({ config }: { config: BioConfig }) {
+export default function BioPreview({ config, realViews }: { config: BioConfig; realViews?: number }) {
   const { theme, effects, socials, customLinks, music, stats } = config;
 
   // Font import
@@ -616,7 +616,7 @@ export default function BioPreview({ config }: { config: BioConfig }) {
               {stats.showViews && (
                 <div className="flex items-center gap-1.5">
                   <Eye size={13} style={{ color: theme.primaryColor }} />
-                  <span className="text-xs font-semibold text-white/70">1,337</span>
+                  <span className="text-xs font-semibold text-white/70">{realViews !== undefined ? realViews.toLocaleString() : '1,337'}</span>
                   <span className="text-[9px] uppercase tracking-wider text-white/30">views</span>
                 </div>
               )}

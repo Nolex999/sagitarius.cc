@@ -32,9 +32,10 @@ const socialPlatforms = [
 ];
 
 const badgePresets = [
-  'Developer', 'Elite', 'OG', 'Admin', 'VIP', 'Pro',
-  'Hacker', 'Designer', 'Creator', 'Legend', 'Verified',
-  'Alpha', 'Goat', 'Phantom', 'Ghost', 'Demon',
+  'Developer', 'Designer', 'Creator', 'Hacker',
+  'Gamer', 'Producer', 'Artist', 'Streamer',
+  'Elite', 'OG', 'Legend', 'Alpha', 'Goat',
+  'Phantom', 'Ghost', 'Demon', 'Dark',
 ];
 
 const presetColors = [
