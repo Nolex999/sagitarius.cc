@@ -1,10 +1,12 @@
-export type BgType = 'solid' | 'gradient' | 'image';
+export type BgType = 'solid' | 'gradient' | 'image' | 'video' | 'pattern';
 export type CardStyle = 'glass' | 'solid' | 'outline' | 'neon';
 export type BgEffect = 'none' | 'particles' | 'matrix' | 'stars' | 'rain' | 'snow' | 'fireflies';
 export type CursorTrail = 'none' | 'glow' | 'sparkle' | 'trail' | 'fire';
 export type AvatarEffect = 'none' | 'glow-pulse' | 'rotate-border' | 'glitch' | 'breathe';
 export type TextEffect = 'none' | 'gradient' | 'glitch' | 'typewriter' | 'neon-flicker';
-export type EntranceAnimation = 'none' | 'fade-up' | 'scale' | 'slide-left' | 'glitch-in';
+export type EntranceAnimation = 'none' | 'fade-up' | 'scale' | 'slide-left' | 'slide-right' | 'slide-down' | 'spin-in' | 'flip-x' | 'bounce-in' | 'glitch-in';
+export type HoverEffect = 'none' | 'lift' | 'glow' | 'scale' | 'neon' | 'shake';
+export type OverlayEffect = 'none' | 'vhs' | 'scanlines' | 'noise' | 'cyberpunk-glitch';
 export type MusicType = 'spotify' | 'soundcloud' | 'custom';
 export type LayoutPreset = 'centered' | 'left-aligned' | 'card' | 'minimal' | 'hero';
 export type BorderStyle = 'none' | 'solid' | 'gradient' | 'animated' | 'dashed';
@@ -20,6 +22,8 @@ export interface BioTheme {
   bgColor1: string;
   bgColor2: string;
   bgImageUrl: string;
+  bgVideoUrl?: string;
+  bgPattern?: 'dots' | 'grid' | 'waves' | 'diagonal';
   fontFamily: string;
   cardStyle: CardStyle;
   borderRadius: number;
@@ -38,6 +42,8 @@ export interface BioEffects {
   textEffect: TextEffect;
   entranceAnimation: EntranceAnimation;
   clickEffect: ClickEffect;
+  hoverEffect: HoverEffect;
+  overlayEffect?: OverlayEffect;
   customCursor: CustomCursor;
   audioVisualizer: boolean;
 }
@@ -145,6 +151,7 @@ export interface BioConfig {
   seo: BioSeo;
   profileShape: ProfileShape;
   backgroundOverlay: BackgroundOverlay;
+  hoverEffect: HoverEffect;
   clickEffect: ClickEffect;
   typingBio: boolean;
   timeline: { enabled: boolean; items: TimelineItem[] };

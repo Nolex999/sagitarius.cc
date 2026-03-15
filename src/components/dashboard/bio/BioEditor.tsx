@@ -4,9 +4,12 @@ import { useState } from 'react';
 import {
   User, Palette, Sparkles, Link2, Music, BarChart3, Code2,
   Plus, Trash2, GripVertical, Layout, Puzzle, Search,
-  Image, Video, MessageCircle, Flag, Globe,
+  Image, Video, MessageCircle, Flag, Globe, ExternalLink,
 } from 'lucide-react';
 import type { BioConfig } from '@/types/bio';
+import MediaUploader from './MediaUploader';
+import AdvancedColorPicker from './AdvancedColorPicker';
+import PaletteSelector from './PaletteSelector';
 
 type TabId = 'profile' | 'layout' | 'theme' | 'effects' | 'links' | 'music' | 'stats' | 'widgets' | 'seo' | 'advanced';
 
@@ -99,41 +102,7 @@ function TextArea({ value, onChange, placeholder, rows = 3 }: { value: string; o
   );
 }
 
-function ColorPicker({ value, onChange, presets = presetColors }: { value: string; onChange: (v: string) => void; presets?: string[] }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2">
-        <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-white/10 shrink-0">
-          <input
-            type="color"
-            value={value}
-            onChange={e => onChange(e.target.value)}
-            className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
-          />
-          <div className="absolute inset-0" style={{ backgroundColor: value }} />
-        </div>
-        <input
-          type="text"
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          className="flex-1 h-8 px-2 rounded-md bg-white/[0.03] border border-white/[0.06] text-[10px] font-mono text-[var(--text-secondary)] focus:outline-none focus:border-white/15 transition-colors"
-        />
-      </div>
-      <div className="flex flex-wrap gap-1">
-        {presets.map(color => (
-          <button
-            key={color}
-            onClick={() => onChange(color)}
-            className={`w-5 h-5 rounded-md border transition-all hover:scale-110 ${
-              value === color ? 'border-white/50 scale-110 shadow-lg' : 'border-white/10'
-            }`}
-            style={{ backgroundColor: color }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
+// Removed basic ColorPicker since we use AdvancedColorPicker
 
 function SliderInput({ value, onChange, min = 0, max = 100, label }: { value: number; onChange: (v: number) => void; min?: number; max?: number; label?: string }) {
   return (
@@ -217,6 +186,12 @@ function ToggleRow({ label, value, onChange }: { label: string; value: boolean; 
 
 export default function BioEditor({ config, onChange }: EditorProps) {
   const [activeTab, setActiveTab] = useState<TabId>('profile');
+  const [customBadge, setCustomBadge] = useState('');
+  
+  // Custom CSS State
+  const [cssInput, setCssInput] = useState(config.customCss);
+  const [cssStatus, setCssStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [cssMessage, setCssMessage] = useState('');
 
   const update = <K extends keyof BioConfig>(key: K, value: BioConfig[K]) => {
     onChange({ ...config, [key]: value });
@@ -299,7 +274,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
 
       <div>
         <FieldLabel>Avatar URL</FieldLabel>
-        <TextInput value={config.avatarUrl} onChange={v => update('avatarUrl', v)} placeholder="https://..." />
+        <MediaUploader value={config.avatarUrl} onChange={v => update('avatarUrl', v)} type="image" />
       </div>
 
       <div>
@@ -320,7 +295,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
       
       <div>
         <FieldLabel>Banner image URL</FieldLabel>
-        <TextInput value={config.bannerUrl} onChange={v => update('bannerUrl', v)} placeholder="https://..." />
+        <MediaUploader value={config.bannerUrl} onChange={v => update('bannerUrl', v)} type="image" />
       </div>
 
       <div>
@@ -356,7 +331,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
           </div>
           <div>
             <FieldLabel>Status color</FieldLabel>
-            <ColorPicker value={config.statusIndicator.color} onChange={v => updateStatus('color', v)} presets={['#22c55e', '#ef4444', '#eab308', '#3b82f6', '#a855f7', '#64748b']} />
+            <AdvancedColorPicker value={config.statusIndicator.color} onChange={v => updateStatus('color', v)} />
           </div>
         </>
       )}
@@ -396,13 +371,16 @@ export default function BioEditor({ config, onChange }: EditorProps) {
       <div>
         <FieldLabel>Custom badge</FieldLabel>
         <div className="flex gap-2">
-          <TextInput value="" onChange={() => {}} placeholder="Badge name" />
+          <TextInput 
+            value={customBadge} 
+            onChange={setCustomBadge} 
+            placeholder="Badge name" 
+          />
           <button
             onClick={() => {
-              const input = document.querySelector<HTMLInputElement>('#custom-badge-input');
-              if (input?.value) {
-                update('badges', [...config.badges, input.value]);
-                input.value = '';
+              if (customBadge.trim()) {
+                update('badges', [...config.badges, customBadge.trim()]);
+                setCustomBadge('');
               }
             }}
             className="shrink-0 h-9 w-9 flex items-center justify-center rounded-lg bg-purple-500/15 border border-purple-400/20 text-purple-400 hover:bg-purple-500/25 transition-all"
@@ -480,7 +458,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
         <>
           <div>
             <FieldLabel>Couleur de l&apos;overlay</FieldLabel>
-            <ColorPicker value={config.backgroundOverlay.color} onChange={v => updateBgOverlay('color', v)} presets={['#000000', '#0a0a2e', '#1a0000', '#001a1a', '#0a1628']} />
+            <AdvancedColorPicker value={config.backgroundOverlay.color} onChange={v => updateBgOverlay('color', v)} />
           </div>
           <div>
             <FieldLabel>Opacity — {config.backgroundOverlay.opacity}%</FieldLabel>
@@ -493,21 +471,32 @@ export default function BioEditor({ config, onChange }: EditorProps) {
 
   const renderTheme = () => (
     <div className="space-y-4">
-      <SectionTitle>Colors</SectionTitle>
+      <SectionTitle>Theme Palettes</SectionTitle>
+      <PaletteSelector 
+        currentTheme={config.theme} 
+        onChange={(colors) => {
+          onChange({
+            ...config,
+            theme: {
+              ...config.theme,
+              primaryColor: colors.primaryColor,
+              secondaryColor: colors.secondaryColor,
+              accentColor: colors.accentColor,
+              bgColor1: colors.bgColor1,
+              bgColor2: colors.bgColor2,
+            }
+          });
+        }} 
+      />
+
+      <div className="h-px bg-white/10 my-6" />
+
+      <SectionTitle>Custom Colors</SectionTitle>
       
-      <div>
-        <FieldLabel>Primary color</FieldLabel>
-        <ColorPicker value={config.theme.primaryColor} onChange={v => updateTheme('primaryColor', v)} />
-      </div>
-
-      <div>
-        <FieldLabel>Secondary color</FieldLabel>
-        <ColorPicker value={config.theme.secondaryColor} onChange={v => updateTheme('secondaryColor', v)} />
-      </div>
-
-      <div>
-        <FieldLabel>Accent color</FieldLabel>
-        <ColorPicker value={config.theme.accentColor} onChange={v => updateTheme('accentColor', v)} />
+      <div className="grid grid-cols-2 gap-4">
+        <AdvancedColorPicker label="Primary" value={config.theme.primaryColor} onChange={v => updateTheme('primaryColor', v)} />
+        <AdvancedColorPicker label="Secondary" value={config.theme.secondaryColor} onChange={v => updateTheme('secondaryColor', v)} />
+        <AdvancedColorPicker label="Accent" value={config.theme.accentColor} onChange={v => updateTheme('accentColor', v)} />
       </div>
 
       <SectionTitle>Background</SectionTitle>
@@ -521,27 +510,65 @@ export default function BioEditor({ config, onChange }: EditorProps) {
             { value: 'solid', label: 'Solid' },
             { value: 'gradient', label: 'Gradient' },
             { value: 'image', label: 'Image' },
+            { value: 'video', label: 'Video' },
+            { value: 'pattern', label: 'Pattern' },
           ]}
           cols={3}
         />
       </div>
 
-      <div>
-        <FieldLabel>BG Color 1</FieldLabel>
-        <ColorPicker value={config.theme.bgColor1} onChange={v => updateTheme('bgColor1', v)} presets={['#0a0a0a', '#0d1117', '#1a0a2e', '#0a1628', '#0e0e0e', '#120015', '#001a1a', '#1a0000']} />
+      <div className="grid grid-cols-2 gap-4">
+        <AdvancedColorPicker label="BG Color 1" value={config.theme.bgColor1} onChange={v => updateTheme('bgColor1', v)} />
+
+        {config.theme.bgType === 'gradient' && (
+          <AdvancedColorPicker label="BG Color 2" value={config.theme.bgColor2} onChange={v => updateTheme('bgColor2', v)} />
+        )}
       </div>
 
-      {config.theme.bgType === 'gradient' && (
-        <div>
-          <FieldLabel>BG Color 2</FieldLabel>
-          <ColorPicker value={config.theme.bgColor2} onChange={v => updateTheme('bgColor2', v)} presets={['#1a0a2e', '#0d2847', '#2e0a1a', '#0a2e1a', '#2e2e0a', '#001a33', '#330a1a', '#0a330a']} />
+      {config.theme.bgType === 'image' && (
+        <div className="space-y-1">
+          <FieldLabel>URL de l&apos;image ou vidéo local</FieldLabel>
+          <MediaUploader value={config.theme.bgImageUrl} onChange={v => updateTheme('bgImageUrl', v)} type="any" />
         </div>
       )}
 
-      {config.theme.bgType === 'image' && (
+      {config.theme.bgType === 'video' && (
+        <div className="space-y-4">
+          <div>
+            <FieldLabel>Local Video or External URL (MP4/WebM)</FieldLabel>
+            <MediaUploader value={config.theme.bgVideoUrl || ''} onChange={v => updateTheme('bgVideoUrl', v)} type="video" />
+          </div>
+          <div>
+            <FieldLabel>Video Library (Quick Presets)</FieldLabel>
+            <OptionGrid
+              value={config.theme.bgVideoUrl || ''}
+              onChange={v => updateTheme('bgVideoUrl', v)}
+              options={[
+                { value: 'https://cdn.pixabay.com/video/2016/09/21/5361-182959196_tiny.mp4', label: 'Nebula' },
+                { value: 'https://cdn.pixabay.com/video/2020/07/11/44474-439561073_tiny.mp4', label: 'Cyber City' },
+                { value: 'https://cdn.pixabay.com/video/2021/08/17/85382-589945415_tiny.mp4', label: 'Matrix' },
+                { value: 'https://cdn.pixabay.com/video/2020/05/18/39474-421711202_tiny.mp4', label: 'Anime Clouds' },
+              ]}
+              cols={2}
+            />
+          </div>
+        </div>
+      )}
+
+      {config.theme.bgType === 'pattern' && (
         <div>
-          <FieldLabel>URL de l&apos;image</FieldLabel>
-          <TextInput value={config.theme.bgImageUrl} onChange={v => updateTheme('bgImageUrl', v)} placeholder="https://..." />
+          <FieldLabel>Pattern Type</FieldLabel>
+          <OptionGrid
+            value={config.theme.bgPattern || 'dots'}
+            onChange={v => updateTheme('bgPattern', v as any)}
+            options={[
+              { value: 'dots', label: 'Polka Dots' },
+              { value: 'grid', label: 'Grid' },
+              { value: 'waves', label: 'Waves' },
+              { value: 'diagonal', label: 'Diagonal Lines' },
+            ]}
+            cols={2}
+          />
         </div>
       )}
 
@@ -581,9 +608,8 @@ export default function BioEditor({ config, onChange }: EditorProps) {
 
       {config.theme.glowEnabled && (
         <>
-          <div>
-            <FieldLabel>Glow color</FieldLabel>
-            <ColorPicker value={config.theme.glowColor} onChange={v => updateTheme('glowColor', v)} />
+          <div className="z-10 relative">
+            <AdvancedColorPicker label="Glow color" value={config.theme.glowColor} onChange={v => updateTheme('glowColor', v)} />
           </div>
           <div>
             <FieldLabel>Intensity — {config.theme.glowIntensity}%</FieldLabel>
@@ -621,12 +647,29 @@ export default function BioEditor({ config, onChange }: EditorProps) {
             <FieldLabel>Intensity — {config.effects.bgEffectIntensity}%</FieldLabel>
             <SliderInput value={config.effects.bgEffectIntensity} onChange={v => updateEffects('bgEffectIntensity', v)} label="%" />
           </div>
-          <div>
-            <FieldLabel>Couleur de l&apos;effet</FieldLabel>
-            <ColorPicker value={config.effects.bgEffectColor} onChange={v => updateEffects('bgEffectColor', v)} />
+          <div className="z-10 relative">
+            <AdvancedColorPicker label="Couleur de l'effet" value={config.effects.bgEffectColor} onChange={v => updateEffects('bgEffectColor', v)} />
           </div>
         </>
       )}
+
+      <SectionTitle>Foreground Overlay</SectionTitle>
+      
+      <div>
+        <FieldLabel>Overlay type</FieldLabel>
+        <OptionGrid
+          value={config.effects.overlayEffect || 'none'}
+          onChange={v => updateEffects('overlayEffect', v as any)}
+          options={[
+            { value: 'none', label: 'None' },
+            { value: 'vhs', label: 'VHS' },
+            { value: 'scanlines', label: 'Scanline' },
+            { value: 'noise', label: 'Noise' },
+            { value: 'cyberpunk-glitch', label: 'Cyber' },
+          ]}
+          cols={3}
+        />
+      </div>
 
       <SectionTitle>Cursor Trail</SectionTitle>
       
@@ -645,12 +688,9 @@ export default function BioEditor({ config, onChange }: EditorProps) {
         />
       </div>
 
-      {config.effects.cursorTrail !== 'none' && (
-        <div>
-          <FieldLabel>Trail color</FieldLabel>
-          <ColorPicker value={config.effects.cursorTrailColor} onChange={v => updateEffects('cursorTrailColor', v)} />
+        <div className="z-10 relative mt-4">
+          <AdvancedColorPicker label="Trail color" value={config.effects.cursorTrailColor} onChange={v => updateEffects('cursorTrailColor', v)} />
         </div>
-      )}
 
       <SectionTitle>Avatar Effect</SectionTitle>
       
@@ -697,9 +737,34 @@ export default function BioEditor({ config, onChange }: EditorProps) {
             { value: 'none', label: 'None' },
             { value: 'fade-up', label: 'Fade Up' },
             { value: 'scale', label: 'Scale' },
-            { value: 'slide-left', label: 'Slide' },
+            { value: 'slide-left', label: 'Slide L' },
+            { value: 'slide-right', label: 'Slide R' },
+            { value: 'slide-down', label: 'Slide Dn' },
+            { value: 'spin-in', label: 'Spin' },
+            { value: 'flip-x', label: 'Flip X' },
+            { value: 'bounce-in', label: 'Bounce' },
             { value: 'glitch-in', label: 'Glitch' },
           ]}
+          cols={3}
+        />
+      </div>
+
+      <SectionTitle>Link Hover Effect</SectionTitle>
+      
+      <div>
+        <FieldLabel>Hover Animation</FieldLabel>
+        <OptionGrid
+          value={config.effects.hoverEffect || 'none'}
+          onChange={v => updateEffects('hoverEffect', v as any)}
+          options={[
+            { value: 'none', label: 'None' },
+            { value: 'lift', label: 'Lift' },
+            { value: 'glow', label: 'Glow' },
+            { value: 'scale', label: 'Scale' },
+            { value: 'neon', label: 'Neon' },
+            { value: 'shake', label: 'Shake' },
+          ]}
+          cols={3}
         />
       </div>
 
@@ -869,6 +934,19 @@ export default function BioEditor({ config, onChange }: EditorProps) {
                 'https://example.com/song.mp3'
               }
             />
+            {config.music.type === 'spotify' && config.music.url && (
+              <div className="mt-2 text-[10px] text-[var(--text-muted)] flex items-center justify-between px-1">
+                <span>Auto-magical embed ✨</span>
+                <a 
+                  href={config.music.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-purple-400 hover:underline transition-colors flex items-center gap-1"
+                >
+                  Tester le lien <ExternalLink size={10} />
+                </a>
+              </div>
+            )}
           </div>
 
           <ToggleRow label="Autoplay" value={config.music.autoplay} onChange={v => updateMusic('autoplay', v)} />
@@ -987,15 +1065,24 @@ export default function BioEditor({ config, onChange }: EditorProps) {
       {config.imageGallery?.enabled && (
         <>
           {(config.imageGallery.images || []).map((img, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <TextInput
+            <div key={i} className="flex flex-col gap-2 p-3 bg-white/[0.02] border border-white/[0.05] rounded-xl mb-2">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-[10px] uppercase font-bold text-[var(--text-muted)]">Image {i + 1}</span>
+                <button
+                  onClick={() => updateGallery('images', (config.imageGallery.images || []).filter((_, j) => j !== i))}
+                  className="shrink-0 h-6 w-6 flex items-center justify-center rounded-md text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+              <MediaUploader
                 value={img.url}
                 onChange={v => {
                   const newImages = [...(config.imageGallery.images || [])];
                   newImages[i] = { ...img, url: v };
                   updateGallery('images', newImages);
                 }}
-                placeholder="Image URL"
+                type="image"
               />
               <TextInput
                 value={img.caption}
@@ -1006,12 +1093,6 @@ export default function BioEditor({ config, onChange }: EditorProps) {
                 }}
                 placeholder="Caption"
               />
-              <button
-                onClick={() => updateGallery('images', (config.imageGallery.images || []).filter((_, j) => j !== i))}
-                className="shrink-0 h-8 w-8 flex items-center justify-center rounded-lg text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-all"
-              >
-                <Trash2 size={13} />
-              </button>
             </div>
           ))}
           <button
@@ -1029,8 +1110,8 @@ export default function BioEditor({ config, onChange }: EditorProps) {
 
       {config.embedVideo?.enabled && (
         <div>
-          <FieldLabel>YouTube / other URL</FieldLabel>
-          <TextInput value={config.embedVideo.url} onChange={v => updateVideo('url', v)} placeholder="https://youtube.com/watch?v=..." />
+          <FieldLabel>Local Video or YouTube/other URL</FieldLabel>
+          <MediaUploader value={config.embedVideo.url} onChange={v => updateVideo('url', v)} type="video" />
         </div>
       )}
 
@@ -1071,20 +1152,82 @@ export default function BioEditor({ config, onChange }: EditorProps) {
     </div>
   );
 
-  const renderAdvanced = () => (
-    <div className="space-y-4">
-      <SectionTitle>CSS Custom</SectionTitle>
-      <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">
-        Add custom CSS to customize your page even more. Use <code className="text-purple-400/80">.bio-page</code> comme root selector.
-      </p>
-      <TextArea
-        value={config.customCss}
-        onChange={v => update('customCss', v)}
-        placeholder={`.bio-page {\n  /* Your CSS here */\n}`}
-        rows={12}
-      />
-    </div>
-  );
+  const renderAdvanced = () => {
+    const handleApplyCss = () => {
+      try {
+        // Basic syntax check: matching braces
+        if ((cssInput.match(/\{/g) || []).length !== (cssInput.match(/\}/g) || []).length) {
+          throw new Error('Unbalanced braces {} detected.');
+        }
+        
+        // Auto-scope to .bio-page if the user wrote raw rules 
+        // This regex wraps any rule blocks that don't start with .bio-page, but it's basic.
+        // We'll trust the user but advise them to use .bio-page
+        let processedCss = cssInput;
+        
+        update('customCss', processedCss);
+        setCssStatus('success');
+        setCssMessage('CSS applied successfully! ✨');
+        setTimeout(() => {
+          setCssStatus('idle');
+          setCssMessage('');
+        }, 3000);
+      } catch (err: any) {
+        setCssStatus('error');
+        setCssMessage(err.message || 'Syntax error in CSS');
+      }
+    };
+
+    return (
+      <div className="space-y-4">
+        <SectionTitle>CSS Custom</SectionTitle>
+        <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">
+          Add custom CSS to customize your page even more. All your CSS will be injected dynamically.
+          <br/>
+          <span className="text-purple-400">Important:</span> Prefix your selectors with <code className="text-white bg-white/10 px-1 py-0.5 rounded">.bio-page</code> to avoid global conflicts.
+        </p>
+        
+        <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.05] mb-4">
+          <p className="text-[9px] text-white/50 font-mono mb-2">Example:</p>
+          <pre className="text-[10px] text-purple-300/70 font-mono leading-relaxed">
+{`.bio-page .username { 
+  color: #ff00ff; 
+  text-shadow: 0 0 10px #ff00ff;
+}
+.bio-page { animation: fadeIn 1s ease; }`}
+          </pre>
+        </div>
+
+        <TextArea
+          value={cssInput}
+          onChange={setCssInput}
+          placeholder={`.bio-page {\n  /* Your CSS here */\n}`}
+          rows={12}
+        />
+
+        <div className="flex items-center justify-between pt-2">
+          <div className="flex-1">
+            {cssStatus === 'success' && (
+              <p className="text-[10px] text-green-400 font-medium animate-pulse">{cssMessage}</p>
+            )}
+            {cssStatus === 'error' && (
+              <p className="text-[10px] text-red-400 font-medium">{cssMessage}</p>
+            )}
+          </div>
+          <button
+            onClick={handleApplyCss}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              cssStatus === 'success' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+              cssStatus === 'error' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+              'bg-purple-600 text-white hover:bg-purple-500'
+            }`}
+          >
+            Appliquer le CSS
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   const tabContent: Record<TabId, () => React.ReactNode> = {
     profile: renderProfile,

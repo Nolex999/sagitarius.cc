@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Save, Globe, Copy, Check, ExternalLink, Loader2 } from 'lucide-react';
+import { Save, Globe, Copy, Check, ExternalLink, Loader2, Undo2, Redo2 } from 'lucide-react';
 import BioEditor from '@/components/dashboard/bio/BioEditor';
 import BioPreview from '@/components/dashboard/bio/BioPreview';
 import { createClient } from '@/lib/supabase/client';
@@ -39,6 +39,7 @@ const defaultConfig: BioConfig = {
     textEffect: 'none',
     entranceAnimation: 'fade-up',
     clickEffect: 'none',
+    hoverEffect: 'none',
     customCursor: 'default',
     audioVisualizer: false,
   },
@@ -66,6 +67,7 @@ const defaultConfig: BioConfig = {
   seo: { title: '', description: '', ogImage: '' },
   profileShape: 'circle',
   backgroundOverlay: { enabled: false, color: '#000000', opacity: 30 },
+  hoverEffect: 'none',
   clickEffect: 'none',
   typingBio: false,
   timeline: { enabled: false, items: [] },
@@ -85,6 +87,35 @@ export default function S3Page() {
   const [loading, setLoading] = useState(true);
   const [profileId, setProfileId] = useState<string | null>(null);
 
+  // Undo / Redo history
+  const [history, setHistory] = useState<BioConfig[]>([defaultConfig]);
+  const [historyIndex, setHistoryIndex] = useState(0);
+
+  const handleConfigChange = useCallback((newConfig: BioConfig) => {
+    setConfig(newConfig);
+    setHistory(prev => {
+      const newHistory = prev.slice(0, historyIndex + 1);
+      newHistory.push(newConfig);
+      if (newHistory.length > 50) newHistory.shift();
+      return newHistory;
+    });
+    setHistoryIndex(prev => Math.min(prev + 1, 49));
+  }, [historyIndex]);
+
+  const undo = () => {
+    if (historyIndex > 0) {
+      setHistoryIndex(prev => prev - 1);
+      setConfig(history[historyIndex - 1]);
+    }
+  };
+
+  const redo = () => {
+    if (historyIndex < history.length - 1) {
+      setHistoryIndex(prev => prev + 1);
+      setConfig(history[historyIndex + 1]);
+    }
+  };
+
   const supabase = createClient();
 
   useEffect(() => {
@@ -103,13 +134,19 @@ export default function S3Page() {
           setProfileId(data.id);
           setIsPublished(data.is_published);
           // Merge saved config with defaults to handle new fields
-          setConfig({ ...defaultConfig, ...(data.config as BioConfig) });
+          const loadedConfig = { ...defaultConfig, ...(data.config as BioConfig) };
+          setConfig(loadedConfig);
+          setHistory([loadedConfig]);
+          setHistoryIndex(0);
         } else {
-          setConfig((prev: BioConfig) => ({
-            ...prev,
+          const initial = {
+            ...defaultConfig,
             username: user.email?.split('@')[0] || '',
             displayName: user.email?.split('@')[0] || '',
-          }));
+          };
+          setConfig(initial);
+          setHistory([initial]);
+          setHistoryIndex(0);
         }
       } catch {
         // No profile yet
@@ -206,7 +243,7 @@ export default function S3Page() {
     <div className="flex h-full">
       {/* Editor Panel */}
       <div className="w-[420px] shrink-0 overflow-y-auto border-r border-[var(--border)] bg-[var(--bg-base)]">
-        <BioEditor config={config} onChange={setConfig} />
+        <BioEditor config={config} onChange={handleConfigChange} />
       </div>
       
       {/* Preview Panel */}
@@ -230,6 +267,25 @@ export default function S3Page() {
                 }`}
               >
                 Mobile
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-1 rounded-lg bg-white/[0.03] border border-white/[0.06] p-0.5 ml-1">
+              <button 
+                onClick={undo} 
+                disabled={historyIndex === 0} 
+                className={`p-1.5 rounded-md transition-all ${historyIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/10 text-white'}`}
+                title="Undo"
+              >
+                <Undo2 size={13} />
+              </button>
+              <button 
+                onClick={redo} 
+                disabled={historyIndex === history.length - 1} 
+                className={`p-1.5 rounded-md transition-all ${historyIndex === history.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/10 text-white'}`}
+                title="Redo"
+              >
+                <Redo2 size={13} />
               </button>
             </div>
 

@@ -1,0 +1,102 @@
+/* 
+  ✨ Sagitarius.cc Premium Bio CSS ✨
+  Copie-colle ce code dans l'onglet "CSS" de ton éditeur de bio.
+*/
+
+.bio-page {
+  /* 
+    Animation de respiration globale sur le background 
+    pour donner un effet "vivant" à la page
+  */
+  animation: bg-breathe 10s ease-in-out infinite alternate;
+}
+
+@keyframes bg-breathe {
+  0% { backdrop-filter: brightness(1) contrast(1); }
+  100% { backdrop-filter: brightness(1.1) contrast(1.05); }
+}
+
+/* Amélioration de la carte principale du profil */
+.bio-page .profile-card {
+  /* Effet de lévitation douce */
+  animation: float 6s ease-in-out infinite;
+  /* Bordure lumineuse très fine */
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 20px 40px -10px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  /* Force le backdrop filter à être très net */
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+/* Style premium pour la photo de profil */
+.bio-page .avatar-container {
+  position: relative;
+}
+.bio-page .avatar-container::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+  z-index: -1;
+  animation: spin 4s linear infinite;
+  opacity: 0.5;
+  filter: blur(8px);
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+/* Effet néon au survol des liens sociaux */
+.bio-page .social-link {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bio-page .social-link:hover {
+  transform: translateY(-3px) scale(1.02);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 20px -5px var(--primary-color);
+}
+
+/* Animation spéciale pour les badges */
+.bio-page .badge {
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.bio-page .badge:hover {
+  background: var(--primary-color);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 0 15px var(--primary-color);
+  transform: scale(1.05);
+}
+
+/* Customisation de la barre de scroll spécifique à la bio */
+.bio-page::-webkit-scrollbar {
+  width: 6px;
+}
+.bio-page::-webkit-scrollbar-track {
+  background: transparent;
+}
+.bio-page::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+.bio-page::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}

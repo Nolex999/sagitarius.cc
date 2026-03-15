@@ -348,6 +348,18 @@ function getBorderProps(style: string, primaryColor: string): React.CSSPropertie
   }
 }
 
+// =================== SPOTIFY PARSER ===================
+
+function getSpotifyEmbedUrl(url: string, theme: number = 0): string | null {
+  if (!url || typeof url !== 'string') return null;
+  // This matches standard urls, intl domains, and spotify: URI schemes
+  const match = url.match(/(track|album|playlist|artist|episode|show)[\/:]([a-zA-Z0-9]+)/);
+  if (match && match[1] && match[2]) {
+    return `https://open.spotify.com/embed/${match[1]}/${match[2]}?utm_source=generator&theme=${theme}`;
+  }
+  return null;
+}
+
 // =================== MAIN PREVIEW ===================
 
 export default function BioPreview({ config, realViews }: { config: BioConfig; realViews?: number }) {
@@ -366,6 +378,28 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
     bgStyle.backgroundImage = `url(${theme.bgImageUrl})`;
     bgStyle.backgroundSize = 'cover';
     bgStyle.backgroundPosition = 'center';
+  } else if (theme.bgType === 'pattern') {
+    bgStyle.backgroundColor = theme.bgColor1;
+    switch (theme.bgPattern) {
+      case 'dots':
+        bgStyle.backgroundImage = `radial-gradient(${theme.bgColor2} 2px, transparent 2px)`;
+        bgStyle.backgroundSize = '30px 30px';
+        break;
+      case 'grid':
+        bgStyle.backgroundImage = `linear-gradient(${theme.bgColor2} 1px, transparent 1px), linear-gradient(90deg, ${theme.bgColor2} 1px, transparent 1px)`;
+        bgStyle.backgroundSize = '30px 30px';
+        break;
+      case 'waves':
+        bgStyle.backgroundImage = `repeating-radial-gradient(circle at 0 0, transparent 0, ${theme.bgColor2} 2px, transparent 2px, transparent 20px)`;
+        break;
+      case 'diagonal':
+        bgStyle.backgroundImage = `repeating-linear-gradient(45deg, ${theme.bgColor2} 0, ${theme.bgColor2} 2px, transparent 0, transparent 50%)`;
+        bgStyle.backgroundSize = '20px 20px';
+        break;
+      default:
+        bgStyle.backgroundImage = `radial-gradient(${theme.bgColor2} 2px, transparent 2px)`;
+        bgStyle.backgroundSize = '30px 30px';
+    }
   }
 
   // Entrance animation
@@ -396,15 +430,33 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
     }
   };
 
-  // Glassmorphism card style
+  // Card/Container Border Style
+  const getBorderStyle = (): React.CSSProperties => {
+    switch (config.borderStyle) {
+      case 'solid': return { border: `2px solid ${theme.primaryColor}` };
+      case 'dashed': return { border: `2px dashed ${theme.primaryColor}` };
+      case 'gradient': return { 
+        border: '2px solid transparent', 
+        backgroundClip: 'padding-box, border-box',
+        backgroundImage: `linear-gradient(${config.glassmorphism?.enabled ? `rgba(255,255,255,${config.glassmorphism.opacity / 100})` : theme.bgColor1}, ${config.glassmorphism?.enabled ? `rgba(255,255,255,${config.glassmorphism.opacity / 100})` : theme.bgColor1}), linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` 
+      };
+      // 'animated' is handled via CSS className '.bio-animated-border'
+      default: return config.glassmorphism?.enabled && config.borderStyle !== 'animated' ? { border: '1px solid rgba(255,255,255,0.08)' } : { border: 'none' };
+    }
+  };
+
   const glassCardStyle: React.CSSProperties = config.glassmorphism?.enabled ? {
     backdropFilter: `blur(${config.glassmorphism.blur}px)`,
     WebkitBackdropFilter: `blur(${config.glassmorphism.blur}px)`,
     backgroundColor: `rgba(255,255,255,${config.glassmorphism.opacity / 100})`,
-    border: '1px solid rgba(255,255,255,0.08)',
     borderRadius: `${theme.borderRadius}px`,
     padding: config.layoutPreset === 'card' ? '2rem' : undefined,
-  } : {};
+    ...getBorderStyle(),
+  } : {
+    ...getBorderStyle(),
+    borderRadius: `${theme.borderRadius}px`,
+    padding: config.layoutPreset === 'card' ? '2rem' : undefined,
+  };
 
   // Cursor style
   const cursorStyle = effects.customCursor !== 'default' ? { cursor: effects.customCursor } : {};
@@ -501,6 +553,33 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           60% { opacity: 0.9; transform: translateX(1px); filter: blur(0); }
           100% { opacity: 1; transform: translateX(0); filter: blur(0); }
         }
+        
+        @keyframes bio-slide-right {
+          from { opacity: 0; transform: translateX(-30px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes bio-slide-down {
+          from { opacity: 0; transform: translateY(-30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes bio-spin-in {
+          from { opacity: 0; transform: scale(0.5) rotate(-180deg); }
+          to { opacity: 1; transform: scale(1) rotate(0); }
+        }
+        
+        @keyframes bio-flip-x {
+          from { opacity: 0; transform: perspective(400px) rotateX(90deg); }
+          to { opacity: 1; transform: perspective(400px) rotateX(0deg); }
+        }
+        
+        @keyframes bio-bounce-in {
+          0% { opacity: 0; transform: scale(0.3); }
+          50% { opacity: 1; transform: scale(1.05); }
+          70% { transform: scale(0.9); }
+          100% { transform: scale(1); }
+        }
 
         @keyframes bio-border-pulse {
           0%, 100% { border-color: ${theme.primaryColor}40; }
@@ -546,11 +625,99 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
         .bio-entrance-fade-up { animation: bio-fade-up 0.6s ease-out; }
         .bio-entrance-scale { animation: bio-scale-in 0.6s ease-out; }
         .bio-entrance-slide-left { animation: bio-slide-left 0.6s ease-out; }
+        .bio-entrance-slide-right { animation: bio-slide-right 0.6s ease-out; }
+        .bio-entrance-slide-down { animation: bio-slide-down 0.6s ease-out; }
+        .bio-entrance-spin-in { animation: bio-spin-in 0.6s ease-out; }
+        .bio-entrance-flip-x { animation: bio-flip-x 0.6s ease-out; }
+        .bio-entrance-bounce-in { animation: bio-bounce-in 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         .bio-entrance-glitch-in { animation: bio-glitch-in 0.8s ease-out; }
         
-        .bio-link-hover:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(0,0,0,0.3), ${glowShadow !== 'none' ? `0 0 20px ${theme.primaryColor}33` : '0 0 0 transparent'};
+        .bio-animated-border {
+          position: relative;
+        }
+        .bio-animated-border::before {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          border-radius: ${theme.borderRadius + 2}px;
+          background: conic-gradient(from var(--angle, 0deg), ${theme.primaryColor}, ${theme.secondaryColor}, ${theme.accentColor}, ${theme.primaryColor});
+          animation: bio-rotate-border 3s linear infinite;
+          z-index: -1;
+        }
+        
+        /* HOVER EFFECTS */
+        ${(effects.hoverEffect || 'lift') === 'lift' ? `
+          .bio-link-hover { transition: all 0.2s ease; }
+          .bio-link-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.3), ${glowShadow !== 'none' ? `0 0 20px ${theme.primaryColor}33` : '0 0 0 transparent'}; }
+        ` : ''}
+        ${effects.hoverEffect === 'glow' ? `
+          .bio-link-hover { transition: all 0.2s ease; border: 1px solid transparent; }
+          .bio-link-hover:hover { box-shadow: 0 0 20px ${theme.primaryColor}80; border-color: ${theme.primaryColor}60; transform: translateY(-1px); }
+        ` : ''}
+        ${effects.hoverEffect === 'scale' ? `
+          .bio-link-hover { transition: all 0.2s ease; }
+          .bio-link-hover:hover { transform: scale(1.03); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        ` : ''}
+        ${effects.hoverEffect === 'neon' ? `
+          .bio-link-hover { transition: all 0.2s ease; border: 1px solid rgba(255,255,255,0.05); }
+          .bio-link-hover:hover { 
+            box-shadow: 0 0 10px ${theme.primaryColor}, inset 0 0 10px ${theme.primaryColor}; 
+            border-color: ${theme.primaryColor}; 
+            color: ${theme.primaryColor};
+            background-color: ${theme.primaryColor}10;
+          }
+        ` : ''}
+        ${effects.hoverEffect === 'shake' ? `
+          @keyframes hover-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px) rotate(-1deg); }
+            75% { transform: translateX(3px) rotate(1deg); }
+          }
+          .bio-link-hover { transition: all 0.2s ease; }
+          .bio-link-hover:hover { animation: hover-shake 0.3s ease-in-out infinite; }
+        ` : ''}
+
+        /* OVERLAYS */
+        .bio-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          pointer-events: none;
+          z-index: 50;
+        }
+        
+        .bio-overlay-vhs {
+          background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+          background-size: 100% 2px, 3px 100%;
+          mix-blend-mode: overlay;
+        }
+        
+        .bio-overlay-scanlines {
+          background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+          background-size: 100% 4px;
+        }
+
+        .bio-overlay-noise {
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+          opacity: 0.15;
+          mix-blend-mode: overlay;
+        }
+
+        @keyframes cyber-glitch-overlay {
+          0% { background-color: transparent; }
+          1% { background-color: ${theme.primaryColor}20; mix-blend-mode: color-dodge; }
+          2% { background-color: transparent; }
+          15% { background-color: transparent; }
+          16% { background-color: ${theme.accentColor}20; transform: translateX(2px); }
+          17% { background-color: transparent; transform: translateX(0); }
+          100% { background-color: transparent; }
+        }
+
+        .bio-overlay-cyberpunk-glitch {
+          animation: cyber-glitch-overlay 3s infinite;
+          background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);
         }
         
         ${config.customCss}
@@ -564,6 +731,23 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           fontFamily: `'${theme.fontFamily}', system-ui, sans-serif`,
         }}
       >
+        {/* Video Background */}
+        {theme.bgType === 'video' && theme.bgVideoUrl && (
+          <video
+            src={theme.bgVideoUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+          />
+        )}
+
+        {/* Foreground Overlay (VHS, Scanlines, etc) */}
+        {effects.overlayEffect && effects.overlayEffect !== 'none' && (
+          <div className={`bio-overlay bio-overlay-${effects.overlayEffect}`} />
+        )}
+
         {/* Background Overlay */}
         {config.backgroundOverlay?.enabled && (
           <div
@@ -603,8 +787,10 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
 
         {/* Content */}
         <div
-          className={`relative z-10 flex flex-col ${getLayoutClasses()} px-6 py-12 max-w-md mx-auto min-h-full`}
-          style={config.layoutPreset === 'card' ? glassCardStyle : {}}
+          className={`relative z-10 flex flex-col ${getLayoutClasses()} px-6 py-12 max-w-md mx-auto min-h-full ${
+            config.borderStyle === 'animated' ? 'bio-animated-border' : ''
+          }`}
+          style={glassCardStyle}
         >
           {/* Status Indicator */}
           {config.statusIndicator?.enabled && (
@@ -897,15 +1083,15 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
               className={`w-full mb-8 ${getEntranceClass()}`}
               style={getEntranceDelay(12)}
             >
-              {music.type === 'spotify' && music.url.includes('spotify.com') && (
+              {music.type === 'spotify' && getSpotifyEmbedUrl(music.url) && (
                 <iframe
-                  src={music.url.replace('spotify.com/track/', 'spotify.com/embed/track/').split('?')[0]}
+                  src={getSpotifyEmbedUrl(music.url, 0) || ''}
                   width="100%"
-                  height="80"
+                  height="152"
                   frameBorder="0"
                   allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                   loading="lazy"
-                  className="rounded-xl opacity-80"
+                  className="rounded-xl opacity-90 transition-all hover:opacity-100"
                 />
               )}
               {music.type === 'custom' && (
