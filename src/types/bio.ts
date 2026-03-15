@@ -6,6 +6,11 @@ export type AvatarEffect = 'none' | 'glow-pulse' | 'rotate-border' | 'glitch' | 
 export type TextEffect = 'none' | 'gradient' | 'glitch' | 'typewriter' | 'neon-flicker';
 export type EntranceAnimation = 'none' | 'fade-up' | 'scale' | 'slide-left' | 'glitch-in';
 export type MusicType = 'spotify' | 'soundcloud' | 'custom';
+export type LayoutPreset = 'centered' | 'left-aligned' | 'card' | 'minimal' | 'hero';
+export type BorderStyle = 'none' | 'solid' | 'gradient' | 'animated' | 'dashed';
+export type ProfileShape = 'circle' | 'rounded-square' | 'hexagon';
+export type ClickEffect = 'none' | 'ripple' | 'confetti' | 'sparkle';
+export type CustomCursor = 'default' | 'crosshair' | 'pointer' | 'custom';
 
 export interface BioTheme {
   primaryColor: string;
@@ -32,6 +37,9 @@ export interface BioEffects {
   avatarEffect: AvatarEffect;
   textEffect: TextEffect;
   entranceAnimation: EntranceAnimation;
+  clickEffect: ClickEffect;
+  customCursor: CustomCursor;
+  audioVisualizer: boolean;
 }
 
 export interface SocialLink {
@@ -65,6 +73,52 @@ export interface BioStats {
   customStats: BioStat[];
 }
 
+export interface TimelineItem {
+  date: string;
+  title: string;
+  description: string;
+}
+
+export interface GalleryImage {
+  url: string;
+  caption: string;
+}
+
+export interface StatusIndicator {
+  enabled: boolean;
+  text: string;
+  emoji: string;
+  color: string;
+}
+
+export interface Glassmorphism {
+  enabled: boolean;
+  blur: number;
+  opacity: number;
+}
+
+export interface BackgroundOverlay {
+  enabled: boolean;
+  color: string;
+  opacity: number;
+}
+
+export interface BioSeo {
+  title: string;
+  description: string;
+  ogImage: string;
+}
+
+export interface EmbedVideo {
+  enabled: boolean;
+  url: string;
+}
+
+export interface DiscordWidget {
+  enabled: boolean;
+  userId: string;
+}
+
 export interface BioConfig {
   username: string;
   displayName: string;
@@ -79,4 +133,23 @@ export interface BioConfig {
   music: BioMusic;
   stats: BioStats;
   customCss: string;
+
+  // New fields
+  bannerUrl: string;
+  bannerHeight: number;
+  layoutPreset: LayoutPreset;
+  scrollAnimation: boolean;
+  glassmorphism: Glassmorphism;
+  borderStyle: BorderStyle;
+  statusIndicator: StatusIndicator;
+  seo: BioSeo;
+  profileShape: ProfileShape;
+  backgroundOverlay: BackgroundOverlay;
+  clickEffect: ClickEffect;
+  typingBio: boolean;
+  timeline: { enabled: boolean; items: TimelineItem[] };
+  imageGallery: { enabled: boolean; images: GalleryImage[] };
+  embedVideo: EmbedVideo;
+  discordWidget: DiscordWidget;
+  languageTag: string;
 }

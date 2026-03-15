@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo, useMemo } from 'react';
 import {
   ExternalLink, Eye, Calendar, MessageCircle,
   Send, Github, Youtube, Twitch, Music, Gamepad2, Camera,
-  Video, Mail, Globe, Link2, Hash
+  Video, Mail, Globe, Link2, Hash, Clock, Image as ImageIcon,
 } from 'lucide-react';
 import type { BioConfig } from '@/types/bio';
 
@@ -31,7 +31,6 @@ function PlatformIcon({ platform, size = 16 }: { platform: string; size?: number
   return <Icon size={size} />;
 }
 
-// Ghost icon for snapchat
 function GhostIcon(props: any) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props} width={props.size} height={props.size}>
@@ -40,9 +39,9 @@ function GhostIcon(props: any) {
   );
 }
 
-// =================== BACKGROUND EFFECTS ===================
+// =================== OPTIMIZED BACKGROUND EFFECTS ===================
 
-function ParticlesEffect({ color, intensity }: { color: string; intensity: number }) {
+const ParticlesEffect = memo(function ParticlesEffect({ color, intensity }: { color: string; intensity: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -52,7 +51,10 @@ function ParticlesEffect({ color, intensity }: { color: string; intensity: numbe
     if (!ctx) return;
 
     let animationId: number;
-    const count = Math.floor((intensity / 100) * 80) + 10;
+    let lastTime = 0;
+    const FPS = 30;
+    const frameInterval = 1000 / FPS;
+    const count = Math.min(Math.floor((intensity / 100) * 40) + 8, 40); // Capped at 40
     
     const resize = () => {
       canvas.width = canvas.offsetWidth;
@@ -64,13 +66,20 @@ function ParticlesEffect({ color, intensity }: { color: string; intensity: numbe
     const particles = Array.from({ length: count }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.5,
-      vy: (Math.random() - 0.5) * 0.5,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
       size: Math.random() * 2 + 0.5,
       opacity: Math.random() * 0.5 + 0.1,
     }));
 
-    const animate = () => {
+    const animate = (timestamp: number) => {
+      const delta = timestamp - lastTime;
+      if (delta < frameInterval) {
+        animationId = requestAnimationFrame(animate);
+        return;
+      }
+      lastTime = timestamp;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       particles.forEach(p => {
@@ -85,17 +94,17 @@ function ParticlesEffect({ color, intensity }: { color: string; intensity: numbe
         ctx.fill();
       });
 
-      // Draw connections
+      // Reduced connection distance
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 100) {
+          const dist = dx * dx + dy * dy; // Skip sqrt for perf
+          if (dist < 6400) { // 80^2
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = color + Math.floor((1 - dist / 100) * 40).toString(16).padStart(2, '0');
+            ctx.strokeStyle = color + Math.floor((1 - Math.sqrt(dist) / 80) * 30).toString(16).padStart(2, '0');
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
@@ -104,7 +113,7 @@ function ParticlesEffect({ color, intensity }: { color: string; intensity: numbe
 
       animationId = requestAnimationFrame(animate);
     };
-    animate();
+    animationId = requestAnimationFrame(animate);
 
     return () => {
       cancelAnimationFrame(animationId);
@@ -112,34 +121,40 @@ function ParticlesEffect({ color, intensity }: { color: string; intensity: numbe
     };
   }, [color, intensity]);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />;
-}
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ contain: 'strict' }} />;
+});
 
-function StarsEffect({ color, intensity }: { color: string; intensity: number }) {
-  const count = Math.floor((intensity / 100) * 60) + 10;
+const StarsEffect = memo(function StarsEffect({ color, intensity }: { color: string; intensity: number }) {
+  const count = Math.floor((intensity / 100) * 40) + 8;
+  const stars = useMemo(() => Array.from({ length: count }, (_, i) => ({
+    left: `${Math.random() * 100}%`,
+    top: `${Math.random() * 100}%`,
+    width: `${Math.random() * 3 + 1}px`,
+    height: `${Math.random() * 3 + 1}px`,
+    duration: `${Math.random() * 3 + 2}s`,
+    delay: `${Math.random() * 5}s`,
+    opacity: Math.random() * 0.7 + 0.1,
+  })), [count]);
+
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: count }, (_, i) => (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ willChange: 'transform', contain: 'strict' }}>
+      {stars.map((s, i) => (
         <div
           key={i}
           className="absolute rounded-full"
           style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            width: `${Math.random() * 3 + 1}px`,
-            height: `${Math.random() * 3 + 1}px`,
-            backgroundColor: color,
-            opacity: Math.random() * 0.7 + 0.1,
-            animation: `bio-twinkle ${Math.random() * 3 + 2}s ease-in-out infinite`,
-            animationDelay: `${Math.random() * 5}s`,
+            left: s.left, top: s.top, width: s.width, height: s.height,
+            backgroundColor: color, opacity: s.opacity,
+            animation: `bio-twinkle ${s.duration} ease-in-out infinite`,
+            animationDelay: s.delay,
           }}
         />
       ))}
     </div>
   );
-}
+});
 
-function MatrixEffect({ color, intensity }: { color: string; intensity: number }) {
+const MatrixEffect = memo(function MatrixEffect({ color, intensity }: { color: string; intensity: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -149,6 +164,10 @@ function MatrixEffect({ color, intensity }: { color: string; intensity: number }
     if (!ctx) return;
 
     let animationId: number;
+    let lastTime = 0;
+    const FPS = 20; // Lower FPS for matrix
+    const frameInterval = 1000 / FPS;
+
     const resize = () => {
       canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
@@ -160,15 +179,22 @@ function MatrixEffect({ color, intensity }: { color: string; intensity: number }
     const drops = new Array(columns).fill(1);
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*';
 
-    const draw = () => {
+    const draw = (timestamp: number) => {
+      const delta = timestamp - lastTime;
+      if (delta < frameInterval) {
+        animationId = requestAnimationFrame(draw);
+        return;
+      }
+      lastTime = timestamp;
+
       ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = color;
       ctx.font = `${fontSize}px monospace`;
+      ctx.globalAlpha = (intensity / 100) * 0.5;
 
       for (let i = 0; i < drops.length; i++) {
         const text = chars[Math.floor(Math.random() * chars.length)];
-        ctx.globalAlpha = (intensity / 100) * 0.5;
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
 
         if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
@@ -180,90 +206,89 @@ function MatrixEffect({ color, intensity }: { color: string; intensity: number }
 
       animationId = requestAnimationFrame(draw);
     };
+    animationId = requestAnimationFrame(draw);
 
-    const interval = setInterval(draw, 50);
-
-    return () => {
-      clearInterval(interval);
-      cancelAnimationFrame(animationId);
-    };
+    return () => cancelAnimationFrame(animationId);
   }, [color, intensity]);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />;
-}
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ contain: 'strict' }} />;
+});
 
-function SnowEffect({ color, intensity }: { color: string; intensity: number }) {
-  const count = Math.floor((intensity / 100) * 50) + 10;
+const SnowEffect = memo(function SnowEffect({ color, intensity }: { color: string; intensity: number }) {
+  const count = Math.floor((intensity / 100) * 30) + 8;
+  const flakes = useMemo(() => Array.from({ length: count }, () => ({
+    left: `${Math.random() * 100}%`,
+    size: `${Math.random() * 4 + 2}px`,
+    opacity: Math.random() * 0.6 + 0.2,
+    duration: `${Math.random() * 5 + 5}s`,
+    delay: `${Math.random() * 10}s`,
+  })), [count]);
+
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: count }, (_, i) => (
-        <div
-          key={i}
-          className="absolute rounded-full"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `-5%`,
-            width: `${Math.random() * 4 + 2}px`,
-            height: `${Math.random() * 4 + 2}px`,
-            backgroundColor: color,
-            opacity: Math.random() * 0.6 + 0.2,
-            animation: `bio-snowfall ${Math.random() * 5 + 5}s linear infinite`,
-            animationDelay: `${Math.random() * 10}s`,
-          }}
-        />
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ willChange: 'transform', contain: 'strict' }}>
+      {flakes.map((f, i) => (
+        <div key={i} className="absolute rounded-full" style={{
+          left: f.left, top: '-5%', width: f.size, height: f.size,
+          backgroundColor: color, opacity: f.opacity,
+          animation: `bio-snowfall ${f.duration} linear infinite`,
+          animationDelay: f.delay,
+        }} />
       ))}
     </div>
   );
-}
+});
 
-function RainEffect({ color, intensity }: { color: string; intensity: number }) {
-  const count = Math.floor((intensity / 100) * 60) + 15;
+const RainEffect = memo(function RainEffect({ color, intensity }: { color: string; intensity: number }) {
+  const count = Math.floor((intensity / 100) * 40) + 10;
+  const drops = useMemo(() => Array.from({ length: count }, () => ({
+    left: `${Math.random() * 100}%`,
+    height: `${Math.random() * 20 + 10}px`,
+    opacity: Math.random() * 0.4 + 0.1,
+    duration: `${Math.random() * 1 + 0.5}s`,
+    delay: `${Math.random() * 3}s`,
+  })), [count]);
+
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: count }, (_, i) => (
-        <div
-          key={i}
-          className="absolute"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `-5%`,
-            width: `1px`,
-            height: `${Math.random() * 20 + 10}px`,
-            backgroundColor: color,
-            opacity: Math.random() * 0.4 + 0.1,
-            animation: `bio-rainfall ${Math.random() * 1 + 0.5}s linear infinite`,
-            animationDelay: `${Math.random() * 3}s`,
-          }}
-        />
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ willChange: 'transform', contain: 'strict' }}>
+      {drops.map((d, i) => (
+        <div key={i} className="absolute" style={{
+          left: d.left, top: '-5%', width: '1px', height: d.height,
+          backgroundColor: color, opacity: d.opacity,
+          animation: `bio-rainfall ${d.duration} linear infinite`,
+          animationDelay: d.delay,
+        }} />
       ))}
     </div>
   );
-}
+});
 
-function FirefliesEffect({ color, intensity }: { color: string; intensity: number }) {
-  const count = Math.floor((intensity / 100) * 25) + 5;
+const FirefliesEffect = memo(function FirefliesEffect({ color, intensity }: { color: string; intensity: number }) {
+  const count = Math.floor((intensity / 100) * 15) + 4;
+  const flies = useMemo(() => Array.from({ length: count }, () => ({
+    left: `${Math.random() * 100}%`,
+    top: `${Math.random() * 100}%`,
+    size: `${Math.random() * 5 + 3}px`,
+    shadow1: `${Math.random() * 10 + 5}px`,
+    shadow2: `${Math.random() * 20 + 10}px`,
+    duration: `${Math.random() * 4 + 3}s`,
+    delay: `${Math.random() * 5}s`,
+  })), [count]);
+
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: count }, (_, i) => (
-        <div
-          key={i}
-          className="absolute rounded-full"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            width: `${Math.random() * 5 + 3}px`,
-            height: `${Math.random() * 5 + 3}px`,
-            backgroundColor: color,
-            boxShadow: `0 0 ${Math.random() * 10 + 5}px ${color}, 0 0 ${Math.random() * 20 + 10}px ${color}`,
-            opacity: 0,
-            animation: `bio-firefly ${Math.random() * 4 + 3}s ease-in-out infinite`,
-            animationDelay: `${Math.random() * 5}s`,
-          }}
-        />
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ willChange: 'transform', contain: 'strict' }}>
+      {flies.map((f, i) => (
+        <div key={i} className="absolute rounded-full" style={{
+          left: f.left, top: f.top, width: f.size, height: f.size,
+          backgroundColor: color,
+          boxShadow: `0 0 ${f.shadow1} ${color}, 0 0 ${f.shadow2} ${color}`,
+          opacity: 0,
+          animation: `bio-firefly ${f.duration} ease-in-out infinite`,
+          animationDelay: f.delay,
+        }} />
       ))}
     </div>
   );
-}
+});
 
 function BgEffectRenderer({ effect, color, intensity }: { effect: string; color: string; intensity: number }) {
   switch (effect) {
@@ -279,7 +304,7 @@ function BgEffectRenderer({ effect, color, intensity }: { effect: string; color:
 
 // =================== AVATAR EFFECTS ===================
 
-function getAvatarStyle(effect: string, glowColor: string): string {
+function getAvatarStyle(effect: string): string {
   switch (effect) {
     case 'glow-pulse': return 'bio-avatar-glow-pulse';
     case 'rotate-border': return 'bio-avatar-rotate-border';
@@ -301,7 +326,27 @@ function getTextClass(effect: string): string {
   }
 }
 
+// =================== PROFILE SHAPE ===================
 
+function getProfileShapeStyle(shape: string): React.CSSProperties {
+  switch (shape) {
+    case 'rounded-square': return { borderRadius: '20%' };
+    case 'hexagon': return { clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' };
+    default: return { borderRadius: '50%' };
+  }
+}
+
+// =================== BORDER STYLE ===================
+
+function getBorderProps(style: string, primaryColor: string): React.CSSProperties {
+  switch (style) {
+    case 'solid': return { border: `2px solid ${primaryColor}40` };
+    case 'gradient': return { border: 'none', outline: `2px solid transparent`, backgroundClip: 'padding-box' };
+    case 'animated': return { border: `2px solid ${primaryColor}40`, animation: 'bio-border-pulse 2s ease-in-out infinite' };
+    case 'dashed': return { border: `2px dashed ${primaryColor}30` };
+    default: return {};
+  }
+}
 
 // =================== MAIN PREVIEW ===================
 
@@ -323,8 +368,8 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
     bgStyle.backgroundPosition = 'center';
   }
 
-  // Entrance animation classes
-  const getEntranceClass = (delay: number = 0) => {
+  // Entrance animation
+  const getEntranceClass = () => {
     const anim = effects.entranceAnimation;
     if (anim === 'none') return '';
     return `bio-entrance-${anim}`;
@@ -339,6 +384,30 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
   const glowShadow = theme.glowEnabled
     ? `0 0 ${theme.glowIntensity}px ${theme.glowColor}44, 0 0 ${theme.glowIntensity * 2}px ${theme.glowColor}22`
     : 'none';
+
+  // Layout-specific classes
+  const getLayoutClasses = () => {
+    switch (config.layoutPreset) {
+      case 'left-aligned': return 'items-start text-left';
+      case 'card': return 'items-center';
+      case 'minimal': return 'items-center';
+      case 'hero': return 'items-center';
+      default: return 'items-center';
+    }
+  };
+
+  // Glassmorphism card style
+  const glassCardStyle: React.CSSProperties = config.glassmorphism?.enabled ? {
+    backdropFilter: `blur(${config.glassmorphism.blur}px)`,
+    WebkitBackdropFilter: `blur(${config.glassmorphism.blur}px)`,
+    backgroundColor: `rgba(255,255,255,${config.glassmorphism.opacity / 100})`,
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: `${theme.borderRadius}px`,
+    padding: config.layoutPreset === 'card' ? '2rem' : undefined,
+  } : {};
+
+  // Cursor style
+  const cursorStyle = effects.customCursor !== 'default' ? { cursor: effects.customCursor } : {};
 
   return (
     <>
@@ -363,9 +432,9 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
         
         @keyframes bio-firefly {
           0%, 100% { opacity: 0; transform: translate(0, 0); }
-          25% { opacity: 0.8; transform: translate(${Math.random() * 30 - 15}px, ${Math.random() * 30 - 15}px); }
-          50% { opacity: 0.3; transform: translate(${Math.random() * 60 - 30}px, ${Math.random() * 60 - 30}px); }
-          75% { opacity: 0.9; transform: translate(${Math.random() * 30 - 15}px, ${Math.random() * 30 - 15}px); }
+          25% { opacity: 0.8; transform: translate(15px, -10px); }
+          50% { opacity: 0.3; transform: translate(-10px, 15px); }
+          75% { opacity: 0.9; transform: translate(10px, -5px); }
         }
         
         @keyframes bio-glow-pulse {
@@ -432,10 +501,13 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           60% { opacity: 0.9; transform: translateX(1px); filter: blur(0); }
           100% { opacity: 1; transform: translateX(0); filter: blur(0); }
         }
-        
-        .bio-avatar-glow-pulse {
-          animation: bio-glow-pulse 3s ease-in-out infinite;
+
+        @keyframes bio-border-pulse {
+          0%, 100% { border-color: ${theme.primaryColor}40; }
+          50% { border-color: ${theme.primaryColor}80; }
         }
+        
+        .bio-avatar-glow-pulse { animation: bio-glow-pulse 3s ease-in-out infinite; }
         
         .bio-avatar-rotate-border {
           background: conic-gradient(from var(--angle, 0deg), ${theme.primaryColor}, ${theme.secondaryColor}, ${theme.accentColor}, ${theme.primaryColor});
@@ -449,13 +521,8 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           inherits: false;
         }
         
-        .bio-avatar-glitch {
-          animation: bio-glitch 3s ease-in-out infinite;
-        }
-        
-        .bio-avatar-breathe {
-          animation: bio-breathe 4s ease-in-out infinite;
-        }
+        .bio-avatar-glitch { animation: bio-glitch 3s ease-in-out infinite; }
+        .bio-avatar-breathe { animation: bio-breathe 4s ease-in-out infinite; }
         
         .bio-text-gradient {
           background: linear-gradient(90deg, ${theme.primaryColor}, ${theme.secondaryColor}, ${theme.accentColor}, ${theme.primaryColor});
@@ -466,14 +533,8 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           animation: bio-text-gradient 4s ease infinite;
         }
         
-        .bio-text-glitch {
-          animation: bio-glitch 2s ease-in-out infinite;
-        }
-        
-        .bio-text-neon {
-          animation: bio-neon-flicker 3s ease-in-out infinite;
-          color: ${theme.primaryColor};
-        }
+        .bio-text-glitch { animation: bio-glitch 2s ease-in-out infinite; }
+        .bio-text-neon { animation: bio-neon-flicker 3s ease-in-out infinite; color: ${theme.primaryColor}; }
         
         .bio-text-typewriter {
           overflow: hidden;
@@ -482,21 +543,10 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           border-right: 2px solid ${theme.primaryColor};
         }
         
-        .bio-entrance-fade-up {
-          animation: bio-fade-up 0.6s ease-out;
-        }
-        
-        .bio-entrance-scale {
-          animation: bio-scale-in 0.6s ease-out;
-        }
-        
-        .bio-entrance-slide-left {
-          animation: bio-slide-left 0.6s ease-out;
-        }
-        
-        .bio-entrance-glitch-in {
-          animation: bio-glitch-in 0.8s ease-out;
-        }
+        .bio-entrance-fade-up { animation: bio-fade-up 0.6s ease-out; }
+        .bio-entrance-scale { animation: bio-scale-in 0.6s ease-out; }
+        .bio-entrance-slide-left { animation: bio-slide-left 0.6s ease-out; }
+        .bio-entrance-glitch-in { animation: bio-glitch-in 0.8s ease-out; }
         
         .bio-link-hover:hover {
           transform: translateY(-2px);
@@ -510,9 +560,18 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
         className="bio-page relative w-full h-full overflow-y-auto overflow-x-hidden"
         style={{
           ...bgStyle,
+          ...cursorStyle,
           fontFamily: `'${theme.fontFamily}', system-ui, sans-serif`,
         }}
       >
+        {/* Background Overlay */}
+        {config.backgroundOverlay?.enabled && (
+          <div
+            className="absolute inset-0 pointer-events-none z-[1]"
+            style={{ backgroundColor: config.backgroundOverlay.color, opacity: config.backgroundOverlay.opacity / 100 }}
+          />
+        )}
+
         {/* Background Effect */}
         {effects.bgEffect !== 'none' && (
           <BgEffectRenderer
@@ -522,18 +581,72 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           />
         )}
 
+        {/* Banner */}
+        {config.bannerUrl && (
+          <div
+            className={`w-full relative ${getEntranceClass()}`}
+            style={{
+              ...getEntranceDelay(0),
+              height: `${config.bannerHeight || 200}px`,
+              zIndex: 5,
+            }}
+          >
+            <img
+              src={config.bannerUrl}
+              alt="Banner"
+              className="w-full h-full object-cover"
+              style={{ borderRadius: config.layoutPreset === 'card' ? `${theme.borderRadius}px ${theme.borderRadius}px 0 0` : 0 }}
+            />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.6) 100%)' }} />
+          </div>
+        )}
+
         {/* Content */}
-        <div className="relative z-10 flex flex-col items-center px-6 py-12 max-w-md mx-auto min-h-full">
-          
+        <div
+          className={`relative z-10 flex flex-col ${getLayoutClasses()} px-6 py-12 max-w-md mx-auto min-h-full`}
+          style={config.layoutPreset === 'card' ? glassCardStyle : {}}
+        >
+          {/* Status Indicator */}
+          {config.statusIndicator?.enabled && (
+            <div
+              className={`flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full ${getEntranceClass()}`}
+              style={{
+                ...getEntranceDelay(0),
+                backgroundColor: `${config.statusIndicator.color}15`,
+                border: `1px solid ${config.statusIndicator.color}30`,
+              }}
+            >
+              <span className="text-sm">{config.statusIndicator.emoji}</span>
+              <span className="text-[11px] font-medium" style={{ color: config.statusIndicator.color }}>{config.statusIndicator.text}</span>
+            </div>
+          )}
+
+          {/* Language Tag */}
+          {config.languageTag && (
+            <div
+              className={`mb-3 px-2 py-0.5 rounded text-[8px] uppercase tracking-[0.3em] font-bold ${getEntranceClass()}`}
+              style={{
+                ...getEntranceDelay(0),
+                backgroundColor: `${theme.primaryColor}10`,
+                border: `1px solid ${theme.primaryColor}20`,
+                color: theme.primaryColor,
+              }}
+            >
+              {config.languageTag}
+            </div>
+          )}
+
           {/* Avatar */}
           <div
-            className={`${getEntranceClass()} ${getAvatarStyle(effects.avatarEffect, theme.primaryColor)} mb-5`}
-            style={getEntranceDelay(0)}
+            className={`${getEntranceClass()} ${getAvatarStyle(effects.avatarEffect)} mb-5`}
+            style={{ ...getEntranceDelay(1), ...getBorderProps(config.borderStyle, theme.primaryColor) }}
           >
             <div
-              className="w-24 h-24 rounded-full overflow-hidden border-2 flex items-center justify-center text-3xl font-bold"
+              className="w-24 h-24 overflow-hidden flex items-center justify-center text-3xl font-bold"
               style={{
+                ...getProfileShapeStyle(config.profileShape),
                 borderColor: theme.primaryColor + '60',
+                border: config.borderStyle === 'none' ? `2px solid ${theme.primaryColor}60` : undefined,
                 boxShadow: theme.glowEnabled ? `0 0 25px ${theme.glowColor}44` : 'none',
                 backgroundColor: `${theme.primaryColor}15`,
                 color: theme.primaryColor,
@@ -551,7 +664,7 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           <h1
             className={`text-2xl font-bold mb-1 ${getEntranceClass()} ${getTextClass(effects.textEffect)}`}
             style={{
-              ...getEntranceDelay(1),
+              ...getEntranceDelay(2),
               color: effects.textEffect === 'gradient' || effects.textEffect === 'neon-flicker' ? undefined : 'white',
             }}
           >
@@ -562,7 +675,7 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           <p
             className={`text-sm mb-2 ${getEntranceClass()}`}
             style={{
-              ...getEntranceDelay(2),
+              ...getEntranceDelay(3),
               color: `${theme.primaryColor}aa`,
             }}
           >
@@ -575,8 +688,8 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           {/* Badges */}
           {config.badges.length > 0 && (
             <div
-              className={`flex flex-wrap justify-center gap-1.5 mb-4 ${getEntranceClass()}`}
-              style={getEntranceDelay(3)}
+              className={`flex flex-wrap ${config.layoutPreset === 'left-aligned' ? 'justify-start' : 'justify-center'} gap-1.5 mb-4 ${getEntranceClass()}`}
+              style={getEntranceDelay(4)}
             >
               {config.badges.map((badge, i) => (
                 <span
@@ -597,9 +710,9 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
 
           {/* Bio */}
           <p
-            className={`text-center text-sm mb-6 max-w-[280px] ${getEntranceClass()}`}
+            className={`${config.layoutPreset === 'left-aligned' ? 'text-left' : 'text-center'} text-sm mb-6 max-w-[280px] ${getEntranceClass()} ${config.typingBio ? 'bio-text-typewriter' : ''}`}
             style={{
-              ...getEntranceDelay(4),
+              ...getEntranceDelay(5),
               color: 'rgba(255,255,255,0.5)',
               lineHeight: '1.6',
             }}
@@ -610,8 +723,8 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           {/* Stats */}
           {(stats.showViews || stats.showJoinDate || stats.customStats.length > 0) && (
             <div
-              className={`flex flex-wrap justify-center gap-6 mb-8 ${getEntranceClass()}`}
-              style={getEntranceDelay(5)}
+              className={`flex flex-wrap ${config.layoutPreset === 'left-aligned' ? 'justify-start' : 'justify-center'} gap-6 mb-8 ${getEntranceClass()}`}
+              style={getEntranceDelay(6)}
             >
               {stats.showViews && (
                 <div className="flex items-center gap-1.5">
@@ -638,8 +751,8 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           {/* Social Icons */}
           {socials.filter(s => s.url).length > 0 && (
             <div
-              className={`flex flex-wrap justify-center gap-3 mb-8 ${getEntranceClass()}`}
-              style={getEntranceDelay(6)}
+              className={`flex flex-wrap ${config.layoutPreset === 'left-aligned' ? 'justify-start' : 'justify-center'} gap-3 mb-8 ${getEntranceClass()}`}
+              style={getEntranceDelay(7)}
             >
               {socials.filter(s => s.url).map((social, i) => (
                 <a
@@ -653,14 +766,6 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
                     border: `1px solid ${theme.primaryColor}25`,
                     color: theme.primaryColor,
                   }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLElement).style.backgroundColor = `${theme.primaryColor}25`;
-                    (e.currentTarget as HTMLElement).style.boxShadow = `0 0 15px ${theme.primaryColor}33`;
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLElement).style.backgroundColor = `${theme.primaryColor}10`;
-                    (e.currentTarget as HTMLElement).style.boxShadow = 'none';
-                  }}
                 >
                   <PlatformIcon platform={social.platform} size={16} />
                 </a>
@@ -672,7 +777,7 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           {customLinks.filter(l => l.enabled && l.title).length > 0 && (
             <div
               className={`w-full space-y-3 mb-8 ${getEntranceClass()}`}
-              style={getEntranceDelay(7)}
+              style={getEntranceDelay(8)}
             >
               {customLinks.filter(l => l.enabled && l.title).map((link, i) => (
                 <a
@@ -680,7 +785,7 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
                   href={link.url || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`bio-link-hover flex items-center justify-between w-full p-4 transition-all duration-300 cursor-pointer group`}
+                  className="bio-link-hover flex items-center justify-between w-full p-4 transition-all duration-300 cursor-pointer group"
                   style={{
                     borderRadius: `${theme.borderRadius}px`,
                     backgroundColor: theme.cardStyle === 'glass' ? 'rgba(255,255,255,0.04)' :
@@ -689,8 +794,8 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
                     border: theme.cardStyle === 'neon'
                       ? `1px solid ${theme.primaryColor}40`
                       : theme.cardStyle === 'outline'
-                        ? `2px solid rgba(255,255,255,0.12)`
-                        : `1px solid rgba(255,255,255,0.08)`,
+                        ? '2px solid rgba(255,255,255,0.12)'
+                        : '1px solid rgba(255,255,255,0.08)',
                     backdropFilter: theme.cardStyle === 'glass' ? 'blur(12px)' : 'none',
                     boxShadow: theme.cardStyle === 'neon' ? `0 0 15px ${theme.primaryColor}15` : 'none',
                   }}
@@ -698,10 +803,7 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
                   <div className="flex items-center gap-3">
                     <div
                       className="w-8 h-8 rounded-lg flex items-center justify-center"
-                      style={{
-                        backgroundColor: `${theme.primaryColor}15`,
-                        color: theme.primaryColor,
-                      }}
+                      style={{ backgroundColor: `${theme.primaryColor}15`, color: theme.primaryColor }}
                     >
                       <Link2 size={14} />
                     </div>
@@ -715,11 +817,85 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
             </div>
           )}
 
+          {/* Timeline */}
+          {config.timeline?.enabled && (config.timeline.items || []).filter(t => t.title).length > 0 && (
+            <div
+              className={`w-full mb-8 ${getEntranceClass()}`}
+              style={getEntranceDelay(9)}
+            >
+              <h3 className="text-[9px] uppercase tracking-[0.25em] font-bold mb-4" style={{ color: `${theme.primaryColor}80` }}>
+                Timeline
+              </h3>
+              <div className="relative pl-6">
+                <div className="absolute left-2 top-0 bottom-0 w-px" style={{ backgroundColor: `${theme.primaryColor}20` }} />
+                {(config.timeline.items || []).filter(t => t.title).map((item, i) => (
+                  <div key={i} className="relative mb-6 last:mb-0">
+                    <div
+                      className="absolute left-[-18px] top-1 w-3 h-3 rounded-full border-2"
+                      style={{ borderColor: theme.primaryColor, backgroundColor: `${theme.primaryColor}30` }}
+                    />
+                    {item.date && (
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Clock size={10} style={{ color: `${theme.primaryColor}60` }} />
+                        <span className="text-[10px] font-mono" style={{ color: `${theme.primaryColor}60` }}>{item.date}</span>
+                      </div>
+                    )}
+                    <h4 className="text-sm font-semibold text-white/80">{item.title}</h4>
+                    {item.description && (
+                      <p className="text-xs text-white/40 mt-0.5">{item.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Image Gallery */}
+          {config.imageGallery?.enabled && (config.imageGallery.images || []).filter(img => img.url).length > 0 && (
+            <div
+              className={`w-full mb-8 ${getEntranceClass()}`}
+              style={getEntranceDelay(10)}
+            >
+              <h3 className="text-[9px] uppercase tracking-[0.25em] font-bold mb-4" style={{ color: `${theme.primaryColor}80` }}>
+                Gallery
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                {(config.imageGallery.images || []).filter(img => img.url).map((img, i) => (
+                  <div key={i} className="relative group rounded-xl overflow-hidden aspect-square">
+                    <img src={img.url} alt={img.caption || ''} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                    {img.caption && (
+                      <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-[10px] text-white/80">{img.caption}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Video Embed */}
+          {config.embedVideo?.enabled && config.embedVideo.url && (
+            <div
+              className={`w-full mb-8 ${getEntranceClass()}`}
+              style={getEntranceDelay(11)}
+            >
+              <div className="w-full aspect-video rounded-xl overflow-hidden border border-white/[0.06]">
+                <iframe
+                  src={config.embedVideo.url.replace('watch?v=', 'embed/').split('&')[0]}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          )}
+
           {/* Music Player */}
           {music.enabled && music.url && (
             <div
               className={`w-full mb-8 ${getEntranceClass()}`}
-              style={getEntranceDelay(8)}
+              style={getEntranceDelay(12)}
             >
               {music.type === 'spotify' && music.url.includes('spotify.com') && (
                 <iframe
@@ -755,10 +931,28 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
             </div>
           )}
 
+          {/* Discord Widget */}
+          {config.discordWidget?.enabled && config.discordWidget.userId && (
+            <div
+              className={`w-full mb-8 flex items-center gap-3 p-4 rounded-xl ${getEntranceClass()}`}
+              style={{
+                ...getEntranceDelay(13),
+                backgroundColor: 'rgba(88, 101, 242, 0.08)',
+                border: '1px solid rgba(88, 101, 242, 0.15)',
+              }}
+            >
+              <MessageCircle size={16} style={{ color: '#5865F2' }} />
+              <div>
+                <div className="text-[10px] uppercase tracking-wider font-bold text-[#5865F2]/80">Discord</div>
+                <div className="text-xs text-white/60 font-mono">{config.discordWidget.userId}</div>
+              </div>
+            </div>
+          )}
+
           {/* Footer */}
           <div
             className={`mt-auto pt-8 text-center ${getEntranceClass()}`}
-            style={getEntranceDelay(9)}
+            style={getEntranceDelay(14)}
           >
             <p className="text-[9px] uppercase tracking-[0.3em] text-white/15 font-bold">
               Powered by Sagitarius.cc

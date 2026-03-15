@@ -55,10 +55,11 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: #222;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #333;
+  background: #444;
 }
 
 input:-webkit-autofill,
@@ -71,13 +72,13 @@ input:-webkit-autofill:active {
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* Subtle fade-in */
+/* ========== ANIMATIONS ========== */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(6px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -88,12 +89,10 @@ input:-webkit-autofill:active {
   animation: fadeIn 0.35s ease-out forwards;
 }
 
-/* Slide in from right for drawer */
 @keyframes slideInRight {
   from {
     transform: translateX(100%);
   }
-
   to {
     transform: translateX(0);
   }
@@ -106,21 +105,13 @@ input:-webkit-autofill:active {
 /* ========== SPLASH OVERLAY ========== */
 
 @keyframes splashFadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 @keyframes splashFadeOut {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
+  0% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 @keyframes splashTitleReveal {
@@ -136,6 +127,17 @@ input:-webkit-autofill:active {
   }
 }
 
+@keyframes splashParticleFloat {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.15;
+  }
+  50% {
+    transform: translateY(-20px) scale(1.5);
+    opacity: 0.3;
+  }
+}
+
 .splash-fade-in {
   animation: splashFadeIn 0.4s ease-out forwards;
 }
@@ -147,4 +149,43 @@ input:-webkit-autofill:active {
 .splash-fade-in .splash-title {
   opacity: 0;
   animation: splashTitleReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+}
+
+/* ========== TOP GRADIENT BAR ========== */
+
+@keyframes topBarShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ========== MICRO-INTERACTIONS ========== */
+
+@keyframes subtlePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes shimmerGlow {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* ========== NOISE TEXTURE ========== */
+
+.noise-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.015'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
 }

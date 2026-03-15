@@ -38,6 +38,9 @@ const defaultConfig: BioConfig = {
     avatarEffect: 'glow-pulse',
     textEffect: 'none',
     entranceAnimation: 'fade-up',
+    clickEffect: 'none',
+    customCursor: 'default',
+    audioVisualizer: false,
   },
   socials: [],
   customLinks: [],
@@ -53,6 +56,23 @@ const defaultConfig: BioConfig = {
     customStats: [],
   },
   customCss: '',
+  bannerUrl: '',
+  bannerHeight: 200,
+  layoutPreset: 'centered',
+  scrollAnimation: true,
+  glassmorphism: { enabled: true, blur: 12, opacity: 5 },
+  borderStyle: 'none',
+  statusIndicator: { enabled: false, text: 'Online', emoji: '🟢', color: '#22c55e' },
+  seo: { title: '', description: '', ogImage: '' },
+  profileShape: 'circle',
+  backgroundOverlay: { enabled: false, color: '#000000', opacity: 30 },
+  clickEffect: 'none',
+  typingBio: false,
+  timeline: { enabled: false, items: [] },
+  imageGallery: { enabled: false, images: [] },
+  embedVideo: { enabled: false, url: '' },
+  discordWidget: { enabled: false, userId: '' },
+  languageTag: '',
 };
 
 export default function S3Page() {
@@ -67,7 +87,6 @@ export default function S3Page() {
 
   const supabase = createClient();
 
-  // Load existing profile on mount
   useEffect(() => {
     async function loadProfile() {
       try {
@@ -83,9 +102,9 @@ export default function S3Page() {
         if (data) {
           setProfileId(data.id);
           setIsPublished(data.is_published);
-          setConfig(data.config as BioConfig);
+          // Merge saved config with defaults to handle new fields
+          setConfig({ ...defaultConfig, ...(data.config as BioConfig) });
         } else {
-          // Set default username from email
           setConfig((prev: BioConfig) => ({
             ...prev,
             username: user.email?.split('@')[0] || '',
@@ -93,7 +112,7 @@ export default function S3Page() {
           }));
         }
       } catch {
-        // No profile yet, that's ok
+        // No profile yet
       } finally {
         setLoading(false);
       }
@@ -101,7 +120,6 @@ export default function S3Page() {
     loadProfile();
   }, []);
 
-  // Save profile
   const handleSave = useCallback(async () => {
     setSaving(true);
     try {
@@ -109,13 +127,12 @@ export default function S3Page() {
       if (!user) throw new Error('Not logged in');
 
       if (!config.username.trim()) {
-        alert('Tu dois choisir un username !');
+        alert('You must choose a username!');
         setSaving(false);
         return;
       }
 
       if (profileId) {
-        // Update existing
         const { error } = await supabase
           .from('bio_profiles')
           .update({
@@ -127,7 +144,6 @@ export default function S3Page() {
 
         if (error) throw error;
       } else {
-        // Insert new
         const { data, error } = await supabase
           .from('bio_profiles')
           .insert({
@@ -148,16 +164,15 @@ export default function S3Page() {
     } catch (err: any) {
       console.error('Save error:', err);
       if (err?.message?.includes('duplicate') || err?.message?.includes('unique')) {
-        alert('Ce username est déjà pris !');
+        alert('This username is already taken!');
       } else {
-        alert('Erreur lors de la sauvegarde: ' + (err?.message || 'Unknown error'));
+        alert('Error saving: ' + (err?.message || 'Unknown error'));
       }
     } finally {
       setSaving(false);
     }
   }, [config, profileId, isPublished, supabase]);
 
-  // Toggle publish
   const handleTogglePublish = useCallback(async () => {
     const newState = !isPublished;
     setIsPublished(newState);
@@ -170,7 +185,6 @@ export default function S3Page() {
     }
   }, [isPublished, profileId, supabase]);
 
-  // Copy URL
   const handleCopyUrl = useCallback(() => {
     const url = `${window.location.origin}/bio/${config.username.toLowerCase().trim()}`;
     navigator.clipboard.writeText(url);
@@ -200,7 +214,6 @@ export default function S3Page() {
         {/* Preview Controls */}
         <div className="flex items-center justify-between px-6 py-3 border-b border-[var(--border)]">
           <div className="flex items-center gap-4">
-            {/* Desktop / Mobile toggle */}
             <div className="flex items-center gap-1 rounded-lg bg-white/[0.03] border border-white/[0.06] p-0.5">
               <button 
                 onClick={() => setPreviewMode('desktop')}
@@ -220,7 +233,6 @@ export default function S3Page() {
               </button>
             </div>
 
-            {/* Public URL */}
             {config.username && (
               <div className="flex items-center gap-2">
                 <button
@@ -244,9 +256,7 @@ export default function S3Page() {
             )}
           </div>
 
-          {/* Actions */}
           <div className="flex items-center gap-2">
-            {/* Publish toggle */}
             <button
               onClick={handleTogglePublish}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-wider font-bold transition-all border ${
@@ -256,10 +266,9 @@ export default function S3Page() {
               }`}
             >
               <Globe size={12} />
-              {isPublished ? 'En ligne' : 'Hors ligne'}
+              {isPublished ? 'Online' : 'Offline'}
             </button>
 
-            {/* Save button */}
             <button
               onClick={handleSave}
               disabled={saving}
@@ -276,7 +285,7 @@ export default function S3Page() {
               ) : (
                 <Save size={12} />
               )}
-              {saving ? 'Saving...' : saved ? 'Saved!' : 'Sauvegarder'}
+              {saving ? 'Saving...' : saved ? 'Saved!' : 'Save'}
             </button>
           </div>
         </div>

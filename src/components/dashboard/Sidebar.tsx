@@ -6,30 +6,35 @@ import Image from 'next/image';
 import {
   Database,
   Cpu,
-  FolderOpen,
-  FileText,
-  LogOut,
   User,
   Crown,
   Shield,
+  LogOut,
+  Settings,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { User as AuthUser } from '@supabase/supabase-js';
 
-const navItems = [
+type UserRole = 'owner' | 'admin' | 'member';
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  requiredRole?: UserRole[];
+}
+
+const navItems: NavItem[] = [
   { href: '/dashboard/db', label: 'DB', icon: Database },
   { href: '/dashboard/firmware', label: 'Firmware', icon: Cpu },
   { href: '/dashboard/s3', label: 'Bio Page', icon: User },
-  { href: '/dashboard/s4', label: 'Section 4', icon: FolderOpen },
-  { href: '/dashboard/s5', label: 'Section 5', icon: FileText },
+  { href: '/dashboard/s4', label: 'Admin', icon: Shield, requiredRole: ['admin', 'owner'] },
+  { href: '/dashboard/s5', label: 'Settings', icon: Settings, requiredRole: ['owner'] },
 ];
 
 // ===== ROLE SYSTEM =====
-// Add emails here to assign roles
-const OWNER_EMAILS = ['chris@sagitarius.cc', 'chris@nolex.me']; // <-- Your email(s)
-const ADMIN_EMAILS = ['admin@sagitarius.cc']; // <-- Admin email(s)
-
-type UserRole = 'owner' | 'admin' | 'member';
+const OWNER_EMAILS = ['chris@sagitarius.cc', 'chris@nolex.me', 'n0lex9999@gmail.com'];
+const ADMIN_EMAILS = ['admin@sagitarius.cc'];
 
 function getUserRole(email?: string): UserRole {
   if (!email) return 'member';
@@ -84,6 +89,12 @@ export default function Sidebar({ user }: { user: AuthUser }) {
     router.refresh();
   };
 
+  // Filter nav items based on role
+  const visibleItems = navItems.filter(item => {
+    if (!item.requiredRole) return true;
+    return item.requiredRole.includes(role);
+  });
+
   return (
     <aside className="flex w-[260px] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--bg-base)]">
       <div className="flex items-center gap-4 px-6 py-8">
@@ -96,8 +107,9 @@ export default function Sidebar({ user }: { user: AuthUser }) {
       </div>
       
       <nav className="flex-1 space-y-1.5 px-4 py-4">
-        {navItems.map(({ href, label, icon: Icon }) => {
+        {visibleItems.map(({ href, label, icon: Icon, requiredRole }) => {
           const isActive = pathname === href;
+          const isRestricted = !!requiredRole;
           return (
             <Link
               key={href}
@@ -108,7 +120,10 @@ export default function Sidebar({ user }: { user: AuthUser }) {
                 }`}
             >
               <Icon size={18} strokeWidth={isActive ? 2 : 1.5} />
-              {label}
+              <span className="flex-1">{label}</span>
+              {isRestricted && !isActive && (
+                <div className="w-1.5 h-1.5 rounded-full bg-purple-400/30" />
+              )}
             </Link>
           );
         })}
@@ -156,4 +171,3 @@ export default function Sidebar({ user }: { user: AuthUser }) {
     </aside>
   );
 }
-

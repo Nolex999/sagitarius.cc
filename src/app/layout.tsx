@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import SplashOverlay from '@/components/SplashOverlay';
+import TopGradientBar from '@/components/TopGradientBar';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -14,8 +15,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr">
+    <html lang="en">
       <body>
+        <TopGradientBar />
         <SplashOverlay />
         {children}
         <Script 

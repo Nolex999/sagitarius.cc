@@ -5,9 +5,9 @@ import { usePathname } from 'next/navigation';
 const labels: Record<string, string> = {
   '/dashboard/db': 'DB',
   '/dashboard/firmware': 'Firmware',
-  '/dashboard/s3': 'Section 3',
-  '/dashboard/s4': 'Section 4',
-  '/dashboard/s5': 'Section 5',
+  '/dashboard/s3': 'Bio Page',
+  '/dashboard/s4': 'Admin',
+  '/dashboard/s5': 'Settings',
 };
 
 export default function PageHeader() {

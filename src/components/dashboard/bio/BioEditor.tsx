@@ -3,26 +3,31 @@
 import { useState } from 'react';
 import {
   User, Palette, Sparkles, Link2, Music, BarChart3, Code2,
-  Plus, Trash2, GripVertical,
+  Plus, Trash2, GripVertical, Layout, Puzzle, Search,
+  Image, Video, MessageCircle, Flag, Globe,
 } from 'lucide-react';
 import type { BioConfig } from '@/types/bio';
 
-type TabId = 'profile' | 'theme' | 'effects' | 'links' | 'music' | 'stats' | 'advanced';
+type TabId = 'profile' | 'layout' | 'theme' | 'effects' | 'links' | 'music' | 'stats' | 'widgets' | 'seo' | 'advanced';
 
 const tabs: { id: TabId; label: string; icon: React.ElementType }[] = [
-  { id: 'profile', label: 'Profil', icon: User },
-  { id: 'theme', label: 'Thème', icon: Palette },
-  { id: 'effects', label: 'Effets', icon: Sparkles },
-  { id: 'links', label: 'Liens', icon: Link2 },
-  { id: 'music', label: 'Musique', icon: Music },
+  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'layout', label: 'Layout', icon: Layout },
+  { id: 'theme', label: 'Theme', icon: Palette },
+  { id: 'effects', label: 'Effects', icon: Sparkles },
+  { id: 'links', label: 'Links', icon: Link2 },
+  { id: 'music', label: 'Music', icon: Music },
   { id: 'stats', label: 'Stats', icon: BarChart3 },
+  { id: 'widgets', label: 'Widgets', icon: Puzzle },
+  { id: 'seo', label: 'SEO', icon: Search },
   { id: 'advanced', label: 'CSS', icon: Code2 },
 ];
 
 const fontOptions = [
   'Inter', 'Outfit', 'Space Grotesk', 'JetBrains Mono', 'Fira Code',
   'Poppins', 'Rajdhani', 'Orbitron', 'Audiowide', 'Syncopate',
-  'Press Start 2P', 'Silkscreen', 'IBM Plex Mono',
+  'Press Start 2P', 'Silkscreen', 'IBM Plex Mono', 'Montserrat',
+  'Lexend', 'Satisfy', 'Bebas Neue', 'Righteous', 'Permanent Marker',
 ];
 
 const socialPlatforms = [
@@ -36,6 +41,7 @@ const badgePresets = [
   'Gamer', 'Producer', 'Artist', 'Streamer',
   'Elite', 'OG', 'Legend', 'Alpha', 'Goat',
   'Phantom', 'Ghost', 'Demon', 'Dark',
+  'VIP', 'Founder', 'Beta', 'Verified',
 ];
 
 const presetColors = [
@@ -43,6 +49,8 @@ const presetColors = [
   '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6',
   '#f43f5e', '#14b8a6', '#ffffff', '#64748b',
 ];
+
+const emojiPresets = ['🟢', '🔴', '🟡', '🔵', '⚡', '🎮', '💀', '👑', '🔥', '💤', '🎵', '📍', '💻', '🌙'];
 
 interface EditorProps {
   config: BioConfig;
@@ -175,9 +183,9 @@ function ToggleSwitch({ value, onChange }: { value: boolean; onChange: (v: boole
   );
 }
 
-function OptionGrid({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: { value: string; label: string; icon?: React.ReactNode }[] }) {
+function OptionGrid({ value, onChange, options, cols = 2 }: { value: string; onChange: (v: string) => void; options: { value: string; label: string; icon?: React.ReactNode }[]; cols?: number }) {
   return (
-    <div className="grid grid-cols-2 gap-1.5">
+    <div className={`grid gap-1.5`} style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
       {options.map(opt => (
         <button
           key={opt.value}
@@ -192,6 +200,15 @@ function OptionGrid({ value, onChange, options }: { value: string; onChange: (v:
           {opt.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+function ToggleRow({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div className="flex items-center justify-between">
+      <FieldLabel>{label}</FieldLabel>
+      <ToggleSwitch value={value} onChange={onChange} />
     </div>
   );
 }
@@ -221,16 +238,48 @@ export default function BioEditor({ config, onChange }: EditorProps) {
     onChange({ ...config, stats: { ...config.stats, [key]: value } });
   };
 
+  const updateStatus = <K extends keyof BioConfig['statusIndicator']>(key: K, value: BioConfig['statusIndicator'][K]) => {
+    onChange({ ...config, statusIndicator: { ...config.statusIndicator, [key]: value } });
+  };
+
+  const updateGlassmorphism = <K extends keyof BioConfig['glassmorphism']>(key: K, value: BioConfig['glassmorphism'][K]) => {
+    onChange({ ...config, glassmorphism: { ...config.glassmorphism, [key]: value } });
+  };
+
+  const updateBgOverlay = <K extends keyof BioConfig['backgroundOverlay']>(key: K, value: BioConfig['backgroundOverlay'][K]) => {
+    onChange({ ...config, backgroundOverlay: { ...config.backgroundOverlay, [key]: value } });
+  };
+
+  const updateSeo = <K extends keyof BioConfig['seo']>(key: K, value: BioConfig['seo'][K]) => {
+    onChange({ ...config, seo: { ...config.seo, [key]: value } });
+  };
+
+  const updateTimeline = <K extends keyof BioConfig['timeline']>(key: K, value: BioConfig['timeline'][K]) => {
+    onChange({ ...config, timeline: { ...config.timeline, [key]: value } });
+  };
+
+  const updateGallery = <K extends keyof BioConfig['imageGallery']>(key: K, value: BioConfig['imageGallery'][K]) => {
+    onChange({ ...config, imageGallery: { ...config.imageGallery, [key]: value } });
+  };
+
+  const updateVideo = <K extends keyof BioConfig['embedVideo']>(key: K, value: BioConfig['embedVideo'][K]) => {
+    onChange({ ...config, embedVideo: { ...config.embedVideo, [key]: value } });
+  };
+
+  const updateDiscord = <K extends keyof BioConfig['discordWidget']>(key: K, value: BioConfig['discordWidget'][K]) => {
+    onChange({ ...config, discordWidget: { ...config.discordWidget, [key]: value } });
+  };
+
 
   // ====== TAB CONTENT ======
 
   const renderProfile = () => (
     <div className="space-y-4">
-      <SectionTitle>Identité</SectionTitle>
+      <SectionTitle>Identity</SectionTitle>
       
       <div>
         <FieldLabel>Nom d&apos;affichage</FieldLabel>
-        <TextInput value={config.displayName} onChange={v => update('displayName', v)} placeholder="Ton nom" />
+        <TextInput value={config.displayName} onChange={v => update('displayName', v)} placeholder="Your name" />
       </div>
       
       <div>
@@ -245,12 +294,77 @@ export default function BioEditor({ config, onChange }: EditorProps) {
 
       <div>
         <FieldLabel>Bio</FieldLabel>
-        <TextArea value={config.bio} onChange={v => update('bio', v)} placeholder="Décris-toi en quelques mots..." />
+        <TextArea value={config.bio} onChange={v => update('bio', v)} placeholder="Describe yourself in a few words..." />
       </div>
 
       <div>
         <FieldLabel>Avatar URL</FieldLabel>
         <TextInput value={config.avatarUrl} onChange={v => update('avatarUrl', v)} placeholder="https://..." />
+      </div>
+
+      <div>
+        <FieldLabel>Forme de l&apos;avatar</FieldLabel>
+        <OptionGrid
+          value={config.profileShape}
+          onChange={v => update('profileShape', v as any)}
+          options={[
+            { value: 'circle', label: 'Circle' },
+            { value: 'rounded-square', label: 'Square' },
+            { value: 'hexagon', label: 'Hexagon' },
+          ]}
+          cols={3}
+        />
+      </div>
+
+      <SectionTitle>Banner</SectionTitle>
+      
+      <div>
+        <FieldLabel>Banner image URL</FieldLabel>
+        <TextInput value={config.bannerUrl} onChange={v => update('bannerUrl', v)} placeholder="https://..." />
+      </div>
+
+      <div>
+        <FieldLabel>Banner Height — {config.bannerHeight}px</FieldLabel>
+        <SliderInput value={config.bannerHeight} onChange={v => update('bannerHeight', v)} min={100} max={400} label="px" />
+      </div>
+
+      <SectionTitle>Status</SectionTitle>
+
+      <ToggleRow label="Show status" value={config.statusIndicator?.enabled ?? false} onChange={v => updateStatus('enabled', v)} />
+
+      {config.statusIndicator?.enabled && (
+        <>
+          <div>
+            <FieldLabel>Status text</FieldLabel>
+            <TextInput value={config.statusIndicator.text} onChange={v => updateStatus('text', v)} placeholder="Online, AFK, Gaming..." />
+          </div>
+          <div>
+            <FieldLabel>Emoji</FieldLabel>
+            <div className="flex flex-wrap gap-1.5">
+              {emojiPresets.map(emoji => (
+                <button
+                  key={emoji}
+                  onClick={() => updateStatus('emoji', emoji)}
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all ${
+                    config.statusIndicator.emoji === emoji ? 'bg-purple-500/20 border border-purple-400/30 scale-110' : 'bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04]'
+                  }`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <FieldLabel>Status color</FieldLabel>
+            <ColorPicker value={config.statusIndicator.color} onChange={v => updateStatus('color', v)} presets={['#22c55e', '#ef4444', '#eab308', '#3b82f6', '#a855f7', '#64748b']} />
+          </div>
+        </>
+      )}
+
+      <SectionTitle>Language</SectionTitle>
+      <div>
+        <FieldLabel>Language tag</FieldLabel>
+        <TextInput value={config.languageTag} onChange={v => update('languageTag', v)} placeholder="FR, EN, DE..." />
       </div>
 
       <SectionTitle>Badges</SectionTitle>
@@ -280,9 +394,9 @@ export default function BioEditor({ config, onChange }: EditorProps) {
       </div>
       
       <div>
-        <FieldLabel>Badge custom</FieldLabel>
+        <FieldLabel>Custom badge</FieldLabel>
         <div className="flex gap-2">
-          <TextInput value="" onChange={() => {}} placeholder="Nom du badge" />
+          <TextInput value="" onChange={() => {}} placeholder="Badge name" />
           <button
             onClick={() => {
               const input = document.querySelector<HTMLInputElement>('#custom-badge-input');
@@ -300,22 +414,99 @@ export default function BioEditor({ config, onChange }: EditorProps) {
     </div>
   );
 
-  const renderTheme = () => (
+  const renderLayout = () => (
     <div className="space-y-4">
-      <SectionTitle>Couleurs</SectionTitle>
+      <SectionTitle>Layout preset</SectionTitle>
       
       <div>
-        <FieldLabel>Couleur principale</FieldLabel>
+        <FieldLabel>Page style</FieldLabel>
+        <OptionGrid
+          value={config.layoutPreset}
+          onChange={v => update('layoutPreset', v as any)}
+          options={[
+            { value: 'centered', label: 'Centered' },
+            { value: 'left-aligned', label: 'Left-aligned' },
+            { value: 'card', label: 'Card' },
+            { value: 'minimal', label: 'Minimal' },
+            { value: 'hero', label: 'Hero' },
+          ]}
+        />
+      </div>
+
+      <SectionTitle>Animations</SectionTitle>
+
+      <ToggleRow label="Scroll animations" value={config.scrollAnimation} onChange={v => update('scrollAnimation', v)} />
+      <ToggleRow label="Typewriter bio" value={config.typingBio} onChange={v => update('typingBio', v)} />
+
+      <SectionTitle>Glassmorphism</SectionTitle>
+
+      <ToggleRow label="Enable glassmorphism" value={config.glassmorphism?.enabled ?? false} onChange={v => updateGlassmorphism('enabled', v)} />
+
+      {config.glassmorphism?.enabled && (
+        <>
+          <div>
+            <FieldLabel>Blur — {config.glassmorphism.blur}px</FieldLabel>
+            <SliderInput value={config.glassmorphism.blur} onChange={v => updateGlassmorphism('blur', v)} min={0} max={40} label="px" />
+          </div>
+          <div>
+            <FieldLabel>Opacity — {config.glassmorphism.opacity}%</FieldLabel>
+            <SliderInput value={config.glassmorphism.opacity} onChange={v => updateGlassmorphism('opacity', v)} label="%" />
+          </div>
+        </>
+      )}
+
+      <SectionTitle>Profile Border</SectionTitle>
+
+      <div>
+        <FieldLabel>Border Style</FieldLabel>
+        <OptionGrid
+          value={config.borderStyle}
+          onChange={v => update('borderStyle', v as any)}
+          options={[
+            { value: 'none', label: 'None' },
+            { value: 'solid', label: 'Solid' },
+            { value: 'gradient', label: 'Gradient' },
+            { value: 'animated', label: 'Animated' },
+            { value: 'dashed', label: 'Dashed' },
+          ]}
+        />
+      </div>
+
+      <SectionTitle>Background overlay</SectionTitle>
+
+      <ToggleRow label="Enable overlay" value={config.backgroundOverlay?.enabled ?? false} onChange={v => updateBgOverlay('enabled', v)} />
+
+      {config.backgroundOverlay?.enabled && (
+        <>
+          <div>
+            <FieldLabel>Couleur de l&apos;overlay</FieldLabel>
+            <ColorPicker value={config.backgroundOverlay.color} onChange={v => updateBgOverlay('color', v)} presets={['#000000', '#0a0a2e', '#1a0000', '#001a1a', '#0a1628']} />
+          </div>
+          <div>
+            <FieldLabel>Opacity — {config.backgroundOverlay.opacity}%</FieldLabel>
+            <SliderInput value={config.backgroundOverlay.opacity} onChange={v => updateBgOverlay('opacity', v)} label="%" />
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  const renderTheme = () => (
+    <div className="space-y-4">
+      <SectionTitle>Colors</SectionTitle>
+      
+      <div>
+        <FieldLabel>Primary color</FieldLabel>
         <ColorPicker value={config.theme.primaryColor} onChange={v => updateTheme('primaryColor', v)} />
       </div>
 
       <div>
-        <FieldLabel>Couleur secondaire</FieldLabel>
+        <FieldLabel>Secondary color</FieldLabel>
         <ColorPicker value={config.theme.secondaryColor} onChange={v => updateTheme('secondaryColor', v)} />
       </div>
 
       <div>
-        <FieldLabel>Couleur accent</FieldLabel>
+        <FieldLabel>Accent color</FieldLabel>
         <ColorPicker value={config.theme.accentColor} onChange={v => updateTheme('accentColor', v)} />
       </div>
 
@@ -331,17 +522,18 @@ export default function BioEditor({ config, onChange }: EditorProps) {
             { value: 'gradient', label: 'Gradient' },
             { value: 'image', label: 'Image' },
           ]}
+          cols={3}
         />
       </div>
 
       <div>
-        <FieldLabel>Couleur BG 1</FieldLabel>
+        <FieldLabel>BG Color 1</FieldLabel>
         <ColorPicker value={config.theme.bgColor1} onChange={v => updateTheme('bgColor1', v)} presets={['#0a0a0a', '#0d1117', '#1a0a2e', '#0a1628', '#0e0e0e', '#120015', '#001a1a', '#1a0000']} />
       </div>
 
       {config.theme.bgType === 'gradient' && (
         <div>
-          <FieldLabel>Couleur BG 2</FieldLabel>
+          <FieldLabel>BG Color 2</FieldLabel>
           <ColorPicker value={config.theme.bgColor2} onChange={v => updateTheme('bgColor2', v)} presets={['#1a0a2e', '#0d2847', '#2e0a1a', '#0a2e1a', '#2e2e0a', '#001a33', '#330a1a', '#0a330a']} />
         </div>
       )}
@@ -356,7 +548,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
       <SectionTitle>Style</SectionTitle>
 
       <div>
-        <FieldLabel>Police</FieldLabel>
+        <FieldLabel>Font</FieldLabel>
         <SelectInput
           value={config.theme.fontFamily}
           onChange={v => updateTheme('fontFamily', v)}
@@ -365,7 +557,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
       </div>
 
       <div>
-        <FieldLabel>Style des cartes</FieldLabel>
+        <FieldLabel>Card style</FieldLabel>
         <OptionGrid
           value={config.theme.cardStyle}
           onChange={v => updateTheme('cardStyle', v as any)}
@@ -373,7 +565,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
             { value: 'glass', label: 'Glass' },
             { value: 'solid', label: 'Solid' },
             { value: 'outline', label: 'Outline' },
-            { value: 'neon', label: 'Néon' },
+            { value: 'neon', label: 'Neon' },
           ]}
         />
       </div>
@@ -385,19 +577,16 @@ export default function BioEditor({ config, onChange }: EditorProps) {
 
       <SectionTitle>Glow</SectionTitle>
       
-      <div className="flex items-center justify-between">
-        <FieldLabel>Activer le glow</FieldLabel>
-        <ToggleSwitch value={config.theme.glowEnabled} onChange={v => updateTheme('glowEnabled', v)} />
-      </div>
+      <ToggleRow label="Enable glow" value={config.theme.glowEnabled} onChange={v => updateTheme('glowEnabled', v)} />
 
       {config.theme.glowEnabled && (
         <>
           <div>
-            <FieldLabel>Couleur du glow</FieldLabel>
+            <FieldLabel>Glow color</FieldLabel>
             <ColorPicker value={config.theme.glowColor} onChange={v => updateTheme('glowColor', v)} />
           </div>
           <div>
-            <FieldLabel>Intensité — {config.theme.glowIntensity}%</FieldLabel>
+            <FieldLabel>Intensity — {config.theme.glowIntensity}%</FieldLabel>
             <SliderInput value={config.theme.glowIntensity} onChange={v => updateTheme('glowIntensity', v)} label="%" />
           </div>
         </>
@@ -415,13 +604,13 @@ export default function BioEditor({ config, onChange }: EditorProps) {
           value={config.effects.bgEffect}
           onChange={v => updateEffects('bgEffect', v as any)}
           options={[
-            { value: 'none', label: 'Aucun' },
+            { value: 'none', label: 'None' },
             { value: 'particles', label: 'Particles' },
             { value: 'matrix', label: 'Matrix' },
-            { value: 'stars', label: 'Étoiles' },
-            { value: 'rain', label: 'Pluie' },
-            { value: 'snow', label: 'Neige' },
-            { value: 'fireflies', label: 'Lucioles' },
+            { value: 'stars', label: 'Stars' },
+            { value: 'rain', label: 'Rain' },
+            { value: 'snow', label: 'Snow' },
+            { value: 'fireflies', label: 'Fireflies' },
           ]}
         />
       </div>
@@ -429,7 +618,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
       {config.effects.bgEffect !== 'none' && (
         <>
           <div>
-            <FieldLabel>Intensité — {config.effects.bgEffectIntensity}%</FieldLabel>
+            <FieldLabel>Intensity — {config.effects.bgEffectIntensity}%</FieldLabel>
             <SliderInput value={config.effects.bgEffectIntensity} onChange={v => updateEffects('bgEffectIntensity', v)} label="%" />
           </div>
           <div>
@@ -442,12 +631,12 @@ export default function BioEditor({ config, onChange }: EditorProps) {
       <SectionTitle>Cursor Trail</SectionTitle>
       
       <div>
-        <FieldLabel>Type de trail</FieldLabel>
+        <FieldLabel>Trail type</FieldLabel>
         <OptionGrid
           value={config.effects.cursorTrail}
           onChange={v => updateEffects('cursorTrail', v as any)}
           options={[
-            { value: 'none', label: 'Aucun' },
+            { value: 'none', label: 'None' },
             { value: 'glow', label: 'Glow' },
             { value: 'sparkle', label: 'Sparkle' },
             { value: 'trail', label: 'Trail' },
@@ -458,7 +647,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
 
       {config.effects.cursorTrail !== 'none' && (
         <div>
-          <FieldLabel>Couleur du trail</FieldLabel>
+          <FieldLabel>Trail color</FieldLabel>
           <ColorPicker value={config.effects.cursorTrailColor} onChange={v => updateEffects('cursorTrailColor', v)} />
         </div>
       )}
@@ -471,7 +660,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
           value={config.effects.avatarEffect}
           onChange={v => updateEffects('avatarEffect', v as any)}
           options={[
-            { value: 'none', label: 'Aucun' },
+            { value: 'none', label: 'None' },
             { value: 'glow-pulse', label: 'Glow Pulse' },
             { value: 'rotate-border', label: 'Rotate' },
             { value: 'glitch', label: 'Glitch' },
@@ -488,11 +677,11 @@ export default function BioEditor({ config, onChange }: EditorProps) {
           value={config.effects.textEffect}
           onChange={v => updateEffects('textEffect', v as any)}
           options={[
-            { value: 'none', label: 'Aucun' },
+            { value: 'none', label: 'None' },
             { value: 'gradient', label: 'Gradient' },
             { value: 'glitch', label: 'Glitch' },
             { value: 'typewriter', label: 'Typewriter' },
-            { value: 'neon-flicker', label: 'Néon' },
+            { value: 'neon-flicker', label: 'Neon' },
           ]}
         />
       </div>
@@ -505,7 +694,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
           value={config.effects.entranceAnimation}
           onChange={v => updateEffects('entranceAnimation', v as any)}
           options={[
-            { value: 'none', label: 'Aucun' },
+            { value: 'none', label: 'None' },
             { value: 'fade-up', label: 'Fade Up' },
             { value: 'scale', label: 'Scale' },
             { value: 'slide-left', label: 'Slide' },
@@ -513,12 +702,47 @@ export default function BioEditor({ config, onChange }: EditorProps) {
           ]}
         />
       </div>
+
+      <SectionTitle>Click Effect</SectionTitle>
+      
+      <div>
+        <FieldLabel>Click effect</FieldLabel>
+        <OptionGrid
+          value={config.effects.clickEffect}
+          onChange={v => updateEffects('clickEffect', v as any)}
+          options={[
+            { value: 'none', label: 'None' },
+            { value: 'ripple', label: 'Ripple' },
+            { value: 'confetti', label: 'Confetti' },
+            { value: 'sparkle', label: 'Sparkle' },
+          ]}
+        />
+      </div>
+
+      <SectionTitle>Cursor</SectionTitle>
+      
+      <div>
+        <FieldLabel>Cursor style</FieldLabel>
+        <OptionGrid
+          value={config.effects.customCursor}
+          onChange={v => updateEffects('customCursor', v as any)}
+          options={[
+            { value: 'default', label: 'Default' },
+            { value: 'crosshair', label: 'Crosshair' },
+            { value: 'pointer', label: 'Pointer' },
+            { value: 'custom', label: 'Custom' },
+          ]}
+        />
+      </div>
+
+      <SectionTitle>Audio</SectionTitle>
+      <ToggleRow label="Audio visualizer" value={config.effects.audioVisualizer} onChange={v => updateEffects('audioVisualizer', v)} />
     </div>
   );
 
   const renderLinks = () => (
     <div className="space-y-4">
-      <SectionTitle>Réseaux Sociaux</SectionTitle>
+      <SectionTitle>Social Networks</SectionTitle>
 
       {config.socials.map((social, i) => (
         <div key={i} className="flex items-center gap-2 p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
@@ -554,10 +778,10 @@ export default function BioEditor({ config, onChange }: EditorProps) {
         onClick={() => update('socials', [...config.socials, { platform: 'discord', url: '', label: 'Discord' }])}
         className="w-full h-9 flex items-center justify-center gap-2 rounded-lg bg-white/[0.02] border border-dashed border-white/[0.1] text-[10px] uppercase tracking-wider font-bold text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:border-white/20 transition-all"
       >
-        <Plus size={12} /> Ajouter un réseau
+        <Plus size={12} /> Add a social link
       </button>
 
-      <SectionTitle>Liens Custom</SectionTitle>
+      <SectionTitle>Custom Links</SectionTitle>
 
       {config.customLinks.map((link, i) => (
         <div key={i} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
@@ -570,7 +794,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
                 newLinks[i] = { ...link, title: v };
                 update('customLinks', newLinks);
               }}
-              placeholder="Titre du lien"
+              placeholder="Title du lien"
             />
             <ToggleSwitch
               value={link.enabled}
@@ -603,19 +827,16 @@ export default function BioEditor({ config, onChange }: EditorProps) {
         onClick={() => update('customLinks', [...config.customLinks, { title: '', url: '', icon: 'link', enabled: true }])}
         className="w-full h-9 flex items-center justify-center gap-2 rounded-lg bg-white/[0.02] border border-dashed border-white/[0.1] text-[10px] uppercase tracking-wider font-bold text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:border-white/20 transition-all"
       >
-        <Plus size={12} /> Ajouter un lien
+        <Plus size={12} /> Add link
       </button>
     </div>
   );
 
   const renderMusic = () => (
     <div className="space-y-4">
-      <SectionTitle>Lecteur de musique</SectionTitle>
+      <SectionTitle>Music Player</SectionTitle>
 
-      <div className="flex items-center justify-between">
-        <FieldLabel>Activer la musique</FieldLabel>
-        <ToggleSwitch value={config.music.enabled} onChange={v => updateMusic('enabled', v)} />
-      </div>
+      <ToggleRow label="Enable music" value={config.music.enabled} onChange={v => updateMusic('enabled', v)} />
 
       {config.music.enabled && (
         <>
@@ -629,6 +850,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
                 { value: 'soundcloud', label: 'SoundCloud' },
                 { value: 'custom', label: 'URL Custom' },
               ]}
+              cols={3}
             />
           </div>
 
@@ -649,10 +871,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <FieldLabel>Autoplay</FieldLabel>
-            <ToggleSwitch value={config.music.autoplay} onChange={v => updateMusic('autoplay', v)} />
-          </div>
+          <ToggleRow label="Autoplay" value={config.music.autoplay} onChange={v => updateMusic('autoplay', v)} />
         </>
       )}
     </div>
@@ -660,19 +879,12 @@ export default function BioEditor({ config, onChange }: EditorProps) {
 
   const renderStats = () => (
     <div className="space-y-4">
-      <SectionTitle>Affichage</SectionTitle>
+      <SectionTitle>Display</SectionTitle>
 
-      <div className="flex items-center justify-between">
-        <FieldLabel>Afficher les vues</FieldLabel>
-        <ToggleSwitch value={config.stats.showViews} onChange={v => updateStats('showViews', v)} />
-      </div>
+      <ToggleRow label="Show views" value={config.stats.showViews} onChange={v => updateStats('showViews', v)} />
+      <ToggleRow label="Show join date" value={config.stats.showJoinDate} onChange={v => updateStats('showJoinDate', v)} />
 
-      <div className="flex items-center justify-between">
-        <FieldLabel>Afficher la date d&apos;inscription</FieldLabel>
-        <ToggleSwitch value={config.stats.showJoinDate} onChange={v => updateStats('showJoinDate', v)} />
-      </div>
-
-      <SectionTitle>Stats Custom</SectionTitle>
+      <SectionTitle>Custom Stats</SectionTitle>
 
       {config.stats.customStats.map((stat, i) => (
         <div key={i} className="flex items-center gap-2">
@@ -692,7 +904,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
               newStats[i] = { ...stat, value: v };
               updateStats('customStats', newStats);
             }}
-            placeholder="Valeur"
+            placeholder="Value"
           />
           <button
             onClick={() => updateStats('customStats', config.stats.customStats.filter((_, j) => j !== i))}
@@ -707,8 +919,155 @@ export default function BioEditor({ config, onChange }: EditorProps) {
         onClick={() => updateStats('customStats', [...config.stats.customStats, { label: '', value: '' }])}
         className="w-full h-9 flex items-center justify-center gap-2 rounded-lg bg-white/[0.02] border border-dashed border-white/[0.1] text-[10px] uppercase tracking-wider font-bold text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:border-white/20 transition-all"
       >
-        <Plus size={12} /> Ajouter une stat
+        <Plus size={12} /> Add stat
       </button>
+    </div>
+  );
+
+  const renderWidgets = () => (
+    <div className="space-y-4">
+      <SectionTitle>Timeline / Achievements</SectionTitle>
+
+      <ToggleRow label="Enable timeline" value={config.timeline?.enabled ?? false} onChange={v => updateTimeline('enabled', v)} />
+
+      {config.timeline?.enabled && (
+        <>
+          {(config.timeline.items || []).map((item, i) => (
+            <div key={i} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
+              <div className="flex items-center gap-2">
+                <TextInput
+                  value={item.date}
+                  onChange={v => {
+                    const newItems = [...(config.timeline.items || [])];
+                    newItems[i] = { ...item, date: v };
+                    updateTimeline('items', newItems);
+                  }}
+                  placeholder="Date (ex: Mars 2026)"
+                />
+                <button
+                  onClick={() => updateTimeline('items', (config.timeline.items || []).filter((_, j) => j !== i))}
+                  className="shrink-0 h-8 w-8 flex items-center justify-center rounded-lg text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+              <TextInput
+                value={item.title}
+                onChange={v => {
+                  const newItems = [...(config.timeline.items || [])];
+                  newItems[i] = { ...item, title: v };
+                  updateTimeline('items', newItems);
+                }}
+                placeholder="Title"
+              />
+              <TextInput
+                value={item.description}
+                onChange={v => {
+                  const newItems = [...(config.timeline.items || [])];
+                  newItems[i] = { ...item, description: v };
+                  updateTimeline('items', newItems);
+                }}
+                placeholder="Description"
+              />
+            </div>
+          ))}
+          <button
+            onClick={() => updateTimeline('items', [...(config.timeline.items || []), { date: '', title: '', description: '' }])}
+            className="w-full h-9 flex items-center justify-center gap-2 rounded-lg bg-white/[0.02] border border-dashed border-white/[0.1] text-[10px] uppercase tracking-wider font-bold text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:border-white/20 transition-all"
+          >
+            <Plus size={12} /> Add event
+          </button>
+        </>
+      )}
+
+      <SectionTitle>Galerie d&apos;images</SectionTitle>
+
+      <ToggleRow label="Enable gallery" value={config.imageGallery?.enabled ?? false} onChange={v => updateGallery('enabled', v)} />
+
+      {config.imageGallery?.enabled && (
+        <>
+          {(config.imageGallery.images || []).map((img, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <TextInput
+                value={img.url}
+                onChange={v => {
+                  const newImages = [...(config.imageGallery.images || [])];
+                  newImages[i] = { ...img, url: v };
+                  updateGallery('images', newImages);
+                }}
+                placeholder="Image URL"
+              />
+              <TextInput
+                value={img.caption}
+                onChange={v => {
+                  const newImages = [...(config.imageGallery.images || [])];
+                  newImages[i] = { ...img, caption: v };
+                  updateGallery('images', newImages);
+                }}
+                placeholder="Caption"
+              />
+              <button
+                onClick={() => updateGallery('images', (config.imageGallery.images || []).filter((_, j) => j !== i))}
+                className="shrink-0 h-8 w-8 flex items-center justify-center rounded-lg text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-all"
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={() => updateGallery('images', [...(config.imageGallery.images || []), { url: '', caption: '' }])}
+            className="w-full h-9 flex items-center justify-center gap-2 rounded-lg bg-white/[0.02] border border-dashed border-white/[0.1] text-[10px] uppercase tracking-wider font-bold text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:border-white/20 transition-all"
+          >
+            <Plus size={12} /> Add image
+          </button>
+        </>
+      )}
+
+      <SectionTitle>Embed Video</SectionTitle>
+
+      <ToggleRow label="Embed a video" value={config.embedVideo?.enabled ?? false} onChange={v => updateVideo('enabled', v)} />
+
+      {config.embedVideo?.enabled && (
+        <div>
+          <FieldLabel>YouTube / other URL</FieldLabel>
+          <TextInput value={config.embedVideo.url} onChange={v => updateVideo('url', v)} placeholder="https://youtube.com/watch?v=..." />
+        </div>
+      )}
+
+      <SectionTitle>Discord Widget</SectionTitle>
+
+      <ToggleRow label="Widget Discord" value={config.discordWidget?.enabled ?? false} onChange={v => updateDiscord('enabled', v)} />
+
+      {config.discordWidget?.enabled && (
+        <div>
+          <FieldLabel>Discord User ID</FieldLabel>
+          <TextInput value={config.discordWidget.userId} onChange={v => updateDiscord('userId', v)} placeholder="123456789012345678" />
+        </div>
+      )}
+    </div>
+  );
+
+  const renderSeo = () => (
+    <div className="space-y-4">
+      <SectionTitle>Meta Tags</SectionTitle>
+      <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">
+        Customize how your page appears on Google, Discord, Twitter, and other platforms.
+      </p>
+
+      <div>
+        <FieldLabel>Title personnalisé</FieldLabel>
+        <TextInput value={config.seo?.title ?? ''} onChange={v => updateSeo('title', v)} placeholder="My profile — Sagitarius.cc" />
+      </div>
+
+      <div>
+        <FieldLabel>Description</FieldLabel>
+        <TextArea value={config.seo?.description ?? ''} onChange={v => updateSeo('description', v)} placeholder="My custom bio page..." rows={3} />
+      </div>
+
+      <div>
+        <FieldLabel>OG Image URL</FieldLabel>
+        <TextInput value={config.seo?.ogImage ?? ''} onChange={v => updateSeo('ogImage', v)} placeholder="https://... (image d'aperçu)" />
+      </div>
     </div>
   );
 
@@ -716,12 +1075,12 @@ export default function BioEditor({ config, onChange }: EditorProps) {
     <div className="space-y-4">
       <SectionTitle>CSS Custom</SectionTitle>
       <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">
-        Ajoute du CSS custom pour personnaliser ta page encore plus. Utilise <code className="text-purple-400/80">.bio-page</code> comme sélecteur racine.
+        Add custom CSS to customize your page even more. Use <code className="text-purple-400/80">.bio-page</code> comme root selector.
       </p>
       <TextArea
         value={config.customCss}
         onChange={v => update('customCss', v)}
-        placeholder={`.bio-page {\n  /* Ton CSS ici */\n}`}
+        placeholder={`.bio-page {\n  /* Your CSS here */\n}`}
         rows={12}
       />
     </div>
@@ -729,11 +1088,14 @@ export default function BioEditor({ config, onChange }: EditorProps) {
 
   const tabContent: Record<TabId, () => React.ReactNode> = {
     profile: renderProfile,
+    layout: renderLayout,
     theme: renderTheme,
     effects: renderEffects,
     links: renderLinks,
     music: renderMusic,
     stats: renderStats,
+    widgets: renderWidgets,
+    seo: renderSeo,
     advanced: renderAdvanced,
   };
 
@@ -742,7 +1104,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
       {/* Editor Header */}
       <div className="px-5 pt-5 pb-3">
         <h2 className="text-xs font-bold text-white tracking-tight">Bio Builder</h2>
-        <p className="text-[9px] text-[var(--text-muted)] mt-0.5 uppercase tracking-widest">Customise ta page</p>
+        <p className="text-[9px] text-[var(--text-muted)] mt-0.5 uppercase tracking-widest">Customize your page</p>
       </div>
 
       {/* Tab Navigation */}
