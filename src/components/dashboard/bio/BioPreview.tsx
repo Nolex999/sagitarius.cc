@@ -926,7 +926,7 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
 
         {/* Content */}
         <div
-          className={`relative z-10 flex flex-col ${getLayoutClasses()} py-12 mx-auto min-h-full ${
+          className={`relative z-10 flex flex-col ${getLayoutClasses()} my-8 mx-auto h-fit ${
             config.borderStyle === 'animated' ? 'bio-animated-border' : ''
           } ${config.boxTilt && config.boxTilt !== 'none' ? 'bio-box-tilt' : ''}`}
           style={glassCardStyle}
