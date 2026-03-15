@@ -45,6 +45,7 @@ export default function SplashOverlay() {
         justifyContent: 'center',
         backgroundColor: '#020202',
         pointerEvents: phase === 'fading' ? 'none' : 'all',
+        overflow: 'hidden',
       }}
     >
       {/* Subtle radial background */}
@@ -84,9 +85,9 @@ export default function SplashOverlay() {
           className="splash-title"
           style={{
             fontFamily: "'Geist', 'IBM Plex Sans', system-ui, sans-serif",
-            fontSize: 'clamp(4.5rem, 14vw, 14rem)',
+            fontSize: 'clamp(2.5rem, 8vw, 7rem)',
             fontWeight: 900,
-            letterSpacing: '0.3em',
+            letterSpacing: '0.15em',
             textTransform: 'uppercase',
             color: 'transparent',
             backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.06) 100%)',

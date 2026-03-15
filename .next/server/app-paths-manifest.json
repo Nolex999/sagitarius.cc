@@ -4,9 +4,11 @@
   "/auth/register/page": "app/auth/register/page.js",
   "/bio/[username]/page": "app/bio/[username]/page.js",
   "/page": "app/page.js",
+  "/dashboard/s3/page": "app/dashboard/s3/page.js",
+  "/dashboard/s7/page": "app/dashboard/s7/page.js",
   "/dashboard/firmware/page": "app/dashboard/firmware/page.js",
-  "/dashboard/s4/page": "app/dashboard/s4/page.js",
+  "/dashboard/s6/page": "app/dashboard/s6/page.js",
   "/dashboard/s5/page": "app/dashboard/s5/page.js",
-  "/dashboard/db/page": "app/dashboard/db/page.js",
-  "/dashboard/s3/page": "app/dashboard/s3/page.js"
+  "/dashboard/s4/page": "app/dashboard/s4/page.js",
+  "/dashboard/db/page": "app/dashboard/db/page.js"
 }

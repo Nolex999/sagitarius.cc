@@ -67,7 +67,9 @@ export default function MediaUploader({ value, onChange, type = 'any', placehold
       setError(null);
     } catch (err: any) {
       console.error('Upload error:', err);
-      setError(err.message || 'An error occurred during upload. Did you configure the bio-media bucket?');
+      setError(err.message?.includes('Bucket') || err.message?.includes('bucket') 
+        ? 'Bucket "bio-media" not found. Go to Supabase → Storage → New Bucket → Name: bio-media → Public: ON' 
+        : err.message || 'Upload failed');
     } finally {
       setIsUploading(false);
     }

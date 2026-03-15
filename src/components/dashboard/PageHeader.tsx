@@ -8,6 +8,8 @@ const labels: Record<string, string> = {
   '/dashboard/s3': 'Bio Page',
   '/dashboard/s4': 'Admin',
   '/dashboard/s5': 'Settings',
+  '/dashboard/s6': 'Software',
+  '/dashboard/s7': 'Analytics',
 };
 
 export default function PageHeader() {

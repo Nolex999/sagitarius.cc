@@ -310,6 +310,10 @@ function getAvatarStyle(effect: string): string {
     case 'rotate-border': return 'bio-avatar-rotate-border';
     case 'glitch': return 'bio-avatar-glitch';
     case 'breathe': return 'bio-avatar-breathe';
+    case 'float': return 'bio-avatar-float';
+    case 'spin-slow': return 'bio-avatar-spin-slow';
+    case 'pulse-ring': return 'bio-avatar-pulse-ring';
+    case 'shadow-dance': return 'bio-avatar-shadow-dance';
     default: return '';
   }
 }
@@ -410,8 +414,9 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
   };
 
   const getEntranceDelay = (index: number) => ({
-    animationDelay: `${index * 0.1}s`,
+    animationDelay: `${index * ((config.entranceSpeed ?? 200) / 2000)}s`,
     animationFillMode: 'both' as const,
+    animationDuration: `${(config.entranceSpeed ?? 200) * 2}ms`,
   });
 
   // Glow shadow
@@ -432,30 +437,49 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
 
   // Card/Container Border Style
   const getBorderStyle = (): React.CSSProperties => {
+    const bw = config.borderWidth ?? 1;
+    const bc = config.borderColor || '#ffffff';
+    const bo = (config.borderOpacity ?? 10) / 100;
+    const borderColorRgba = `${bc}${Math.round(bo * 255).toString(16).padStart(2, '0')}`;
     switch (config.borderStyle) {
-      case 'solid': return { border: `2px solid ${theme.primaryColor}` };
-      case 'dashed': return { border: `2px dashed ${theme.primaryColor}` };
+      case 'solid': return { border: `${bw}px solid ${borderColorRgba}` };
+      case 'dashed': return { border: `${bw}px dashed ${borderColorRgba}` };
       case 'gradient': return { 
-        border: '2px solid transparent', 
+        border: `${bw}px solid transparent`, 
         backgroundClip: 'padding-box, border-box',
         backgroundImage: `linear-gradient(${config.glassmorphism?.enabled ? `rgba(255,255,255,${config.glassmorphism.opacity / 100})` : theme.bgColor1}, ${config.glassmorphism?.enabled ? `rgba(255,255,255,${config.glassmorphism.opacity / 100})` : theme.bgColor1}), linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` 
       };
-      // 'animated' is handled via CSS className '.bio-animated-border'
-      default: return config.glassmorphism?.enabled && config.borderStyle !== 'animated' ? { border: '1px solid rgba(255,255,255,0.08)' } : { border: 'none' };
+      default: return config.glassmorphism?.enabled && config.borderStyle !== 'animated' ? { border: `${bw}px solid rgba(255,255,255,0.08)` } : { border: 'none' };
     }
   };
+
+  const boxW = config.boxWidth ?? 500;
+  const boxSpc = config.boxSpacing ?? 40;
+  const boxCol = config.boxColor || '#000000';
+  const boxOp = (config.boxOpacity ?? 30) / 100;
+  const boxBl = config.boxBlur ?? 12;
+  const boxShC = config.boxShadowColor || '#000000';
+  const boxShOp = (config.boxShadowOpacity ?? 50) / 100;
 
   const glassCardStyle: React.CSSProperties = config.glassmorphism?.enabled ? {
     backdropFilter: `blur(${config.glassmorphism.blur}px)`,
     WebkitBackdropFilter: `blur(${config.glassmorphism.blur}px)`,
     backgroundColor: `rgba(255,255,255,${config.glassmorphism.opacity / 100})`,
     borderRadius: `${theme.borderRadius}px`,
-    padding: config.layoutPreset === 'card' ? '2rem' : undefined,
+    padding: `${boxSpc}px`,
+    maxWidth: `${boxW}px`,
+    width: '100%',
+    boxShadow: `0 8px 32px ${boxShC}${Math.round(boxShOp * 255).toString(16).padStart(2, '0')}`,
     ...getBorderStyle(),
   } : {
     ...getBorderStyle(),
     borderRadius: `${theme.borderRadius}px`,
-    padding: config.layoutPreset === 'card' ? '2rem' : undefined,
+    padding: `${boxSpc}px`,
+    maxWidth: `${boxW}px`,
+    width: '100%',
+    backgroundColor: `${boxCol}${Math.round(boxOp * 255).toString(16).padStart(2, '0')}`,
+    backdropFilter: boxBl > 0 ? `blur(${boxBl}px)` : undefined,
+    boxShadow: `0 8px 32px ${boxShC}${Math.round(boxShOp * 255).toString(16).padStart(2, '0')}`,
   };
 
   // Cursor style
@@ -631,6 +655,54 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
         .bio-entrance-flip-x { animation: bio-flip-x 0.6s ease-out; }
         .bio-entrance-bounce-in { animation: bio-bounce-in 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         .bio-entrance-glitch-in { animation: bio-glitch-in 0.8s ease-out; }
+        .bio-entrance-zoom-rotate { animation: bio-zoom-rotate 0.7s ease-out; }
+        .bio-entrance-elastic { animation: bio-elastic 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .bio-entrance-blur-in { animation: bio-blur-in 0.6s ease-out; }
+        .bio-entrance-drop-in { animation: bio-drop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        
+        @keyframes bio-zoom-rotate {
+          from { opacity: 0; transform: scale(0.3) rotate(-15deg); }
+          to { opacity: 1; transform: scale(1) rotate(0); }
+        }
+        @keyframes bio-elastic {
+          0% { opacity: 0; transform: scale(0); }
+          55% { opacity: 1; transform: scale(1.1); }
+          70% { transform: scale(0.95); }
+          100% { transform: scale(1); }
+        }
+        @keyframes bio-blur-in {
+          from { opacity: 0; filter: blur(20px); }
+          to { opacity: 1; filter: blur(0); }
+        }
+        @keyframes bio-drop-in {
+          from { opacity: 0; transform: translateY(-60px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes bio-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+        @keyframes bio-spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes bio-pulse-ring-anim {
+          0% { box-shadow: 0 0 0 0 ${theme.primaryColor}66; }
+          70% { box-shadow: 0 0 0 12px ${theme.primaryColor}00; }
+          100% { box-shadow: 0 0 0 0 ${theme.primaryColor}00; }
+        }
+        @keyframes bio-shadow-dance {
+          0%, 100% { box-shadow: 5px 5px 20px ${theme.primaryColor}44; }
+          25% { box-shadow: -5px 5px 20px ${theme.secondaryColor}44; }
+          50% { box-shadow: -5px -5px 20px ${theme.accentColor}44; }
+          75% { box-shadow: 5px -5px 20px ${theme.primaryColor}44; }
+        }
+        
+        .bio-avatar-float { animation: bio-float 3s ease-in-out infinite; }
+        .bio-avatar-spin-slow { animation: bio-spin-slow 12s linear infinite; }
+        .bio-avatar-pulse-ring { animation: bio-pulse-ring-anim 2s ease infinite; }
+        .bio-avatar-shadow-dance { animation: bio-shadow-dance 4s ease-in-out infinite; }
         
         .bio-animated-border {
           position: relative;
@@ -676,6 +748,20 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           .bio-link-hover { transition: all 0.2s ease; }
           .bio-link-hover:hover { animation: hover-shake 0.3s ease-in-out infinite; }
         ` : ''}
+        ${effects.hoverEffect === 'underline-slide' ? `
+          .bio-link-hover { position: relative; transition: all 0.2s ease; overflow: hidden; }
+          .bio-link-hover::after { content: ''; position: absolute; bottom: 0; left: -100%; width: 100%; height: 2px; background: linear-gradient(90deg, ${theme.primaryColor}, ${theme.secondaryColor}); transition: left 0.3s ease; }
+          .bio-link-hover:hover::after { left: 0; }
+          .bio-link-hover:hover { transform: translateY(-1px); }
+        ` : ''}
+        ${effects.hoverEffect === 'border-glow' ? `
+          .bio-link-hover { transition: all 0.3s ease; border: 1px solid transparent !important; }
+          .bio-link-hover:hover { border-color: ${theme.primaryColor} !important; box-shadow: 0 0 15px ${theme.primaryColor}40, inset 0 0 15px ${theme.primaryColor}10; transform: translateY(-1px); }
+        ` : ''}
+        ${effects.hoverEffect === 'tilt-3d' ? `
+          .bio-link-hover { transition: all 0.2s ease; transform-style: preserve-3d; perspective: 600px; }
+          .bio-link-hover:hover { transform: perspective(600px) rotateX(-5deg) rotateY(3deg) translateY(-3px); box-shadow: 5px 10px 20px rgba(0,0,0,0.3); }
+        ` : ''}
 
         /* OVERLAYS */
         .bio-overlay {
@@ -719,6 +805,48 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           animation: cyber-glitch-overlay 3s infinite;
           background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);
         }
+
+        /* USERNAME SPARKLES */
+        @keyframes bio-sparkle-shimmer {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .bio-sparkle-rainbow {
+          background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000);
+          background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text; animation: bio-sparkle-shimmer 3s linear infinite;
+        }
+        .bio-sparkle-gold {
+          background: linear-gradient(90deg, #d4a574, #ffd700, #d4a574, #ffd700);
+          background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text; animation: bio-sparkle-shimmer 3s linear infinite;
+        }
+        .bio-sparkle-silver {
+          background: linear-gradient(90deg, #c0c0c0, #e8e8e8, #c0c0c0, #e8e8e8);
+          background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text; animation: bio-sparkle-shimmer 3s linear infinite;
+        }
+        .bio-sparkle-fire {
+          background: linear-gradient(90deg, #ff4500, #ff8c00, #ffd700, #ff4500);
+          background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text; animation: bio-sparkle-shimmer 2s linear infinite;
+        }
+        .bio-sparkle-ice {
+          background: linear-gradient(90deg, #87ceeb, #e0f0ff, #4fc3f7, #e0f0ff);
+          background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text; animation: bio-sparkle-shimmer 3s linear infinite;
+        }
+
+        /* BOX TILT */
+        ${config.boxTilt === 'scale' ? `.bio-box-tilt { transition: transform 0.3s ease; } .bio-box-tilt:hover { transform: scale(1.02); }` : ''}
+        ${config.boxTilt === 'reverse-scale' ? `.bio-box-tilt { transition: transform 0.3s ease; } .bio-box-tilt:hover { transform: scale(0.98); }` : ''}
+        ${config.boxTilt === 'tilt-x' ? `.bio-box-tilt { transition: transform 0.3s ease; } .bio-box-tilt:hover { transform: perspective(800px) rotateX(-3deg); }` : ''}
+        ${config.boxTilt === 'tilt-y' ? `.bio-box-tilt { transition: transform 0.3s ease; } .bio-box-tilt:hover { transform: perspective(800px) rotateY(3deg); }` : ''}
+
+        /* AVATAR DECO */
+        @keyframes bio-deco-bounce { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -4px); } }
+        .bio-avatar-deco { animation: bio-deco-bounce 2s ease-in-out infinite; }
         
         ${config.customCss}
       `}</style>
@@ -729,8 +857,13 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           ...bgStyle,
           ...cursorStyle,
           fontFamily: `'${theme.fontFamily}', system-ui, sans-serif`,
+          opacity: (config.bgOpacity ?? 100) / 100,
         }}
       >
+        {/* BG Blur Layer */}
+        {(config.bgBlur ?? 0) > 0 && (
+          <div className="absolute inset-0 pointer-events-none z-0" style={{ backdropFilter: `blur(${config.bgBlur}px)` }} />
+        )}
         {/* Video Background */}
         {theme.bgType === 'video' && theme.bgVideoUrl && (
           <video
@@ -768,10 +901,12 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
         {/* Banner */}
         {config.bannerUrl && (
           <div
-            className={`w-full relative ${getEntranceClass()}`}
+            className={`w-full overflow-hidden ${getEntranceClass()}`}
             style={{
               ...getEntranceDelay(0),
               height: `${config.bannerHeight || 200}px`,
+              flexShrink: 0,
+              position: 'relative',
               zIndex: 5,
             }}
           >
@@ -779,7 +914,11 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
               src={config.bannerUrl}
               alt="Banner"
               className="w-full h-full object-cover"
-              style={{ borderRadius: config.layoutPreset === 'card' ? `${theme.borderRadius}px ${theme.borderRadius}px 0 0` : 0 }}
+              style={{
+                borderRadius: config.layoutPreset === 'card' ? `${theme.borderRadius}px ${theme.borderRadius}px 0 0` : 0,
+                opacity: (config.bannerOpacity ?? 100) / 100,
+                filter: (config.bannerBlur ?? 0) > 0 ? `blur(${config.bannerBlur}px)` : undefined,
+              }}
             />
             <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.6) 100%)' }} />
           </div>
@@ -787,9 +926,9 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
 
         {/* Content */}
         <div
-          className={`relative z-10 flex flex-col ${getLayoutClasses()} px-6 py-12 max-w-md mx-auto min-h-full ${
+          className={`relative z-10 flex flex-col ${getLayoutClasses()} py-12 mx-auto min-h-full ${
             config.borderStyle === 'animated' ? 'bio-animated-border' : ''
-          }`}
+          } ${config.boxTilt && config.boxTilt !== 'none' ? 'bio-box-tilt' : ''}`}
           style={glassCardStyle}
         >
           {/* Status Indicator */}
@@ -824,15 +963,15 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
 
           {/* Avatar */}
           <div
-            className={`${getEntranceClass()} ${getAvatarStyle(effects.avatarEffect)} mb-5`}
-            style={{ ...getEntranceDelay(1), ...getBorderProps(config.borderStyle, theme.primaryColor) }}
+            className={`${getEntranceClass()} ${getAvatarStyle(effects.avatarEffect)} mb-5 relative`}
+            style={getEntranceDelay(1)}
           >
             <div
               className="w-24 h-24 overflow-hidden flex items-center justify-center text-3xl font-bold"
               style={{
                 ...getProfileShapeStyle(config.profileShape),
-                borderColor: theme.primaryColor + '60',
-                border: config.borderStyle === 'none' ? `2px solid ${theme.primaryColor}60` : undefined,
+                borderRadius: config.profileShape === 'circle' ? `${config.avatarRadius ?? 50}%` : config.profileShape === 'rounded-square' ? `${(config.avatarRadius ?? 50) / 4}px` : undefined,
+                border: `2px solid ${theme.primaryColor}60`,
                 boxShadow: theme.glowEnabled ? `0 0 25px ${theme.glowColor}44` : 'none',
                 backgroundColor: `${theme.primaryColor}15`,
                 color: theme.primaryColor,
@@ -844,6 +983,12 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
                 config.displayName?.[0]?.toUpperCase() || '?'
               )}
             </div>
+            {/* Avatar Decoration */}
+            {config.avatarDecoration && config.avatarDecoration !== 'none' && (
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl pointer-events-none bio-avatar-deco" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>
+                {config.avatarDecoration === 'cat-ears' ? '🐱' : config.avatarDecoration === 'crown' ? '👑' : config.avatarDecoration === 'horns' ? '😈' : config.avatarDecoration === 'halo' ? '😇' : '🔥'}
+              </span>
+            )}
           </div>
 
           {/* Display Name */}
@@ -851,15 +996,15 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
             className={`text-2xl font-bold mb-1 ${getEntranceClass()} ${getTextClass(effects.textEffect)}`}
             style={{
               ...getEntranceDelay(2),
-              color: effects.textEffect === 'gradient' || effects.textEffect === 'neon-flicker' ? undefined : 'white',
+              ...(effects.textEffect === 'gradient' ? {} : effects.textEffect === 'neon-flicker' ? { color: theme.primaryColor } : { color: 'white' }),
             }}
           >
             {config.displayName || 'Username'}
           </h1>
 
-          {/* Username & Pronouns */}
+          {/* Username & Pronouns & Location */}
           <p
-            className={`text-sm mb-2 ${getEntranceClass()}`}
+            className={`text-sm mb-2 ${getEntranceClass()} ${config.usernameSparkles && config.usernameSparkles !== 'none' ? `bio-sparkle-${config.usernameSparkles}` : ''}`}
             style={{
               ...getEntranceDelay(3),
               color: `${theme.primaryColor}aa`,
@@ -870,6 +1015,17 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
               <span className="ml-2 opacity-50">• {config.pronouns}</span>
             )}
           </p>
+          {config.location && (
+            <p
+              className={`text-xs mb-2 ${getEntranceClass()}`}
+              style={{
+                ...getEntranceDelay(3),
+                color: `${theme.primaryColor}66`,
+              }}
+            >
+              📍 {config.location}
+            </p>
+          )}
 
           {/* Badges */}
           {config.badges.length > 0 && (
@@ -915,7 +1071,7 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
               {stats.showViews && (
                 <div className="flex items-center gap-1.5">
                   <Eye size={13} style={{ color: theme.primaryColor }} />
-                  <span className="text-xs font-semibold text-white/70">{realViews !== undefined ? realViews.toLocaleString() : '1,337'}</span>
+                  <span className="text-xs font-semibold text-white/70">{realViews !== undefined ? realViews.toLocaleString() : '0'}</span>
                   <span className="text-[9px] uppercase tracking-wider text-white/30">views</span>
                 </div>
               )}
@@ -1145,6 +1301,22 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
             </p>
           </div>
         </div>
+
+        {/* Reveal Screen Overlay */}
+        {config.revealScreen?.enabled && (
+          <div
+            className="absolute inset-0 z-50 flex items-center justify-center cursor-pointer"
+            style={{ backdropFilter: `blur(${config.revealScreen.blur || 15}px)`, backgroundColor: 'rgba(0,0,0,0.5)' }}
+            onClick={e => (e.currentTarget.style.display = 'none')}
+          >
+            <div className="text-center">
+              <p className="text-xl font-bold text-white mb-2" style={{ textShadow: `0 0 20px ${theme.primaryColor}` }}>
+                {config.revealScreen.text || 'Click to enter'}
+              </p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-white/40 animate-pulse">Click anywhere</p>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

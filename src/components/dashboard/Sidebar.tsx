@@ -11,6 +11,8 @@ import {
   Shield,
   LogOut,
   Settings,
+  Package,
+  BarChart3,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { User as AuthUser } from '@supabase/supabase-js';
@@ -28,6 +30,8 @@ const navItems: NavItem[] = [
   { href: '/dashboard/db', label: 'DB', icon: Database },
   { href: '/dashboard/firmware', label: 'Firmware', icon: Cpu },
   { href: '/dashboard/s3', label: 'Bio Page', icon: User },
+  { href: '/dashboard/s7', label: 'Analytics', icon: BarChart3 },
+  { href: '/dashboard/s6', label: 'Software', icon: Package, requiredRole: ['owner'] },
   { href: '/dashboard/s4', label: 'Admin', icon: Shield, requiredRole: ['admin', 'owner'] },
   { href: '/dashboard/s5', label: 'Settings', icon: Settings, requiredRole: ['owner'] },
 ];

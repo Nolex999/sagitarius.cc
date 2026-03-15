@@ -253,7 +253,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
       <SectionTitle>Identity</SectionTitle>
       
       <div>
-        <FieldLabel>Nom d&apos;affichage</FieldLabel>
+        <FieldLabel>Display Name <span className="text-white/20 font-normal">{config.displayName.length}/25</span></FieldLabel>
         <TextInput value={config.displayName} onChange={v => update('displayName', v)} placeholder="Your name" />
       </div>
       
@@ -263,8 +263,13 @@ export default function BioEditor({ config, onChange }: EditorProps) {
       </div>
 
       <div>
-        <FieldLabel>Pronoms</FieldLabel>
+        <FieldLabel>Pronouns</FieldLabel>
         <TextInput value={config.pronouns} onChange={v => update('pronouns', v)} placeholder="he/him, she/her..." />
+      </div>
+
+      <div>
+        <FieldLabel>Location <span className="text-white/20 font-normal">{(config.location || '').length}/50</span></FieldLabel>
+        <TextInput value={config.location || ''} onChange={v => update('location', v)} placeholder="City, Country..." />
       </div>
 
       <div>
@@ -278,7 +283,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
       </div>
 
       <div>
-        <FieldLabel>Forme de l&apos;avatar</FieldLabel>
+        <FieldLabel>Avatar Shape</FieldLabel>
         <OptionGrid
           value={config.profileShape}
           onChange={v => update('profileShape', v as any)}
@@ -291,6 +296,11 @@ export default function BioEditor({ config, onChange }: EditorProps) {
         />
       </div>
 
+      <div>
+        <FieldLabel>Avatar Radius — {config.avatarRadius ?? 50}px</FieldLabel>
+        <SliderInput value={config.avatarRadius ?? 50} onChange={v => update('avatarRadius', v)} min={0} max={50} label="px" />
+      </div>
+
       <SectionTitle>Banner</SectionTitle>
       
       <div>
@@ -301,6 +311,17 @@ export default function BioEditor({ config, onChange }: EditorProps) {
       <div>
         <FieldLabel>Banner Height — {config.bannerHeight}px</FieldLabel>
         <SliderInput value={config.bannerHeight} onChange={v => update('bannerHeight', v)} min={100} max={400} label="px" />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <FieldLabel>Banner Opacity — {config.bannerOpacity ?? 100}%</FieldLabel>
+          <SliderInput value={config.bannerOpacity ?? 100} onChange={v => update('bannerOpacity', v)} label="%" />
+        </div>
+        <div>
+          <FieldLabel>Banner Blur — {config.bannerBlur ?? 0}px</FieldLabel>
+          <SliderInput value={config.bannerBlur ?? 0} onChange={v => update('bannerBlur', v)} label="px" />
+        </div>
       </div>
 
       <SectionTitle>Status</SectionTitle>
@@ -450,15 +471,96 @@ export default function BioEditor({ config, onChange }: EditorProps) {
         />
       </div>
 
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <FieldLabel>Border Width — {config.borderWidth ?? 1}px</FieldLabel>
+          <SliderInput value={config.borderWidth ?? 1} onChange={v => update('borderWidth', v)} min={0} max={5} label="px" />
+        </div>
+        <div>
+          <FieldLabel>Border Opacity — {config.borderOpacity ?? 10}%</FieldLabel>
+          <SliderInput value={config.borderOpacity ?? 10} onChange={v => update('borderOpacity', v)} label="%" />
+        </div>
+      </div>
+
+      <div className="z-10 relative">
+        <AdvancedColorPicker label="Border Color" value={config.borderColor || '#ffffff'} onChange={v => update('borderColor', v)} />
+      </div>
+
+      <SectionTitle>Box (Card Container)</SectionTitle>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <FieldLabel>Box Width — {config.boxWidth ?? 500}px</FieldLabel>
+          <SliderInput value={config.boxWidth ?? 500} onChange={v => update('boxWidth', v)} min={300} max={800} label="px" />
+        </div>
+        <div>
+          <FieldLabel>Box Spacing — {config.boxSpacing ?? 40}px</FieldLabel>
+          <SliderInput value={config.boxSpacing ?? 40} onChange={v => update('boxSpacing', v)} min={0} max={100} label="px" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <FieldLabel>Box Opacity — {config.boxOpacity ?? 30}%</FieldLabel>
+          <SliderInput value={config.boxOpacity ?? 30} onChange={v => update('boxOpacity', v)} label="%" />
+        </div>
+        <div>
+          <FieldLabel>Box Blur — {config.boxBlur ?? 12}px</FieldLabel>
+          <SliderInput value={config.boxBlur ?? 12} onChange={v => update('boxBlur', v)} min={0} max={50} label="px" />
+        </div>
+      </div>
+
+      <div className="z-10 relative">
+        <AdvancedColorPicker label="Box Color" value={config.boxColor || '#000000'} onChange={v => update('boxColor', v)} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="z-10 relative">
+          <AdvancedColorPicker label="Shadow Color" value={config.boxShadowColor || '#000000'} onChange={v => update('boxShadowColor', v)} />
+        </div>
+        <div>
+          <FieldLabel>Shadow Opacity — {config.boxShadowOpacity ?? 50}%</FieldLabel>
+          <SliderInput value={config.boxShadowOpacity ?? 50} onChange={v => update('boxShadowOpacity', v)} label="%" />
+        </div>
+      </div>
+
+      <div>
+        <FieldLabel>Box Tilt (3D Hover)</FieldLabel>
+        <OptionGrid
+          value={config.boxTilt || 'none'}
+          onChange={v => update('boxTilt', v as any)}
+          options={[
+            { value: 'none', label: 'None' },
+            { value: 'scale', label: 'Scale' },
+            { value: 'reverse-scale', label: 'Rev Scale' },
+            { value: 'tilt-x', label: 'Tilt X' },
+            { value: 'tilt-y', label: 'Tilt Y' },
+          ]}
+          cols={3}
+        />
+      </div>
+
+      <SectionTitle>Background</SectionTitle>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <FieldLabel>BG Blur — {config.bgBlur ?? 0}px</FieldLabel>
+          <SliderInput value={config.bgBlur ?? 0} onChange={v => update('bgBlur', v)} min={0} max={30} label="px" />
+        </div>
+        <div>
+          <FieldLabel>BG Opacity — {config.bgOpacity ?? 100}%</FieldLabel>
+          <SliderInput value={config.bgOpacity ?? 100} onChange={v => update('bgOpacity', v)} label="%" />
+        </div>
+      </div>
+
       <SectionTitle>Background overlay</SectionTitle>
 
       <ToggleRow label="Enable overlay" value={config.backgroundOverlay?.enabled ?? false} onChange={v => updateBgOverlay('enabled', v)} />
 
       {config.backgroundOverlay?.enabled && (
         <>
-          <div>
-            <FieldLabel>Couleur de l&apos;overlay</FieldLabel>
-            <AdvancedColorPicker value={config.backgroundOverlay.color} onChange={v => updateBgOverlay('color', v)} />
+          <div className="z-10 relative">
+            <AdvancedColorPicker label="Overlay color" value={config.backgroundOverlay.color} onChange={v => updateBgOverlay('color', v)} />
           </div>
           <div>
             <FieldLabel>Opacity — {config.backgroundOverlay.opacity}%</FieldLabel>
@@ -648,7 +750,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
             <SliderInput value={config.effects.bgEffectIntensity} onChange={v => updateEffects('bgEffectIntensity', v)} label="%" />
           </div>
           <div className="z-10 relative">
-            <AdvancedColorPicker label="Couleur de l'effet" value={config.effects.bgEffectColor} onChange={v => updateEffects('bgEffectColor', v)} />
+            <AdvancedColorPicker label="Effect color" value={config.effects.bgEffectColor} onChange={v => updateEffects('bgEffectColor', v)} />
           </div>
         </>
       )}
@@ -695,7 +797,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
       <SectionTitle>Avatar Effect</SectionTitle>
       
       <div>
-        <FieldLabel>Type d&apos;effet</FieldLabel>
+        <FieldLabel>Effect type</FieldLabel>
         <OptionGrid
           value={config.effects.avatarEffect}
           onChange={v => updateEffects('avatarEffect', v as any)}
@@ -705,14 +807,19 @@ export default function BioEditor({ config, onChange }: EditorProps) {
             { value: 'rotate-border', label: 'Rotate' },
             { value: 'glitch', label: 'Glitch' },
             { value: 'breathe', label: 'Breathe' },
+            { value: 'float', label: 'Float' },
+            { value: 'spin-slow', label: 'Spin Slow' },
+            { value: 'pulse-ring', label: 'Pulse Ring' },
+            { value: 'shadow-dance', label: 'Shadow' },
           ]}
+          cols={3}
         />
       </div>
 
       <SectionTitle>Text Effect</SectionTitle>
       
       <div>
-        <FieldLabel>Type d&apos;effet</FieldLabel>
+        <FieldLabel>Effect type</FieldLabel>
         <OptionGrid
           value={config.effects.textEffect}
           onChange={v => updateEffects('textEffect', v as any)}
@@ -729,7 +836,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
       <SectionTitle>Entrance Animation</SectionTitle>
       
       <div>
-        <FieldLabel>Animation d&apos;entrée</FieldLabel>
+        <FieldLabel>Entrance style</FieldLabel>
         <OptionGrid
           value={config.effects.entranceAnimation}
           onChange={v => updateEffects('entranceAnimation', v as any)}
@@ -744,6 +851,10 @@ export default function BioEditor({ config, onChange }: EditorProps) {
             { value: 'flip-x', label: 'Flip X' },
             { value: 'bounce-in', label: 'Bounce' },
             { value: 'glitch-in', label: 'Glitch' },
+            { value: 'zoom-rotate', label: 'Zoom Rot' },
+            { value: 'elastic', label: 'Elastic' },
+            { value: 'blur-in', label: 'Blur In' },
+            { value: 'drop-in', label: 'Drop In' },
           ]}
           cols={3}
         />
@@ -763,6 +874,9 @@ export default function BioEditor({ config, onChange }: EditorProps) {
             { value: 'scale', label: 'Scale' },
             { value: 'neon', label: 'Neon' },
             { value: 'shake', label: 'Shake' },
+            { value: 'underline-slide', label: 'Underline' },
+            { value: 'border-glow', label: 'Brd Glow' },
+            { value: 'tilt-3d', label: 'Tilt 3D' },
           ]}
           cols={3}
         />
@@ -783,6 +897,83 @@ export default function BioEditor({ config, onChange }: EditorProps) {
           ]}
         />
       </div>
+      <SectionTitle>Username Sparkles</SectionTitle>
+
+      <div>
+        <FieldLabel>Sparkle type</FieldLabel>
+        <OptionGrid
+          value={config.usernameSparkles || 'none'}
+          onChange={v => update('usernameSparkles', v as any)}
+          options={[
+            { value: 'none', label: 'None' },
+            { value: 'rainbow', label: '🌈 Rainbow' },
+            { value: 'gold', label: '✨ Gold' },
+            { value: 'silver', label: '🤍 Silver' },
+            { value: 'fire', label: '🔥 Fire' },
+            { value: 'ice', label: '❄️ Ice' },
+          ]}
+          cols={3}
+        />
+      </div>
+
+      <SectionTitle>Avatar Decoration</SectionTitle>
+
+      <div>
+        <FieldLabel>Decoration</FieldLabel>
+        <OptionGrid
+          value={config.avatarDecoration || 'none'}
+          onChange={v => update('avatarDecoration', v as any)}
+          options={[
+            { value: 'none', label: 'None' },
+            { value: 'cat-ears', label: '🐱 Cat Ears' },
+            { value: 'crown', label: '👑 Crown' },
+            { value: 'horns', label: '😈 Horns' },
+            { value: 'halo', label: '😇 Halo' },
+            { value: 'fire-ring', label: '🔥 Fire' },
+          ]}
+          cols={3}
+        />
+      </div>
+
+      <SectionTitle>Animation Speed</SectionTitle>
+
+      <div>
+        <FieldLabel>Entrance Speed — {config.entranceSpeed ?? 200}ms</FieldLabel>
+        <SliderInput value={config.entranceSpeed ?? 200} onChange={v => update('entranceSpeed', v)} min={50} max={500} label="ms" />
+      </div>
+
+      <SectionTitle>Click Sound</SectionTitle>
+
+      <div>
+        <FieldLabel>Sound on click</FieldLabel>
+        <OptionGrid
+          value={config.clickSound || 'none'}
+          onChange={v => update('clickSound', v as any)}
+          options={[
+            { value: 'none', label: 'None' },
+            { value: 'click', label: 'Click' },
+            { value: 'pop', label: 'Pop' },
+            { value: 'blip', label: 'Blip' },
+          ]}
+        />
+      </div>
+
+      <SectionTitle>Reveal Screen</SectionTitle>
+
+      <ToggleRow label="Show reveal screen" value={config.revealScreen?.enabled ?? false} onChange={v => update('revealScreen', { ...(config.revealScreen || { enabled: false, text: 'Click to enter', blur: 15 }), enabled: v })} />
+
+      {config.revealScreen?.enabled && (
+        <>
+          <div>
+            <FieldLabel>Reveal text</FieldLabel>
+            <TextInput value={config.revealScreen.text} onChange={v => update('revealScreen', { ...config.revealScreen, text: v })} placeholder="Click to enter..." />
+          </div>
+          <div>
+            <FieldLabel>Blur — {config.revealScreen.blur}px</FieldLabel>
+            <SliderInput value={config.revealScreen.blur} onChange={v => update('revealScreen', { ...config.revealScreen, blur: v })} min={0} max={50} label="px" />
+          </div>
+        </>
+      )}
 
       <SectionTitle>Cursor</SectionTitle>
       
@@ -1222,7 +1413,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
               'bg-purple-600 text-white hover:bg-purple-500'
             }`}
           >
-            Appliquer le CSS
+            Apply CSS
           </button>
         </div>
       </div>
@@ -1245,13 +1436,13 @@ export default function BioEditor({ config, onChange }: EditorProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Editor Header */}
-      <div className="px-5 pt-5 pb-3">
-        <h2 className="text-xs font-bold text-white tracking-tight">Bio Builder</h2>
-        <p className="text-[9px] text-[var(--text-muted)] mt-0.5 uppercase tracking-widest">Customize your page</p>
+      <div className="px-5 pt-5 pb-2 border-b border-white/[0.04]">
+        <h2 className="text-sm font-bold text-white tracking-tight">Bio Builder</h2>
+        <p className="text-[9px] text-[var(--text-muted)] mt-0.5 uppercase tracking-widest">Customize everything</p>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="flex gap-0.5 px-4 pb-3 overflow-x-auto scrollbar-none">
+      {/* Tab Navigation — Compact Icon Bar */}
+      <div className="flex items-center justify-center gap-0.5 px-3 py-2.5 border-b border-white/[0.04] bg-white/[0.01]">
         {tabs.map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -1259,21 +1450,25 @@ export default function BioEditor({ config, onChange }: EditorProps) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] uppercase tracking-wider font-bold whitespace-nowrap transition-all ${
+              title={tab.label}
+              className={`relative flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200 group ${
                 isActive
-                  ? 'bg-purple-500/15 text-purple-300 border border-purple-400/20'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-white/[0.02]'
+                  ? 'bg-purple-500/20 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.15)]'
+                  : 'text-[var(--text-muted)] hover:text-white hover:bg-white/[0.05]'
               }`}
             >
-              <Icon size={12} />
-              {tab.label}
+              <Icon size={15} strokeWidth={isActive ? 2.5 : 1.5} />
+              {/* Tooltip */}
+              <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-black/90 border border-white/10 text-[8px] font-bold uppercase tracking-wider text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                {tab.label}
+              </span>
             </button>
           );
         })}
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto px-5 pb-6">
+      <div className="flex-1 overflow-y-auto px-5 pb-6 pt-4">
         {tabContent[activeTab]()}
       </div>
     </div>
