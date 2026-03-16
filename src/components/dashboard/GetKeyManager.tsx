@@ -114,12 +114,23 @@ export default function GetKeyManager() {
 
   const handleFinalPurchase = (category: 'faceit' | 'external') => {
     const config = selectedPlan.sellAuth[category];
-    if (config && window.sellAuthEmbed) {
-      window.sellAuthEmbed.checkout({
-        shopId: 224106,
-        productId: config.productId,
-        variantId: config.variantId
-      });
+    console.log('Final Purchase Triggered:', { category, config, hasEmbed: !!window.sellAuthEmbed });
+
+    if (config) {
+      if (window.sellAuthEmbed) {
+        window.sellAuthEmbed.checkout({
+          shopId: 224106,
+          productId: config.productId,
+          variantId: config.variantId
+        });
+      } else {
+        // Fallback to direct URL if embed script is not loaded
+        console.warn('SellAuth Embed not found, falling back to direct URL');
+        const slug = category === 'faceit' 
+          ? `faceit-${selectedPlan.id}` 
+          : `cs2-external-${selectedPlan.id}`;
+        window.open(`https://buy-on-sagitarius.mysellauth.com/product/${slug}`, '_blank');
+      }
     }
     setShowCategorySelector(false);
   };

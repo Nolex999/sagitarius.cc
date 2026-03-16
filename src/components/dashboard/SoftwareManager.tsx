@@ -403,9 +403,14 @@ export default function SoftwareManager() {
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 min-h-[400px]">
         {categories
-          .filter(cat => cat.name.toUpperCase().includes(activeTab))
+          .filter(cat => {
+            const name = cat.name.toUpperCase();
+            if (activeTab === 'FACEIT') return name.includes('FACEIT') || name.includes('CLIENT');
+            if (activeTab === 'CS2 EXTERNAL') return name.includes('CS2') || name.includes('EXTERNAL');
+            return true;
+          })
           .map(cat => (
           <div key={cat.id} className="rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden group">
             <div 
