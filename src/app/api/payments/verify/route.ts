@@ -6,7 +6,7 @@ const SELLAUTH_SHOP_ID = process.env.SELLAUTH_SHOP_ID;
 
 export async function GET(req: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
