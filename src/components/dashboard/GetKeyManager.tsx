@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import Script from 'next/script';
 import faceitLogo from '@/assets/faceit.jpg';
 import cs2Logo from '@/assets/cs2.webp';
 import { 
@@ -18,6 +19,18 @@ import {
   X
 } from 'lucide-react';
 
+declare global {
+  interface Window {
+    sellAuthEmbed: {
+      checkout: (config: {
+        shopId: number | string;
+        productId: number | string;
+        variantId?: number | string;
+      }) => void;
+    };
+  }
+}
+
 const pricingOptions = [
   {
     id: '7-days',
@@ -27,10 +40,13 @@ const pricingOptions = [
     features: [
       'Full Access for 7 Days',
       'Instant Key Delivery',
-      'Anti-Cheat Protection',
+      'UNDETECTED',
     ],
     highlight: false,
-    sellixUrl: '#' 
+    sellAuth: {
+      faceit: { productId: 653923, variantId: 1030917 },
+      external: { productId: 653938, variantId: 1030944 }
+    }
   },
   {
     id: '1-month',
@@ -40,10 +56,13 @@ const pricingOptions = [
     features: [
       'Full Access for 30 Days',
       'Instant Key Delivery',
-      'Anti-Cheat Protection',
+      'UNDETECTED',
     ],
     highlight: true,
-    sellixUrl: '#' 
+    sellAuth: {
+      faceit: { productId: 653928, variantId: 1030922 },
+      external: { productId: 653942, variantId: 1030948 }
+    }
   },
   {
     id: '3-months',
@@ -53,10 +72,13 @@ const pricingOptions = [
     features: [
       'Full Access for 90 Days',
       'Instant Key Delivery',
-      'Advanced Protection Layer',
+      'UNDETECTED',
     ],
     highlight: false,
-    sellixUrl: '#' 
+    sellAuth: {
+      faceit: { productId: 653933, variantId: 1030931 },
+      external: { productId: 653944, variantId: 1030957 }
+    }
   }
 ];
 
@@ -91,14 +113,20 @@ export default function GetKeyManager() {
   };
 
   const handleFinalPurchase = (category: 'faceit' | 'external') => {
-    // In a real scenario, you'd have different URLs for different categories and plans
-    // For now, we'll show the alert as requested or redirect if URLs exist
-    alert(`Redirecting to payment for ${selectedPlan.name} (${category === 'faceit' ? 'Faceit Client' : 'CS2 External'})...\n\nPayment links will be activated once the merchant account is connected.`);
+    const config = selectedPlan.sellAuth[category];
+    if (config && window.sellAuthEmbed) {
+      window.sellAuthEmbed.checkout({
+        shopId: '224106',
+        productId: config.productId,
+        variantId: config.variantId
+      });
+    }
     setShowCategorySelector(false);
   };
 
   return (
     <div className="max-w-6xl mx-auto space-y-12 py-4 px-6">
+      <Script src="https://sellauth.com/static/js/embed.js" strategy="lazyOnload" />
       <div className="text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] uppercase font-bold tracking-widest">
           <Zap size={12} fill="currentColor" />
