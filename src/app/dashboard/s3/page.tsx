@@ -108,6 +108,8 @@ export default function S3Page() {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [profileId, setProfileId] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   // Undo / Redo history
   const [history, setHistory] = useState<BioConfig[]>([defaultConfig]);
@@ -145,6 +147,24 @@ export default function S3Page() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
+
+        // Check role
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        
+        const role = profile?.role || 'member';
+        setUserRole(role);
+
+        // Allowed roles: owner, admin, vip, high_member
+        const isAllowed = ['owner', 'admin', 'vip', 'high_member'].includes(role);
+        if (!isAllowed) {
+          setAccessDenied(true);
+          setLoading(false);
+          return;
+        }
 
         const { data } = await supabase
           .from('bio_profiles')
@@ -256,7 +276,28 @@ export default function S3Page() {
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <Loader2 size={20} className="animate-spin text-[var(--text-muted)]" />
+        <Loader2 size={24} className="animate-spin text-purple-500" />
+      </div>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center p-6 text-center space-y-4">
+        <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-2">
+          <Globe size={32} className="text-red-400 opacity-50 transition-all group-hover:opacity-100" />
+        </div>
+        <h2 className="text-xl font-bold text-white tracking-tight">Access Restricted</h2>
+        <div className="max-w-md space-y-2">
+          <p className="text-sm text-white/40">The Bio Page is only accessible to <span className="text-purple-400 font-bold">High Member</span> and <span className="text-indigo-400 font-bold">VIP</span> users.</p>
+          <p className="text-xs text-white/20">If you believe this is an error, please contact administrators.</p>
+        </div>
+        <button 
+          onClick={() => window.location.href = '/dashboard/db'}
+          className="mt-4 px-6 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs font-bold text-white hover:bg-white/[0.06] transition-all"
+        >
+          Return to Dashboard
+        </button>
       </div>
     );
   }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -17,7 +18,7 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import type { User as AuthUser } from '@supabase/supabase-js';
 
-type UserRole = 'owner' | 'admin' | 'member';
+type UserRole = 'owner' | 'admin' | 'vip' | 'high_member' | 'member';
 
 interface NavItem {
   href: string;
@@ -27,11 +28,10 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/dashboard/db', label: 'DB', icon: Database },
+  { href: '/dashboard/db', label: 'Software', icon: Package },
   { href: '/dashboard/firmware', label: 'Firmware', icon: Cpu },
-  { href: '/dashboard/s3', label: 'Bio Page', icon: User },
+  { href: '/dashboard/s3', label: 'Bio Page', icon: User, requiredRole: ['owner', 'admin', 'vip', 'high_member'] },
   { href: '/dashboard/s7', label: 'Analytics', icon: BarChart3 },
-  { href: '/dashboard/s6', label: 'Software', icon: Package, requiredRole: ['owner'] },
   { href: '/dashboard/s4', label: 'Admin', icon: Shield, requiredRole: ['admin', 'owner'] },
   { href: '/dashboard/s5', label: 'Settings', icon: Settings, requiredRole: ['owner'] },
 ];
@@ -40,7 +40,10 @@ const navItems: NavItem[] = [
 const OWNER_EMAILS = ['chris@sagitarius.cc', 'chris@nolex.me', 'n0lex9999@gmail.com'];
 const ADMIN_EMAILS = ['admin@sagitarius.cc'];
 
-function getUserRole(email?: string): UserRole {
+// This should ideally fetch from public.profiles, but keeping sync logic for now
+// We will enhance this to fetch the actual role from supabase in the component
+function getUserRole(email?: string, dbRole?: string): UserRole {
+  if (dbRole) return dbRole as UserRole;
   if (!email) return 'member';
   const lower = email.toLowerCase();
   if (OWNER_EMAILS.some(e => lower === e.toLowerCase())) return 'owner';
@@ -74,6 +77,20 @@ function RoleBadge({ role }: { role: UserRole }) {
       </span>
     );
   }
+  if (role === 'vip') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold bg-purple-500/20 text-purple-400 border border-purple-500/30">
+        VIP
+      </span>
+    );
+  }
+  if (role === 'high_member') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+        High Member
+      </span>
+    );
+  }
   return (
     <span className="text-[9px] uppercase tracking-widest text-[#555] font-bold">
       Member
@@ -84,7 +101,22 @@ function RoleBadge({ role }: { role: UserRole }) {
 export default function Sidebar({ user }: { user: AuthUser }) {
   const pathname = usePathname();
   const router = useRouter();
-  const role = getUserRole(user?.email);
+  const [dbRole, setDbRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchRole() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      if (data) setDbRole(data.role);
+    }
+    fetchRole();
+  }, [user.id]);
+
+  const role = getUserRole(user?.email, dbRole || undefined);
 
   const handleLogout = async () => {
     const supabase = createClient();
