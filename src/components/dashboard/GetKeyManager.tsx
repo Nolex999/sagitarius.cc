@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import faceitLogo from '@/assets/faceit.jpg';
+import cs2Logo from '@/assets/cs2.webp';
 import { 
   CreditCard, 
   Coins, 
@@ -11,7 +13,8 @@ import {
   Globe,
   Loader2,
   AlertCircle,
-  Package
+  Package,
+  X
 } from 'lucide-react';
 
 const pricingOptions = [
@@ -19,56 +22,46 @@ const pricingOptions = [
     id: '7-days',
     name: '7 Days',
     price: '12.00',
-    originalPrice: '15.00',
     description: 'Perfect for testing our software features.',
     features: [
       'Full Access for 7 Days',
       'Instant Key Delivery',
-      '24/7 Priority Support',
       'Anti-Cheat Protection',
-      'Hidden from Task Manager'
     ],
     highlight: false,
-    sellixUrl: '#' // Sellix product link
+    sellixUrl: '#' 
   },
   {
     id: '1-month',
     name: '1 Month',
     price: '34.99',
-    originalPrice: '45.00',
     description: 'Most popular choice for gamers.',
     features: [
       'Full Access for 30 Days',
       'Instant Key Delivery',
-      '24/7 Priority Support',
       'Anti-Cheat Protection',
-      'Custom HWID Spoofer',
-      'Auto-Updates Included'
     ],
     highlight: true,
-    sellixUrl: '#' // Sellix product link
+    sellixUrl: '#' 
   },
   {
     id: '3-months',
     name: '3 Months',
     price: '79.99',
-    originalPrice: '99.00',
     description: 'Best value for long-term reliability.',
     features: [
       'Full Access for 90 Days',
       'Instant Key Delivery',
-      'VIP Support Channel',
       'Advanced Protection Layer',
-      'Custom HWID Spoofer',
-      'Exclusive Beta Features'
     ],
     highlight: false,
-    sellixUrl: '#' // Sellix product link
+    sellixUrl: '#' 
   }
 ];
 
 export default function GetKeyManager() {
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [showCategorySelector, setShowCategorySelector] = useState(false);
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verifyResult, setVerifyResult] = useState<string | null>(null);
@@ -91,16 +84,20 @@ export default function GetKeyManager() {
     }
   };
 
-  const handlePurchase = (url: string) => {
-    if (url === '#') {
-       alert('Payment links will be activated once the merchant account is connected.');
-       return;
-    }
-    window.open(url, '_blank');
+  const initiatePurchase = (plan: any) => {
+    setSelectedPlan(plan);
+    setShowCategorySelector(true);
+  };
+
+  const handleFinalPurchase = (category: 'faceit' | 'external') => {
+    // In a real scenario, you'd have different URLs for different categories and plans
+    // For now, we'll show the alert as requested or redirect if URLs exist
+    alert(`Redirecting to payment for ${selectedPlan.name} (${category === 'faceit' ? 'Faceit Client' : 'CS2 External'})...\n\nPayment links will be activated once the merchant account is connected.`);
+    setShowCategorySelector(false);
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-12 py-4">
+    <div className="max-w-6xl mx-auto space-y-12 py-4 px-6">
       <div className="text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] uppercase font-bold tracking-widest">
           <Zap size={12} fill="currentColor" />
@@ -157,7 +154,6 @@ export default function GetKeyManager() {
                 <span className="text-5xl font-black text-white tracking-tighter">{plan.price.split('.')[0]}</span>
                 <span className="text-xl font-bold text-white/40">.{plan.price.split('.')[1]}</span>
               </div>
-              <p className="text-[11px] text-white/20 line-through mt-1">Was €{plan.originalPrice}</p>
             </div>
 
             <div className="space-y-4 mb-10 flex-1">
@@ -173,7 +169,7 @@ export default function GetKeyManager() {
 
             <div className="space-y-3">
               <button
-                onClick={() => handlePurchase(plan.sellixUrl)}
+                onClick={() => initiatePurchase(plan)}
                 className={`w-full h-14 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-3 ${
                   plan.highlight
                     ? 'bg-white text-black hover:bg-white/90 shadow-[0_10px_30px_rgba(255,255,255,0.1)] hover:-translate-y-1'
@@ -202,7 +198,7 @@ export default function GetKeyManager() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-8 pb-12">
         <div className="p-8 rounded-[2rem] bg-white/[0.01] border border-white/[0.04] flex items-start gap-6">
           <div className="h-14 w-14 rounded-2xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 text-blue-400">
             <ShieldCheck size={28} />
@@ -226,6 +222,65 @@ export default function GetKeyManager() {
           </div>
         </div>
       </div>
+
+      {/* Category Selection Modal */}
+      {showCategorySelector && selectedPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="relative w-full max-w-xl bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-10 shadow-2xl overflow-hidden">
+            <div className="absolute top-6 right-6">
+              <button 
+                onClick={() => setShowCategorySelector(false)}
+                className="p-2 rounded-full hover:bg-white/5 text-white/40 hover:text-white transition-all"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="text-center mb-10 space-y-2">
+              <h2 className="text-2xl font-black text-white tracking-tight uppercase tracking-widest">Select Version</h2>
+              <p className="text-sm text-white/40">Choose the version for your {selectedPlan.name} access</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <button 
+                onClick={() => handleFinalPurchase('faceit')}
+                className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-purple-500/30 transition-all duration-500 h-[220px]"
+              >
+                <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110">
+                  <Image 
+                    src={faceitLogo} 
+                    alt="Faceit" 
+                    fill 
+                    className="object-contain"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-black text-white uppercase tracking-widest">Faceit Client</p>
+                  <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">Premium Protection</p>
+                </div>
+              </button>
+
+              <button 
+                onClick={() => handleFinalPurchase('external')}
+                className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-blue-500/30 transition-all duration-500 h-[220px]"
+              >
+                <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110">
+                  <Image 
+                    src={cs2Logo} 
+                    alt="CS2" 
+                    fill 
+                    className="object-contain"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-black text-white uppercase tracking-widest">CS2 External</p>
+                  <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">High Performance</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

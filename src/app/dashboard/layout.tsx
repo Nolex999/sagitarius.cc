@@ -24,9 +24,15 @@ export default async function DashboardLayout({
       <Sidebar user={session.user} />
       <main className="flex flex-1 flex-col overflow-hidden">
         <header className="flex h-10 shrink-0 items-center border-b border-[var(--border)] px-6">
-          <PageHeader />
+          <div className="w-full max-w-7xl mx-auto">
+            <PageHeader />
+          </div>
         </header>
-        <div className="flex-1 overflow-y-auto">{children}</div>
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-7xl mx-auto w-full h-full">
+            {children}
+          </div>
+        </div>
       </main>
     </div>
   );
