@@ -31,12 +31,24 @@ interface SoftwareFile {
   created_at: string;
 }
 
+interface SoftwareKey {
+  id: string;
+  key: string;
+  category_id: string;
+  is_active: boolean;
+  max_uses: number;
+  current_uses: number;
+  created_at: string;
+}
+
 interface Category {
   id: string;
   name: string;
   logo_url: string;
   files: SoftwareFile[];
   isOpen?: boolean;
+  isKeysOpen?: boolean;
+  keys?: SoftwareKey[];
 }
 
 const OWNER_EMAILS = ['chris@sagitarius.cc', 'chris@nolex.me', 'n0lex9999@gmail.com'];
@@ -55,8 +67,8 @@ export default function SoftwareManager() {
   const [uploadTarget, setUploadTarget] = useState<{ catId: string; isLoader: boolean } | null>(null);
   const [fileInputRef] = [useRef<HTMLInputElement>(null)];
   
-  // Key state
-  const [keys, setKeys] = useState<Record<string, string>>({}); // catId -> key
+  // Key state (For users downloading)
+  const [userInputKeys, setUserInputKeys] = useState<Record<string, string>>({}); // catId -> key
   const [verifying, setVerifying] = useState<string | null>(null); // catId
 
   const supabase = createClient();
@@ -74,7 +86,6 @@ export default function SoftwareManager() {
           .single();
         
         let userRole = profile?.role || 'member';
-        // Fallback for hardcoded owners
         if (OWNER_EMAILS.some(e => user.email?.toLowerCase() === e.toLowerCase())) {
           userRole = 'owner';
         }
@@ -103,10 +114,12 @@ export default function SoftwareManager() {
 
       if (fileErr) throw fileErr;
 
-      const merged = (cats || []).map(cat => ({
+      const merged = (cats || []).map((cat: any) => ({
         ...cat,
-        files: (files || []).filter(f => f.category_id === cat.id),
-        isOpen: true
+        files: (files || []).filter((f: any) => f.category_id === cat.id),
+        isOpen: true,
+        isKeysOpen: false,
+        keys: []
       }));
 
       setCategories(merged);
@@ -133,7 +146,7 @@ export default function SoftwareManager() {
         .single();
 
       if (error) throw error;
-      setCategories([{ ...data, files: [], isOpen: true }, ...categories]);
+      setCategories([{ ...data, files: [], isOpen: true, isKeysOpen: false, keys: [] }, ...categories]);
       setNewCategoryName('');
       setNewCategoryLogo('');
     } catch (err: any) {
@@ -156,7 +169,65 @@ export default function SoftwareManager() {
   };
 
   const toggleCategory = (id: string) => {
-    setCategories(categories.map(c => c.id === id ? { ...c, isOpen: !c.isOpen } : c));
+    setCategories(categories.map((c: any) => c.id === id ? { ...c, isOpen: !c.isOpen } : c));
+  };
+
+  const fetchKeys = async (catId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('software_keys')
+        .select('*')
+        .eq('category_id', catId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      setCategories(categories.map((c: any) => 
+        c.id === catId ? { ...c, keys: data, isKeysOpen: !c.isKeysOpen } : c
+      ));
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const createKey = async (catId: string) => {
+    const randomKey = Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + 
+                      Math.random().toString(36).substring(2, 10).toUpperCase();
+    try {
+      const { data, error } = await supabase
+        .from('software_keys')
+        .insert({
+          key: randomKey,
+          category_id: catId,
+          max_uses: 1,
+          created_by: user.id
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      setCategories(categories.map((c: any) => 
+        c.id === catId ? { ...c, keys: [data, ...(c.keys || [])] } : c
+      ));
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const deleteKey = async (catId: string, keyId: string) => {
+    try {
+      const { error } = await supabase
+        .from('software_keys')
+        .delete()
+        .eq('id', keyId);
+      if (error) throw error;
+      setCategories(categories.map((c: any) => 
+        c.id === catId ? { ...c, keys: (c.keys || []).filter((k: any) => k.id !== keyId) } : c
+      ));
+    } catch (err: any) {
+      setError(err.message);
+    }
   };
 
   const handleFileUpload = async (file: File) => {
@@ -193,9 +264,8 @@ export default function SoftwareManager() {
 
       if (dbErr) throw dbErr;
       
-      setCategories(categories.map(c => 
-        c.id === uploadTarget.catId 
-          ? { ...c, files: [data, ...c.files] } 
+      setCategories(categories.map((c: any) => c.id === uploadTarget.catId 
+          ? { ...c, files: [...c.files, data] } 
           : c
       ));
     } catch (err: any) {
@@ -213,9 +283,8 @@ export default function SoftwareManager() {
         .delete()
         .eq('id', fileId);
       if (error) throw error;
-      setCategories(categories.map(c => 
-        c.id === catId 
-          ? { ...c, files: c.files.filter(f => f.id !== fileId) } 
+      setCategories(categories.map((c: any) => c.id === catId 
+          ? { ...c, files: c.files.filter((f: any) => f.id !== fileId) } 
           : c
       ));
     } catch (err: any) {
@@ -224,7 +293,7 @@ export default function SoftwareManager() {
   };
 
   const verifyAndDownload = async (catId: string) => {
-    const key = keys[catId];
+    const key = userInputKeys[catId];
     if (!key) return;
     
     setVerifying(catId);
@@ -241,7 +310,7 @@ export default function SoftwareManager() {
       const result = data[0];
       if (result.success && result.loader_url) {
         window.open(result.loader_url, '_blank');
-        setKeys(prev => ({ ...prev, [catId]: '' }));
+        setUserInputKeys(prev => ({ ...prev, [catId]: '' }));
       } else {
         setError(result.message || 'Verification failed');
       }
@@ -263,7 +332,6 @@ export default function SoftwareManager() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-3">
@@ -283,40 +351,37 @@ export default function SoftwareManager() {
         </div>
       )}
 
-      {/* Admin: Add Category */}
       {isManager && (
         <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] space-y-4">
           <div className="flex gap-4">
             <input
-              type="text"
-              value={newCategoryName}
-              onChange={e => setNewCategoryName(e.target.value)}
-              placeholder="Category name..."
-              className="flex-1 h-12 px-5 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-purple-500/40 transition-all"
+               type="text"
+               value={newCategoryName}
+               onChange={e => setNewCategoryName(e.target.value)}
+               placeholder="Category name..."
+               className="flex-1 h-12 px-5 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-purple-500/40 transition-all"
             />
             <input
-              type="text"
-              value={newCategoryLogo}
-              onChange={e => setNewCategoryLogo(e.target.value)}
-              placeholder="Logo URL (optional)..."
-              className="flex-1 h-12 px-5 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-purple-500/40 transition-all"
+               type="text"
+               value={newCategoryLogo}
+               onChange={e => setNewCategoryLogo(e.target.value)}
+               placeholder="Logo URL (optional)..."
+               className="flex-1 h-12 px-5 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-purple-500/40 transition-all"
             />
             <button
-              onClick={addCategory}
-              className="h-12 px-6 rounded-xl bg-purple-600 text-white text-sm font-bold flex items-center gap-2 hover:bg-purple-500 transition-all"
+               onClick={addCategory}
+               className="h-12 px-6 rounded-xl bg-purple-600 text-white text-sm font-bold flex items-center gap-2 hover:bg-purple-500 transition-all"
             >
-              <Plus size={18} />
-              Create
+               <Plus size={18} />
+               Create
             </button>
           </div>
         </div>
       )}
 
-      {/* Categories List */}
       <div className="space-y-4">
         {categories.map(cat => (
           <div key={cat.id} className="rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden group">
-            {/* Category Header */}
             <div 
               className="p-5 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] transition-all"
               onClick={() => toggleCategory(cat.id)}
@@ -354,7 +419,7 @@ export default function SoftwareManager() {
 
             {cat.isOpen && (
               <div className="px-5 pb-6 pt-2 space-y-6">
-                {/* Download Actions (For everyone) */}
+                {/* Activation Key Section (For Users) */}
                 <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 flex flex-col items-center gap-4 text-center">
                   <div className="space-y-1">
                     <h4 className="text-sm font-bold text-white uppercase tracking-wider">Download Loader</h4>
@@ -366,8 +431,8 @@ export default function SoftwareManager() {
                       <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" size={16} />
                       <input
                         type="text"
-                        value={keys[cat.id] || ''}
-                        onChange={e => setKeys({ ...keys, [cat.id]: e.target.value })}
+                        value={userInputKeys[cat.id] || ''}
+                        onChange={e => setUserInputKeys({ ...userInputKeys, [cat.id]: e.target.value })}
                         onKeyDown={e => e.key === 'Enter' && verifyAndDownload(cat.id)}
                         placeholder="XXXX-XXXX-XXXX-XXXX"
                         className="w-full h-11 pl-11 pr-4 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500/40 font-mono tracking-wider transition-all"
@@ -375,7 +440,7 @@ export default function SoftwareManager() {
                     </div>
                     <button
                       onClick={() => verifyAndDownload(cat.id)}
-                      disabled={verifying === cat.id || !keys[cat.id]}
+                      disabled={verifying === cat.id || !userInputKeys[cat.id]}
                       className="h-11 px-6 rounded-xl bg-white text-black text-xs font-bold uppercase tracking-widest hover:bg-white/90 disabled:opacity-50 transition-all flex items-center gap-2"
                     >
                       {verifying === cat.id ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
@@ -384,22 +449,84 @@ export default function SoftwareManager() {
                   </div>
                 </div>
 
+                {/* Key Management (Owner/Admin only) */}
+                {isManager && (
+                  <div className="space-y-3">
+                    <button 
+                      onClick={() => fetchKeys(cat.id)}
+                      className="flex items-center gap-2 text-[10px] font-bold text-purple-400/60 hover:text-purple-400 uppercase tracking-widest transition-all"
+                    >
+                      <Key size={12} />
+                      {cat.isKeysOpen ? 'Close Key Management' : 'Manage Activation Keys'}
+                    </button>
+
+                    {cat.isKeysOpen && (
+                      <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/10 space-y-4">
+                        <div className="flex items-center justify-between">
+                           <h5 className="text-[10px] text-purple-400/80 uppercase tracking-widest font-bold">Active Keys</h5>
+                           <button 
+                             onClick={() => createKey(cat.id)}
+                             className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[9px] bg-purple-500 text-white font-bold uppercase tracking-widest hover:bg-purple-600 transition-all"
+                           >
+                              <Plus size={10} /> Generate New Key
+                           </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-2">
+                          {(cat.keys || []).map((k: any) => (
+                            <div key={k.id} className="flex items-center justify-between p-3 rounded-lg bg-black/20 border border-white/[0.04]">
+                               <div className="flex flex-col">
+                                 <code className="text-xs text-white/80 font-mono">{k.key}</code>
+                                 <span className="text-[8px] text-white/20 uppercase mt-1">
+                                   Used: {k.current_uses} / {k.max_uses === 0 ? '∞' : k.max_uses}
+                                 </span>
+                               </div>
+                               <button 
+                                 onClick={() => deleteKey(cat.id, k.id)}
+                                 className="p-1.5 rounded-md text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                               >
+                                  <Trash2 size={12} />
+                               </button>
+                            </div>
+                          ))}
+                          {(!cat.keys || cat.keys.length === 0) && (
+                            <p className="text-[10px] text-white/10 text-center py-2">No keys generated for this category.</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Files List */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between mb-2">
                     <h5 className="text-[10px] text-white/20 uppercase tracking-[0.2em] font-bold">Available Files</h5>
                     {isManager && (
-                      <button
-                        onClick={() => {
-                          setUploadTarget({ catId: cat.id, isLoader: false });
-                          fileInputRef.current?.click();
-                        }}
-                        disabled={uploading === cat.id}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] bg-purple-500/10 border border-purple-500/20 text-purple-400 font-bold uppercase tracking-widest hover:bg-purple-500/20 transition-all"
-                      >
-                        {uploading === cat.id ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
-                        Upload
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setUploadTarget({ catId: cat.id, isLoader: true });
+                            fileInputRef.current?.click();
+                          }}
+                          disabled={uploading === cat.id}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] bg-purple-500/10 border border-purple-500/20 text-purple-400 font-bold uppercase tracking-widest hover:bg-purple-500/20 transition-all"
+                        >
+                          {uploading === cat.id ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
+                          Add Loader
+                        </button>
+                        <button
+                          onClick={() => {
+                            setUploadTarget({ catId: cat.id, isLoader: false });
+                            fileInputRef.current?.click();
+                          }}
+                          disabled={uploading === cat.id}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] bg-white/[0.03] border border-white/[0.08] text-white/40 font-bold uppercase tracking-widest hover:bg-white/[0.08] transition-all"
+                        >
+                          {uploading === cat.id ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                          Add Public File
+                        </button>
+                      </div>
                     )}
                   </div>
                   
@@ -412,7 +539,7 @@ export default function SoftwareManager() {
                         <div>
                           <p className="text-sm font-bold text-white">
                             {file.name}
-                            {file.is_loader && <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] bg-purple-500 text-white">LOADER</span>}
+                            {file.is_loader && <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] bg-purple-500 text-white leading-none">LOADER</span>}
                           </p>
                           <p className="text-[10px] text-white/30 mt-0.5">Version {file.version || '1.0.0'} • {file.size}</p>
                         </div>
@@ -444,7 +571,7 @@ export default function SoftwareManager() {
                   
                   {cat.files.length === 0 && (
                     <div className="text-center py-6 border-2 border-dashed border-white/[0.02] rounded-2xl">
-                      <p className="text-[11px] text-white/10 font-bold uppercase tracking-widest">No public files yet</p>
+                      <p className="text-[11px] text-white/10 font-bold uppercase tracking-widest">No files yet</p>
                     </div>
                   )}
                 </div>
