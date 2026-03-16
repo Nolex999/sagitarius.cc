@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
 
     // Step 3: Check which ones haven't been added to our Inbox yet
     // We'll store the SellAuth invoice ID in a metadata field or just check for existing messages
-    const processedCount = 0;
+    let processedCount = 0;
     
     for (const inv of completedInvoices) {
       // Check if this invoice ID was already processed
