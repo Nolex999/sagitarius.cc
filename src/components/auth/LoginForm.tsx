@@ -96,27 +96,34 @@ export default function LoginForm() {
             )}
           </button>
         </div>
-      </div>
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-[var(--accent)] py-2.5 text-[13px] font-medium text-[var(--bg-base)] transition-opacity hover:opacity-90 disabled:opacity-60"
-      >
-        {loading ? (
-          <span className="inline-flex items-center gap-2">
-            <span className="h-3 w-3 animate-spin rounded-full border border-[var(--bg-base)]/30 border-t-[var(--bg-base)]" />
-            Processing...
-          </span>
-        ) : (
-          'Sign In'
-        )}
-      </button>
-      <Link
-        href="/auth/register"
-        className="mt-4 block text-center text-[13px] text-[var(--text-secondary)] underline transition-colors hover:text-[var(--text-primary)]"
-      >
-        Need an account?
-      </Link>
+        <div className="mb-6 flex justify-end">
+          <Link
+            href="/auth/recovery"
+            className="text-[12px] text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+          >
+            Forgot password?
+          </Link>
+        </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-[var(--accent)] py-2.5 text-[13px] font-medium text-[var(--bg-base)] transition-opacity hover:opacity-90 disabled:opacity-60"
+        >
+          {loading ? (
+            <span className="inline-flex items-center gap-2">
+              <span className="h-3 w-3 animate-spin rounded-full border border-[var(--bg-base)]/30 border-t-[var(--bg-base)]" />
+              Processing...
+            </span>
+          ) : (
+            'Sign In'
+          )}
+        </button>
+        <Link
+          href="/auth/register"
+          className="mt-4 block text-center text-[13px] text-[var(--text-secondary)] underline transition-colors hover:text-[var(--text-primary)]"
+        >
+          Need an account?
+        </Link>
     </form>
   );
 }
