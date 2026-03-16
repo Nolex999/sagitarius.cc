@@ -1,1 +1,23 @@
-{"/_not-found/page":"/_not-found","/auth/login/page":"/auth/login","/auth/register/page":"/auth/register","/bio/[username]/page":"/bio/[username]","/page":"/","/dashboard/s3/page":"/dashboard/s3","/dashboard/s7/page":"/dashboard/s7","/dashboard/firmware/page":"/dashboard/firmware","/dashboard/s6/page":"/dashboard/s6","/dashboard/s5/page":"/dashboard/s5","/dashboard/s4/page":"/dashboard/s4","/dashboard/db/page":"/dashboard/db"}
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/payments/verify/route": "/api/payments/verify",
+  "/api/webhooks/sellauth/route": "/api/webhooks/sellauth",
+  "/auth/callback/route": "/auth/callback",
+  "/auth/login/page": "/auth/login",
+  "/auth/recovery/page": "/auth/recovery",
+  "/auth/register/page": "/auth/register",
+  "/auth/reset-password/page": "/auth/reset-password",
+  "/bio/[username]/page": "/bio/[username]",
+  "/claim/[code]/page": "/claim/[code]",
+  "/dashboard/firmware/page": "/dashboard/firmware",
+  "/dashboard/get-key/page": "/dashboard/get-key",
+  "/dashboard/inbox/page": "/dashboard/inbox",
+  "/dashboard/s3/page": "/dashboard/s3",
+  "/dashboard/s4/page": "/dashboard/s4",
+  "/dashboard/s5/page": "/dashboard/s5",
+  "/dashboard/s6/page": "/dashboard/s6",
+  "/dashboard/s7/page": "/dashboard/s7",
+  "/dashboard/software/page": "/dashboard/software",
+  "/page": "/"
+}

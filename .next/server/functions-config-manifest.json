@@ -1,1 +1,4 @@
-{"version":1,"functions":{"/auth/login":{},"/auth/register":{},"/bio/[username]":{},"/":{},"/dashboard/db":{}}}
+{
+  "version": 1,
+  "functions": {}
+}
