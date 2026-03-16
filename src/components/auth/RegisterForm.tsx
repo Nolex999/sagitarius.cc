@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, Ticket } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
@@ -9,6 +9,7 @@ import InviteRequestForm from './InviteRequestForm';
 
 export default function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -17,7 +18,7 @@ export default function RegisterForm() {
     email: '',
     password: '',
     confirmPassword: '',
-    inviteCode: '',
+    inviteCode: searchParams.get('code') || '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
 
-type DBColumnProps = {
+type SoftwareColumnProps = {
   title: string;
   children: ReactNode;
   actions?: ReactNode;
 };
 
-export default function DBColumn({ title, children, actions }: DBColumnProps) {
+export default function SoftwareColumn({ title, children, actions }: SoftwareColumnProps) {
   return (
     <div className="flex min-h-[500px] w-[340px] shrink-0 flex-col overflow-hidden border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-[var(--glass-blur)] rounded-[var(--radius-xl)] shadow-2xl">
       <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--glass-border)]">

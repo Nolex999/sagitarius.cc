@@ -14,6 +14,8 @@ import {
   Settings,
   Package,
   BarChart3,
+  Inbox,
+  CreditCard
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { User as AuthUser } from '@supabase/supabase-js';
@@ -28,7 +30,9 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/dashboard/db', label: 'Software', icon: Package },
+  { href: '/dashboard/software', label: 'Software', icon: Package },
+  { href: '/dashboard/get-key', label: 'Get Key', icon: CreditCard },
+  { href: '/dashboard/inbox', label: 'Inbox', icon: Inbox },
   { href: '/dashboard/firmware', label: 'Firmware', icon: Cpu },
   { href: '/dashboard/s3', label: 'Bio Page', icon: User, requiredRole: ['owner', 'admin', 'vip', 'high_member'] },
   { href: '/dashboard/s7', label: 'Analytics', icon: BarChart3 },

@@ -1,0 +1,195 @@
+'use client';
+
+import { useState } from 'react';
+import { 
+  CreditCard, 
+  Coins, 
+  Check, 
+  ChevronRight, 
+  ShieldCheck, 
+  Zap,
+  Globe,
+  Loader2,
+  AlertCircle,
+  Package
+} from 'lucide-react';
+
+const pricingOptions = [
+  {
+    id: '7-days',
+    name: '7 Days',
+    price: '12.00',
+    originalPrice: '15.00',
+    description: 'Perfect for testing our software features.',
+    features: [
+      'Full Access for 7 Days',
+      'Instant Key Delivery',
+      '24/7 Priority Support',
+      'Anti-Cheat Protection',
+      'Hidden from Task Manager'
+    ],
+    highlight: false,
+    sellixUrl: '#' // Sellix product link
+  },
+  {
+    id: '1-month',
+    name: '1 Month',
+    price: '34.99',
+    originalPrice: '45.00',
+    description: 'Most popular choice for gamers.',
+    features: [
+      'Full Access for 30 Days',
+      'Instant Key Delivery',
+      '24/7 Priority Support',
+      'Anti-Cheat Protection',
+      'Custom HWID Spoofer',
+      'Auto-Updates Included'
+    ],
+    highlight: true,
+    sellixUrl: '#' // Sellix product link
+  },
+  {
+    id: '3-months',
+    name: '3 Months',
+    price: '79.99',
+    originalPrice: '99.00',
+    description: 'Best value for long-term reliability.',
+    features: [
+      'Full Access for 90 Days',
+      'Instant Key Delivery',
+      'VIP Support Channel',
+      'Advanced Protection Layer',
+      'Custom HWID Spoofer',
+      'Exclusive Beta Features'
+    ],
+    highlight: false,
+    sellixUrl: '#' // Sellix product link
+  }
+];
+
+export default function GetKeyManager() {
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handlePurchase = (url: string) => {
+    if (url === '#') {
+       alert('Payment links will be activated once the merchant account is connected.');
+       return;
+    }
+    window.open(url, '_blank');
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-12 py-4">
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] uppercase font-bold tracking-widest">
+          <Zap size={12} fill="currentColor" />
+          Premium Access
+        </div>
+        <h1 className="text-4xl font-extrabold text-white tracking-tight sm:text-5xl">
+          Get Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">Access Key</span>
+        </h1>
+        <p className="text-lg text-white/40 max-w-2xl mx-auto leading-relaxed">
+          Unlock instant access to Sagitarius private software. Secure, anonymous, and high-performance.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {pricingOptions.map((plan) => (
+          <div 
+            key={plan.id}
+            className={`relative flex flex-col rounded-[2.5rem] border transition-all duration-500 p-8 group ${
+              plan.highlight 
+                ? 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border-purple-500/30 shadow-[0_20px_50px_rgba(168,85,247,0.1)]' 
+                : 'bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12]'
+            }`}
+          >
+            {plan.highlight && (
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-purple-500 text-white text-[10px] font-bold uppercase tracking-widest shadow-lg">
+                Best Value
+              </div>
+            )}
+
+            <div className="space-y-1 mb-8">
+              <h3 className="text-xl font-bold text-white tracking-tight">{plan.name}</h3>
+              <p className="text-xs text-white/30">{plan.description}</p>
+            </div>
+
+            <div className="mb-8 relative">
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-bold text-white/40">€</span>
+                <span className="text-5xl font-black text-white tracking-tighter">{plan.price.split('.')[0]}</span>
+                <span className="text-xl font-bold text-white/40">.{plan.price.split('.')[1]}</span>
+              </div>
+              <p className="text-[11px] text-white/20 line-through mt-1">Was €{plan.originalPrice}</p>
+            </div>
+
+            <div className="space-y-4 mb-10 flex-1">
+              {plan.features.map((feature, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="mt-1 h-4 w-4 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                    <Check size={10} className="text-green-500" />
+                  </div>
+                  <span className="text-[12px] text-white/60">{feature}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => handlePurchase(plan.sellixUrl)}
+                className={`w-full h-14 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-3 ${
+                  plan.highlight
+                    ? 'bg-white text-black hover:bg-white/90 shadow-[0_10px_30px_rgba(255,255,255,0.1)] hover:-translate-y-1'
+                    : 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08] hover:-translate-y-1'
+                }`}
+              >
+                Purchase Now
+                <ChevronRight size={14} />
+              </button>
+              
+              <p className="text-[9px] text-white/10 text-center uppercase tracking-widest font-bold">
+                * Keys are delivered to your Inbox instantly
+              </p>
+
+              <div className="flex items-center justify-center gap-4 text-[10px] text-white/20 font-bold uppercase tracking-widest py-2">
+                <div className="flex items-center gap-1.5">
+                  <Coins size={12} /> Crypto
+                </div>
+                <div className="w-1 h-1 rounded-full bg-white/10" />
+                <div className="flex items-center gap-1.5">
+                  <CreditCard size={12} /> Card
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-8">
+        <div className="p-8 rounded-[2rem] bg-white/[0.01] border border-white/[0.04] flex items-start gap-6">
+          <div className="h-14 w-14 rounded-2xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 text-blue-400">
+            <ShieldCheck size={28} />
+          </div>
+          <div>
+            <h4 className="text-lg font-bold text-white mb-2">Secure Transactions</h4>
+            <p className="text-sm text-white/30 leading-relaxed">
+              All payments are processed through encrypted channels. We accept Bitcoin, Ethereum, LTC, and all major Credit Cards.
+            </p>
+          </div>
+        </div>
+        <div className="p-8 rounded-[2rem] bg-white/[0.01] border border-white/[0.04] flex items-start gap-6">
+          <div className="h-14 w-14 rounded-2xl bg-purple-500/10 flex items-center justify-center flex-shrink-0 text-purple-400">
+            <Globe size={28} />
+          </div>
+          <div>
+            <h4 className="text-lg font-bold text-white mb-2">Instant Key Delivery</h4>
+            <p className="text-sm text-white/30 leading-relaxed">
+              Your activation key will be delivered automatically to your dashboard <b>Inbox</b> immediately after payment confirmation.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
