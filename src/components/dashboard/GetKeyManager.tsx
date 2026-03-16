@@ -116,7 +116,7 @@ export default function GetKeyManager() {
     const config = selectedPlan.sellAuth[category];
     if (config && window.sellAuthEmbed) {
       window.sellAuthEmbed.checkout({
-        shopId: '224106',
+        shopId: 224106,
         productId: config.productId,
         variantId: config.variantId
       });
@@ -126,7 +126,7 @@ export default function GetKeyManager() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-12 py-4 px-6">
-      <Script src="https://sellauth.com/static/js/embed.js" strategy="lazyOnload" />
+      <Script src="https://sellauth.com/static/js/embed.js" strategy="afterInteractive" />
       <div className="text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] uppercase font-bold tracking-widest">
           <Zap size={12} fill="currentColor" />

@@ -59,6 +59,7 @@ export default function SoftwareManager() {
   const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<string>('member');
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'FACEIT' | 'CS2 EXTERNAL'>('FACEIT');
   
   // Management state
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -379,8 +380,33 @@ export default function SoftwareManager() {
         </div>
       )}
 
+      <div className="flex gap-2 p-1 rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-xl">
+        <button
+          onClick={() => setActiveTab('FACEIT')}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${
+            activeTab === 'FACEIT'
+              ? 'bg-white text-black shadow-[0_4px_20px_rgba(255,255,255,0.1)]'
+              : 'text-white/40 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          Faceit Client
+        </button>
+        <button
+          onClick={() => setActiveTab('CS2 EXTERNAL')}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${
+            activeTab === 'CS2 EXTERNAL'
+              ? 'bg-white text-black shadow-[0_4px_20px_rgba(255,255,255,0.1)]'
+              : 'text-white/40 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          CS2 External
+        </button>
+      </div>
+
       <div className="space-y-4">
-        {categories.map(cat => (
+        {categories
+          .filter(cat => cat.name.toUpperCase().includes(activeTab))
+          .map(cat => (
           <div key={cat.id} className="rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden group">
             <div 
               className="p-5 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] transition-all"
