@@ -70,6 +70,26 @@ const pricingOptions = [
 export default function GetKeyManager() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<string | null>(null);
+
+  const handleVerify = async () => {
+    setVerifying(true);
+    setVerifyResult(null);
+    try {
+      const res = await fetch('/api/payments/verify');
+      const data = await res.json();
+      if (data.success) {
+        setVerifyResult(`Success! Found ${data.newly_added} new key(s) in your Inbox.`);
+      } else {
+        setVerifyResult(data.message || 'No new payments found.');
+      }
+    } catch (err) {
+      setVerifyResult('Error checking payments.');
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const handlePurchase = (url: string) => {
     if (url === '#') {
@@ -92,6 +112,22 @@ export default function GetKeyManager() {
         <p className="text-lg text-white/40 max-w-2xl mx-auto leading-relaxed">
           Unlock instant access to Sagitarius private software. Secure, anonymous, and high-performance.
         </p>
+
+        <div className="pt-4">
+          <button 
+            onClick={handleVerify}
+            disabled={verifying}
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-[11px] font-bold text-white uppercase tracking-widest transition-all"
+          >
+            {verifying ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
+            Verify My Purchase
+          </button>
+          {verifyResult && (
+            <p className="mt-3 text-[10px] text-purple-400 font-bold uppercase tracking-widest animate-pulse">
+              {verifyResult}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

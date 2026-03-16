@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
-import DBColumn from './DBColumn';
+import SoftwareColumn from './SoftwareColumn';
 import EntryCard from './EntryCard';
 import AddEntryDrawer from './AddEntryDrawer';
 import { createClient } from '@/lib/supabase/client';
@@ -48,7 +48,7 @@ export default function CelebriteColumn({ items }: { items: Celebrity[] }) {
 
   return (
     <>
-      <DBColumn
+      <SoftwareColumn
         title="Célébrité"
         actions={
           <button
@@ -76,7 +76,7 @@ export default function CelebriteColumn({ items }: { items: Celebrity[] }) {
             />
           ))
         )}
-      </DBColumn>
+      </SoftwareColumn>
       <AddEntryDrawer
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}

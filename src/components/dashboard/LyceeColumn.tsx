@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { Plus } from 'lucide-react';
-import DBColumn from './DBColumn';
+import SoftwareColumn from './SoftwareColumn';
 import EntryCard from './EntryCard';
 import AddEntryDrawer from './AddEntryDrawer';
 import { createClient } from '@/lib/supabase/client';
@@ -67,7 +67,7 @@ export default function LyceeColumn({
 
   return (
     <>
-      <DBColumn
+      <SoftwareColumn
         title="Lycée"
         actions={
           <button
@@ -97,7 +97,7 @@ export default function LyceeColumn({
             ))
           )}
         </div>
-      </DBColumn>
+      </SoftwareColumn>
       <AddEntryDrawer
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
