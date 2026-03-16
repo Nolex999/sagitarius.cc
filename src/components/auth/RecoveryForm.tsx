@@ -19,7 +19,7 @@ export default function RecoveryForm() {
 
         try {
             const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/auth/reset-password`,
+                redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
             });
 
             if (err) throw err;
