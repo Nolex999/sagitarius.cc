@@ -88,6 +88,35 @@ export async function POST(req: NextRequest) {
 
       if (inboxError) throw inboxError;
 
+      // 4. Send Discord Notification
+      const discordWebhookUrl = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL;
+      if (discordWebhookUrl) {
+        try {
+          await fetch(discordWebhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: 'Sagitarius Sales',
+              embeds: [{
+                title: '💰 New Sale Recorded!',
+                color: 0x22c55e, // Green
+                fields: [
+                  { name: '📦 Product', value: order.product_name || 'Premium Access', inline: true },
+                  { name: '💵 Amount', value: `${order.total_amount || order.price || '0'} ${order.currency || 'EUR'}`, inline: true },
+                  { name: '🆔 Order ID', value: `\`${order.id}\``, inline: false },
+                  { name: '👤 Customer', value: order.email || 'Anonymous', inline: true },
+                  { name: '🔑 Key Sent', value: 'Delivered to Dashboard Inbox', inline: true },
+                ],
+                footer: { text: 'Sagitarius.cc — Payment System' },
+                timestamp: new Date().toISOString(),
+              }],
+            }),
+          });
+        } catch (discordErr) {
+          console.error('Failed to send Discord notification:', discordErr);
+        }
+      }
+
       return NextResponse.json({ success: true });
     }
 
