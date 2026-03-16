@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import faceitLogo from '@/assets/faceit.jpg';
 import cs2Logo from '@/assets/cs2.webp';
 import { 
