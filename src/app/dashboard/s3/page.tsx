@@ -293,7 +293,7 @@ export default function S3Page() {
           <p className="text-xs text-white/20">If you believe this is an error, please contact administrators.</p>
         </div>
         <button 
-          onClick={() => window.location.href = '/dashboard/db'}
+          onClick={() => window.location.href = '/dashboard/software'}
           className="mt-4 px-6 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs font-bold text-white hover:bg-white/[0.06] transition-all"
         >
           Return to Dashboard

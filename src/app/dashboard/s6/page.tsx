@@ -17,7 +17,7 @@ export default function S6Page() {
     async function check() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !OWNER_EMAILS.some(e => user.email?.toLowerCase() === e.toLowerCase())) {
-        router.push('/dashboard/db');
+        router.push('/dashboard/software');
         return;
       }
       setAuthorized(true);

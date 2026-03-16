@@ -57,7 +57,7 @@ export default function RegisterForm() {
         });
       }
 
-      router.push('/dashboard/db');
+      router.push('/dashboard/software');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error during registration');

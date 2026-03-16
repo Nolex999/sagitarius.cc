@@ -24,7 +24,7 @@ export default function LoginForm() {
         password: formData.password,
       });
       if (err) throw err;
-      router.push('/dashboard/db');
+      router.push('/dashboard/software');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de connexion');

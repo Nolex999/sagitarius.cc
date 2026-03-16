@@ -10,7 +10,7 @@ export default async function HomePage() {
   } = await supabase.auth.getSession();
 
   if (session) {
-    redirect('/dashboard/db');
+    redirect('/dashboard/software');
   }
   redirect('/auth/login');
 }
