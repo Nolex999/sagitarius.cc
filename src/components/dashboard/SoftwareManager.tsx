@@ -326,7 +326,7 @@ export default function SoftwareManager() {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
         <Loader2 className="animate-spin text-orange-500" size={32} />
-        <p className="text-white/40 text-sm animate-pulse">Loading software library...</p>
+        <p className="text-white/40 text-sm animate-pulse">Loading products...</p>
       </div>
     );
   }
@@ -337,10 +337,10 @@ export default function SoftwareManager() {
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-3">
             <Package size={28} className="text-orange-500" />
-            Software Library
+            Product Catalog
           </h1>
           <p className="text-sm text-white/40 mt-1">
-            {isManager ? 'Manage your files and categories' : 'Download loaders using activation keys'}
+            Browse our available products and download loaders
           </p>
         </div>
       </div>
@@ -352,33 +352,7 @@ export default function SoftwareManager() {
         </div>
       )}
 
-      {isManager && (
-        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] space-y-4">
-          <div className="flex gap-4">
-            <input
-               type="text"
-               value={newCategoryName}
-               onChange={e => setNewCategoryName(e.target.value)}
-               placeholder="Category name..."
-               className="flex-1 h-12 px-5 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-all"
-            />
-            <input
-               type="text"
-               value={newCategoryLogo}
-               onChange={e => setNewCategoryLogo(e.target.value)}
-               placeholder="Logo URL (optional)..."
-               className="flex-1 h-12 px-5 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-all"
-            />
-            <button
-               onClick={addCategory}
-               className="h-12 px-6 rounded-xl bg-orange-600 text-white text-sm font-bold flex items-center gap-2 hover:bg-orange-500 transition-all"
-            >
-               <Plus size={18} />
-               Create
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Category Creation removed per user request */}
 
       <div className="flex gap-2 p-1 rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-xl">
         <button

@@ -30,7 +30,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/dashboard/software', label: 'Software', icon: Package },
+  { href: '/dashboard/software', label: 'Products', icon: Package },
   { href: '/dashboard/get-key', label: 'Get Key', icon: CreditCard },
   { href: '/dashboard/inbox', label: 'Inbox', icon: Inbox },
   { href: '/dashboard/firmware', label: 'Firmware', icon: Cpu, requiredRole: ['owner', 'admin'] },
