@@ -137,24 +137,26 @@ export default function Sidebar({ user }: { user: AuthUser }) {
 
   return (
     <header className="sticky top-0 z-[100] w-full border-b border-white/[0.04] bg-black/60 backdrop-blur-xl">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-8">
-        {/* Logo & Brand */}
-        <Link href="/dashboard/software" className="flex items-center gap-4 group shrink-0">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500/10 border border-orange-500/20 shadow-[0_0_20px_rgba(249,115,22,0.1)] transition-all group-hover:scale-110 group-hover:rotate-3 overflow-hidden">
-            <Image src="/logo.svg" alt="Logo" width={28} height={28} className="brightness-125 select-none" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-mono text-[11px] font-black uppercase tracking-[0.4em] text-white leading-none">
-              SAGITARIUS
-            </span>
-            <span className="text-[8px] text-orange-500/50 uppercase tracking-[0.3em] font-bold mt-1">
-              Dashboard
-            </span>
-          </div>
-        </Link>
+      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center">
+        {/* Logo & Brand - Left Section (fixed width for centering) */}
+        <div className="w-[200px] flex justify-start">
+          <Link href="/dashboard/software" className="flex items-center gap-4 group shrink-0">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500/10 border border-orange-500/20 shadow-[0_0_20px_rgba(249,115,22,0.1)] transition-all group-hover:scale-110 group-hover:rotate-3 overflow-hidden">
+              <Image src="/logo.svg" alt="Logo" width={28} height={28} className="brightness-125 select-none" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-mono text-[11px] font-black uppercase tracking-[0.4em] text-white leading-none">
+                SAGITARIUS
+              </span>
+              <span className="text-[8px] text-orange-500/50 uppercase tracking-[0.3em] font-bold mt-1">
+                Dashboard
+              </span>
+            </div>
+          </Link>
+        </div>
         
-        {/* Navigation Items */}
-        <nav className="flex-1 flex items-center justify-center gap-5">
+        {/* Navigation Items - Center Section (True Center) */}
+        <nav className="flex-1 hidden md:flex items-center justify-center gap-6">
           {visibleItems.map(({ href, label, icon: Icon, requiredRole }) => {
             const isActive = pathname === href;
             const isRestricted = !!requiredRole;
@@ -180,8 +182,8 @@ export default function Sidebar({ user }: { user: AuthUser }) {
           })}
         </nav>
 
-        {/* User Profile */}
-        <div className="flex items-center gap-4 pl-4 border-l border-white/[0.08]">
+        {/* User Profile - Right Section (balanced with logo) */}
+        <div className="w-[200px] hidden md:flex justify-end items-center gap-4 pl-4 border-l border-white/[0.08]">
           <div className={`flex items-center gap-3 rounded-2xl p-1.5 pr-4 border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
             role === 'owner' 
               ? 'bg-white/[0.03] border-white/[0.1] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]' 
@@ -211,6 +213,41 @@ export default function Sidebar({ user }: { user: AuthUser }) {
           >
             <LogOut size={20} strokeWidth={1.5} className="transition-transform group-hover:scale-110" />
           </button>
+        </div>
+      </div>
+
+      {/* MOBILE BOTTOM DOCK */}
+      <div className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-[400px]">
+        <div className="bg-black/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-2 px-3 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-between gap-1">
+          {visibleItems.slice(0, 4).map(({ href, icon: Icon }) => {
+            const isActive = pathname === href;
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`flex-1 flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all ${
+                  isActive ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' : 'text-white/30 hover:text-white/60'
+                }`}
+              >
+                <Icon size={20} strokeWidth={isActive ? 2.5 : 1.5} />
+              </Link>
+            );
+          })}
+          
+          {/* Profile & Logout Group with a "Slide" feel indicator */}
+          <div className="flex-1 flex items-center justify-center border-l border-white/5 pl-1 ml-1 gap-1">
+            <div className={`h-10 w-10 flex items-center justify-center rounded-2xl border transition-all ${
+              role === 'owner' ? 'bg-white text-black border-white' : 'bg-orange-500/10 border-orange-500/20 text-orange-400'
+            }`}>
+              {user?.email?.[0].toUpperCase()}
+            </div>
+            <button
+               onClick={handleLogout}
+               className="h-10 w-10 flex items-center justify-center rounded-2xl bg-red-500/5 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 transition-all active:scale-95"
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
         </div>
       </div>
 
