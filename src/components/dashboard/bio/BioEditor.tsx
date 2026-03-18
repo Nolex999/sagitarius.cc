@@ -184,8 +184,15 @@ function ToggleRow({ label, value, onChange }: { label: string; value: boolean; 
 
 // ====== MAIN COMPONENT ======
 
-export default function BioEditor({ config, onChange }: EditorProps) {
-  const [activeTab, setActiveTab] = useState<TabId>('profile');
+export default function BioEditor({ 
+  config, 
+  onChange,
+  activeTab
+}: { 
+  config: BioConfig; 
+  onChange: (newConfig: BioConfig) => void;
+  activeTab: any;
+}) {
   const [customBadge, setCustomBadge] = useState('');
   
   // Custom CSS State
@@ -1421,19 +1428,6 @@ export default function BioEditor({ config, onChange }: EditorProps) {
     );
   };
 
-export default function BioEditor({ 
-  config, 
-  onChange,
-  activeTab
-}: { 
-  config: BioConfig; 
-  onChange: (newConfig: BioConfig) => void;
-  activeTab: any;
-}) {
-  const update = (key: keyof BioConfig, value: any) => {
-    onChange({ ...config, [key]: value });
-  };
-...
   const tabContent: Record<string, () => React.ReactNode> = {
     profile: renderProfile,
     layout: renderLayout,
