@@ -48,8 +48,8 @@ const badgePresets = [
 ];
 
 const presetColors = [
-  '#a855f7', '#6366f1', '#ec4899', '#ef4444', '#f97316',
-  '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6',
+  '#f97316', '#fbbf24', '#ea580c', '#ef4444', '#f59e0b',
+  '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#fb923c',
   '#f43f5e', '#14b8a6', '#ffffff', '#64748b',
 ];
 

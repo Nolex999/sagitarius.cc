@@ -34,7 +34,7 @@ export const PRESET_PALETTES: ThemePalette[] = [
   // Ocean & Nature
   { name: 'Deep Sea', category: 'Nature', colors: { primaryColor: '#00ffd5', secondaryColor: '#00b8ff', accentColor: '#ffffff', bgColor1: '#001220', bgColor2: '#002845' } },
   { name: 'Forest', category: 'Nature', colors: { primaryColor: '#4ade80', secondaryColor: '#22c55e', accentColor: '#bbf7d0', bgColor1: '#052e16', bgColor2: '#14532d' } },
-  { name: 'Aurora', category: 'Nature', colors: { primaryColor: '#34d399', secondaryColor: '#3b82f6', accentColor: '#a78bfa', bgColor1: '#0f172a', bgColor2: '#1e293b' } },
+  { name: 'Aurora', category: 'Nature', colors: { primaryColor: '#34d399', secondaryColor: '#3b82f6', accentColor: '#f97316', bgColor1: '#0f172a', bgColor2: '#1e293b' } },
   { name: 'Volcano', category: 'Nature', colors: { primaryColor: '#ef4444', secondaryColor: '#f97316', accentColor: '#fca5a5', bgColor1: '#2c0b0e', bgColor2: '#4a151b' } },
   // Elegant & Minimal
   { name: 'Monochrome', category: 'Minimal', colors: { primaryColor: '#ffffff', secondaryColor: '#a3a3a3', accentColor: '#525252', bgColor1: '#000000', bgColor2: '#171717' } },

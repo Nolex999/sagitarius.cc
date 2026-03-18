@@ -33,9 +33,9 @@ const navItems: NavItem[] = [
   { href: '/dashboard/software', label: 'Software', icon: Package },
   { href: '/dashboard/get-key', label: 'Get Key', icon: CreditCard },
   { href: '/dashboard/inbox', label: 'Inbox', icon: Inbox },
-  { href: '/dashboard/firmware', label: 'Firmware', icon: Cpu },
-  { href: '/dashboard/s3', label: 'Bio Page', icon: User, requiredRole: ['owner', 'admin', 'vip', 'high_member'] },
-  { href: '/dashboard/s7', label: 'Analytics', icon: BarChart3 },
+  { href: '/dashboard/firmware', label: 'Firmware', icon: Cpu, requiredRole: ['owner', 'admin'] },
+  { href: '/dashboard/s3', label: 'Bio Page', icon: User, requiredRole: ['owner', 'admin'] },
+  { href: '/dashboard/s7', label: 'Analytics', icon: BarChart3, requiredRole: ['owner', 'admin'] },
   { href: '/dashboard/s4', label: 'Admin', icon: Shield, requiredRole: ['admin', 'owner'] },
   { href: '/dashboard/s5', label: 'Settings', icon: Settings, requiredRole: ['owner'] },
 ];
@@ -154,7 +154,7 @@ export default function Sidebar({ user }: { user: AuthUser }) {
         </Link>
         
         {/* Navigation Items */}
-        <nav className="flex-1 flex items-center gap-1">
+        <nav className="flex-1 flex items-center justify-center gap-5">
           {visibleItems.map(({ href, label, icon: Icon, requiredRole }) => {
             const isActive = pathname === href;
             const isRestricted = !!requiredRole;
@@ -162,18 +162,18 @@ export default function Sidebar({ user }: { user: AuthUser }) {
               <Link
                 key={href}
                 href={href}
-                className={`relative flex items-center gap-3 h-11 px-4 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 ${isActive
-                    ? 'bg-white/5 text-white border border-white/10 shadow-lg'
-                    : 'text-white/40 hover:text-white hover:bg-white/[0.03]'
+                className={`relative flex items-center gap-3 h-10 px-6 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 transform hover:-translate-y-1.5 ${isActive
+                    ? 'bg-orange-500/15 text-white border border-orange-500/30 shadow-[0_8px_30px_rgba(249,115,22,0.15)]'
+                    : 'text-white/40 hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/10 hover:shadow-xl'
                   }`}
               >
-                <Icon size={16} strokeWidth={isActive ? 2.5 : 1.5} className={isActive ? 'text-orange-400' : ''} />
+                <Icon size={14} strokeWidth={isActive ? 3 : 1.5} className={isActive ? 'text-orange-400' : ''} />
                 <span>{label}</span>
                 {isRestricted && !isActive && (
                   <div className="w-1 h-1 rounded-full bg-orange-500/40" />
                 )}
                 {isActive && (
-                  <div className="absolute -bottom-4 left-4 right-4 h-0.5 bg-orange-500 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)]" />
+                  <div className="absolute -bottom-2.5 left-6 right-6 h-0.5 bg-orange-500 rounded-full shadow-[0_0_20px_rgba(249,115,22,1)]" />
                 )}
               </Link>
             );
@@ -182,7 +182,7 @@ export default function Sidebar({ user }: { user: AuthUser }) {
 
         {/* User Profile */}
         <div className="flex items-center gap-4 pl-4 border-l border-white/[0.08]">
-          <div className={`flex items-center gap-3 rounded-2xl p-1.5 pr-4 border transition-all ${
+          <div className={`flex items-center gap-3 rounded-2xl p-1.5 pr-4 border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
             role === 'owner' 
               ? 'bg-white/[0.03] border-white/[0.1] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]' 
               : role === 'admin'
@@ -199,14 +199,14 @@ export default function Sidebar({ user }: { user: AuthUser }) {
               {user?.email?.[0].toUpperCase() ?? '?'}
             </div>
             <div className="hidden sm:block">
-              <p className="text-[10px] font-black text-white tracking-tight uppercase">{user?.email?.split('@')[0]}</p>
+              <p className="text-[10px] font-black text-white tracking-[0.1em] uppercase">{user?.email?.split('@')[0]}</p>
               <RoleBadge role={role} />
             </div>
           </div>
           
           <button
             onClick={handleLogout}
-            className="p-3 rounded-xl text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all group"
+            className="p-3 rounded-2xl text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all duration-300 hover:-translate-y-1 group"
             title="Logout"
           >
             <LogOut size={20} strokeWidth={1.5} className="transition-transform group-hover:scale-110" />

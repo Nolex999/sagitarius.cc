@@ -81,7 +81,7 @@ export default function InboxManager() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
-        <Loader2 className="animate-spin text-purple-500" size={32} />
+        <Loader2 className="animate-spin text-orange-500" size={32} />
         <p className="text-white/40 text-sm animate-pulse">Checking your inbox...</p>
       </div>
     );
@@ -92,7 +92,7 @@ export default function InboxManager() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-            <Inbox size={28} className="text-purple-500" />
+            <Inbox size={28} className="text-orange-500" />
             Inbox
           </h1>
           <p className="text-sm text-white/40 mt-1">
@@ -115,13 +115,13 @@ export default function InboxManager() {
             className={`rounded-2xl border transition-all overflow-hidden ${
               msg.is_read 
                 ? 'bg-white/[0.01] border-white/[0.04]' 
-                : 'bg-white/[0.03] border-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.05)]'
+                : 'bg-white/[0.03] border-orange-500/20 shadow-[0_0_20px_rgba(249,115,22,0.05)]'
             }`}
           >
             <div className="p-5 flex items-start gap-4">
               <div className={`p-2.5 rounded-xl flex-shrink-0 ${
                 msg.type === 'key' 
-                  ? 'bg-purple-500/10 text-purple-400' 
+                  ? 'bg-orange-500/10 text-orange-400' 
                   : 'bg-blue-500/10 text-blue-400'
               }`}>
                 {msg.type === 'key' ? <Key size={20} /> : <Bell size={20} />}

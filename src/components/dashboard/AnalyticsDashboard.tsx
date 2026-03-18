@@ -122,14 +122,14 @@ export default function AnalyticsDashboard() {
           label="Total Views"
           value={totalViews}
           icon={Eye}
-          color="#a855f7"
+          color="#f97316"
           sparkData={sparkViews}
         />
         <StatCard
           label="Link Clicks"
           value={sparkClicks.reduce((a, b) => a + b, 0)}
           icon={MousePointer}
-          color="#6366f1"
+          color="#fbbf24"
           sparkData={sparkClicks}
         />
         <StatCard
@@ -161,7 +161,7 @@ export default function AnalyticsDashboard() {
                   className="w-full rounded-lg transition-all duration-500"
                   style={{
                     height: `${Math.max(height, 4)}%`,
-                    background: `linear-gradient(to top, #a855f7, #6366f1)`,
+                    background: `linear-gradient(to top, #f97316, #fbbf24)`,
                     opacity: 0.6 + (height / 100) * 0.4,
                   }}
                 />

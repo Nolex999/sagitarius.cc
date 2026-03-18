@@ -145,7 +145,7 @@ export default function AdminPanel({ userRole }: { userRole: 'admin' | 'owner' }
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-          <Shield size={18} className="text-purple-400" />
+          <Shield size={18} className="text-orange-400" />
           Admin Panel
         </h1>
         <p className="text-[11px] text-[var(--text-muted)] mt-1 uppercase tracking-widest">
@@ -165,7 +165,7 @@ export default function AdminPanel({ userRole }: { userRole: 'admin' | 'owner' }
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] uppercase tracking-wider font-bold transition-all ${
               activeTab === tab.id
-                ? 'bg-purple-500/15 text-purple-300 border border-purple-400/20'
+                ? 'bg-orange-500/15 text-orange-300 border border-orange-400/20'
                 : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-white/[0.02]'
             }`}
           >
@@ -267,7 +267,7 @@ export default function AdminPanel({ userRole }: { userRole: 'admin' | 'owner' }
             <button
               onClick={generateInviteCode}
               disabled={generating}
-              className="flex items-center gap-2 h-10 px-4 rounded-xl bg-purple-500/15 border border-purple-400/20 text-purple-300 text-[11px] uppercase tracking-wider font-bold hover:bg-purple-500/25 transition-all disabled:opacity-50"
+              className="flex items-center gap-2 h-10 px-4 rounded-xl bg-orange-500/15 border border-orange-400/20 text-orange-300 text-[11px] uppercase tracking-wider font-bold hover:bg-orange-500/25 transition-all disabled:opacity-50"
             >
               {generating ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
               Generate code
@@ -331,8 +331,8 @@ export default function AdminPanel({ userRole }: { userRole: 'admin' | 'owner' }
         <div className="space-y-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: 'Users', value: stats.totalUsers, icon: Users, color: '#a855f7' },
-              { label: 'Bio Pages', value: stats.totalBio, icon: BarChart3, color: '#6366f1' },
+              { label: 'Users', value: stats.totalUsers, icon: Users, color: '#f97316' },
+              { label: 'Bio Pages', value: stats.totalBio, icon: BarChart3, color: '#fbbf24' },
               { label: 'Total views', value: stats.totalViews, icon: BarChart3, color: '#22c55e' },
               { label: 'Active invites', value: stats.activeInvites, icon: Ticket, color: '#f97316' },
             ].map((stat, i) => (

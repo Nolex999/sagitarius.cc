@@ -17,8 +17,8 @@ const defaultConfig: BioConfig = {
   location: '',
   badges: [],
   theme: {
-    primaryColor: '#a855f7',
-    secondaryColor: '#6366f1',
+    primaryColor: '#f97316',
+    secondaryColor: '#ea580c',
     accentColor: '#ec4899',
     bgType: 'gradient',
     bgColor1: '#0a0a0a',
@@ -28,15 +28,15 @@ const defaultConfig: BioConfig = {
     cardStyle: 'glass',
     borderRadius: 16,
     glowEnabled: true,
-    glowColor: '#a855f7',
+    glowColor: '#f97316',
     glowIntensity: 50,
   },
   effects: {
     bgEffect: 'particles',
     bgEffectIntensity: 50,
-    bgEffectColor: '#a855f7',
+    bgEffectColor: '#f97316',
     cursorTrail: 'none',
-    cursorTrailColor: '#a855f7',
+    cursorTrailColor: '#f97316',
     avatarEffect: 'glow-pulse',
     textEffect: 'none',
     entranceAnimation: 'fade-up',
@@ -291,7 +291,7 @@ export default function S3Page() {
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <Loader2 size={24} className="animate-spin text-purple-500" />
+        <Loader2 size={24} className="animate-spin text-orange-500" />
       </div>
     );
   }
@@ -304,7 +304,7 @@ export default function S3Page() {
         </div>
         <h2 className="text-xl font-bold text-white tracking-tight">Access Restricted</h2>
         <div className="max-w-md space-y-2">
-          <p className="text-sm text-white/40">The Bio Page is only accessible to <span className="text-purple-400 font-bold">High Member</span> and <span className="text-indigo-400 font-bold">VIP</span> users.</p>
+          <p className="text-sm text-white/40">The Bio Page is only accessible to <span className="text-orange-400 font-bold">Owner</span> and <span className="text-orange-500 font-bold">Admin</span> users.</p>
           <p className="text-xs text-white/20">If you believe this is an error, please contact administrators.</p>
         </div>
         <button 

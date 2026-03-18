@@ -122,7 +122,7 @@ export default function InviteRequestForm() {
         <button
           type="submit"
           disabled={status === 'loading' || !email.trim()}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-[13px] font-semibold transition-all disabled:opacity-50 bg-gradient-to-r from-purple-600/80 to-indigo-600/80 text-white hover:from-purple-500/80 hover:to-indigo-500/80 border border-purple-400/20"
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-[13px] font-semibold transition-all disabled:opacity-50 bg-gradient-to-r from-orange-600/80 to-yellow-600/80 text-white hover:from-orange-500/80 hover:to-yellow-500/80 border border-orange-400/20"
         >
           {status === 'loading' ? (
             <>

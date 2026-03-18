@@ -284,7 +284,7 @@ export default function GetKeyManager() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button 
                 onClick={() => handleFinalPurchase('faceit')}
-                className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-purple-500/30 transition-all duration-500 h-[220px]"
+                className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-orange-500/30 transition-all duration-500 h-[220px]"
               >
                 <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110">
                   <Image 

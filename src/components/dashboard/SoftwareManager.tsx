@@ -371,7 +371,7 @@ export default function SoftwareManager() {
             />
             <button
                onClick={addCategory}
-               className="h-12 px-6 rounded-xl bg-purple-600 text-white text-sm font-bold flex items-center gap-2 hover:bg-purple-500 transition-all"
+               className="h-12 px-6 rounded-xl bg-orange-600 text-white text-sm font-bold flex items-center gap-2 hover:bg-orange-500 transition-all"
             >
                <Plus size={18} />
                Create
