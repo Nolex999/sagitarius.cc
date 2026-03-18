@@ -17,51 +17,74 @@ export default function InteractiveBackground() {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[-1] overflow-hidden bg-[#020202]">
-      {/* Mesh Gradient Base - Much Softer */}
+    <div className="fixed inset-0 z-[-1] overflow-hidden bg-[#050505]">
+      {/* Primary Floating Orb (Top Left) */}
       <div 
-        className="absolute inset-0 opacity-30 mix-blend-screen overflow-hidden"
+        className="absolute w-[60vw] h-[60vw] rounded-full blur-[100px] opacity-20 transition-transform duration-1000 ease-linear"
         style={{
-          background: `
-            radial-gradient(circle at 10% 20%, rgba(249, 115, 22, 0.12) 0%, transparent 45%),
-            radial-gradient(circle at 90% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 45%),
-            radial-gradient(circle at 50% 50%, rgba(234, 88, 12, 0.04) 0%, transparent 70%)
-          `,
-          filter: 'blur(120px)',
-          animation: 'meshMove 25s ease-in-out infinite alternate',
+          background: 'radial-gradient(circle, #f97316 0%, transparent 70%)',
+          top: '-10%',
+          left: '-10%',
+          animation: 'float1 30s ease-in-out infinite alternate',
         }}
       />
 
-      {/* Interactive Aura Glow (follows mouse) - Subtler */}
+      {/* Secondary Floating Orb (Bottom Right) */}
       <div 
-        className="absolute inset-0 pointer-events-none transition-transform duration-700 ease-out"
+        className="absolute w-[50vw] h-[50vw] rounded-full blur-[120px] opacity-[0.15] transition-transform duration-1000 ease-linear"
         style={{
-          background: `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(249, 115, 22, 0.05) 0%, transparent 30%)`,
+          background: 'radial-gradient(circle, #fbbf24 0%, transparent 70%)',
+          bottom: '-15%',
+          right: '-15%',
+          animation: 'float2 25s ease-in-out infinite alternate',
         }}
       />
 
-      {/* Ultra-soft Noise Texture (Fixed the 'granite' effect) */}
-      <div className="absolute inset-0 opacity-[0.015] pointer-events-none noise-overlay" />
-
-      {/* Very Subtle Grid Pattern */}
+      {/* Mouse Spotlight (High Intensity) */}
       <div 
-        className="absolute inset-0 opacity-[0.01]" 
+        className="absolute inset-0 pointer-events-none transition-opacity duration-500"
         style={{
-          backgroundImage: `radial-gradient(circle at 1.5px 1.5px, rgba(255,255,255,0.05) 1px, transparent 0)`,
-          backgroundSize: '60px 60px',
+          background: `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(249, 115, 22, 0.1) 0%, transparent 25%)`,
         }}
       />
+      
+      {/* Subtle Central Nebula */}
+      <div 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[40vw] rounded-[100%] blur-[150px] opacity-10"
+        style={{
+          background: 'radial-gradient(circle, #ea580c 0%, transparent 80%)',
+        }}
+      />
+
+      {/* Decorative Light Flecks (Minimal) */}
+      <div className="absolute inset-0 opacity-[0.05] pointer-events-none overflow-hidden">
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-2 h-2 bg-orange-400 rounded-full blur-[4px]"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animation: `pulse ${4 + i}s ease-in-out infinite alternate`,
+            }}
+          />
+        ))}
+      </div>
 
       <style jsx>{`
-        @keyframes meshMove {
-          0% { transform: scale(1) translate(0, 0); }
-          50% { transform: scale(1.15) translate(-3%, -3%); }
-          100% { transform: scale(1) translate(3%, 3%); }
+        @keyframes float1 {
+          0% { transform: translate(0, 0) rotate(0deg); }
+          50% { transform: translate(5%, 10%) rotate(5deg); }
+          100% { transform: translate(-5%, 5%) rotate(-5deg); }
         }
-        
-        .noise-overlay {
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-          filter: brightness(100%);
+        @keyframes float2 {
+          0% { transform: translate(0, 0); }
+          50% { transform: translate(-8%, -12%); }
+          100% { transform: translate(2%, -5%); }
+        }
+        @keyframes pulse {
+          0% { opacity: 0.3; transform: scale(1); }
+          100% { opacity: 1; transform: scale(1.5); }
         }
       `}</style>
     </div>
