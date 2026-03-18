@@ -17,83 +17,49 @@ export default function InteractiveBackground() {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[-1] overflow-hidden bg-[#050505]">
-      {/* Primary Floating Orb (Top Left) */}
+    <div className="fixed inset-0 z-[-1] overflow-hidden bg-[#030303]">
+      {/* Top-Down Ambient Light (Main Pro Look) */}
       <div 
-        className="absolute w-[60vw] h-[60vw] rounded-full blur-[100px] opacity-20 transition-transform duration-1000 ease-linear"
+        className="absolute inset-x-0 top-0 h-[60vh] opacity-30"
         style={{
-          background: 'radial-gradient(circle, #f97316 0%, transparent 70%)',
-          top: '-10%',
-          left: '-10%',
-          animation: 'float1 30s ease-in-out infinite alternate',
+          background: 'radial-gradient(ellipse at 50% 0%, rgba(249, 115, 22, 0.25) 0%, transparent 80%)',
+          filter: 'blur(100px)',
         }}
       />
 
-      {/* Secondary Floating Orb (Bottom Right) */}
+      {/* Subtle Side Glow */}
       <div 
-        className="absolute w-[50vw] h-[50vw] rounded-full blur-[120px] opacity-[0.15] transition-transform duration-1000 ease-linear"
+        className="absolute bottom-0 right-0 w-[50vw] h-[50vh] opacity-10"
         style={{
-          background: 'radial-gradient(circle, #fbbf24 0%, transparent 70%)',
-          bottom: '-15%',
-          right: '-15%',
-          animation: 'float2 25s ease-in-out infinite alternate',
+          background: 'radial-gradient(circle at 100% 100%, rgba(249, 115, 22, 0.1) 0%, transparent 70%)',
+          filter: 'blur(80px)',
         }}
       />
 
-      {/* Mouse Spotlight (High Intensity) */}
+      {/* Interactive Cursor Light (Very Minimal/Pro) */}
       <div 
-        className="absolute inset-0 pointer-events-none transition-opacity duration-500"
+        className="absolute inset-0 pointer-events-none"
         style={{
-          background: `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(249, 115, 22, 0.1) 0%, transparent 25%)`,
-        }}
-      />
-      
-      {/* Subtle Central Nebula */}
-      <div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[40vw] rounded-[100%] blur-[150px] opacity-10"
-        style={{
-          background: 'radial-gradient(circle, #ea580c 0%, transparent 80%)',
+          background: `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(249, 115, 22, 0.04) 0%, transparent 20%)`,
         }}
       />
 
-      {/* Dynamic Stardust / Sparkles (50+ items) */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(50)].map((_, i) => {
-          const size = Math.random() * 2 + 1; // 1px to 3px
-          const delay = Math.random() * 10;
-          const duration = 5 + Math.random() * 10;
-          return (
-            <div
-              key={i}
-              className="absolute bg-orange-400/30 rounded-full"
-              style={{
-                width: `${size}px`,
-                height: `${size}px`,
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                boxShadow: `0 0 ${size * 2}px rgba(249, 115, 22, 0.4)`,
-                animation: `twinkle ${duration}s ease-in-out ${delay}s infinite alternate`,
-              }}
-            />
-          );
-        })}
-      </div>
+      {/* Professional Dot Grid */}
+      <div 
+        className="absolute inset-0 opacity-[0.03]" 
+        style={{
+          backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 0)`,
+          backgroundSize: '40px 40px',
+          maskImage: 'radial-gradient(ellipse at 50% 50%, black 20%, transparent 90%)',
+        }}
+      />
+
+      {/* Ultra-Fine Micro Texture */}
+      <div className="absolute inset-0 opacity-[0.01] pointer-events-none noise-overlay" />
 
       <style jsx>{`
-        @keyframes float1 {
-          0% { transform: translate(0, 0) rotate(0deg); }
-          50% { transform: translate(5%, 10%) rotate(5deg); }
-          100% { transform: translate(-5%, 5%) rotate(-5deg); }
-        }
-        @keyframes float2 {
-          0% { transform: translate(0, 0); }
-          50% { transform: translate(-8%, -12%); }
-          100% { transform: translate(2%, -5%); }
-        }
-        @keyframes twinkle {
-          0% { opacity: 0.1; transform: scale(0.8) translateY(0); }
-          50% { opacity: 0.8; transform: scale(1.2) translateY(-10px); }
-          100% { opacity: 0.2; transform: scale(0.9) translateY(0); }
+        .noise-overlay {
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
         }
       `}</style>
     </div>
