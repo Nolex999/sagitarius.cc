@@ -56,19 +56,27 @@ export default function InteractiveBackground() {
         }}
       />
 
-      {/* Decorative Light Flecks (Minimal) */}
-      <div className="absolute inset-0 opacity-[0.05] pointer-events-none overflow-hidden">
-        {[...Array(3)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-2 h-2 bg-orange-400 rounded-full blur-[4px]"
-            style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              animation: `pulse ${4 + i}s ease-in-out infinite alternate`,
-            }}
-          />
-        ))}
+      {/* Dynamic Stardust / Sparkles (50+ items) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {[...Array(50)].map((_, i) => {
+          const size = Math.random() * 2 + 1; // 1px to 3px
+          const delay = Math.random() * 10;
+          const duration = 5 + Math.random() * 10;
+          return (
+            <div
+              key={i}
+              className="absolute bg-orange-400/30 rounded-full"
+              style={{
+                width: `${size}px`,
+                height: `${size}px`,
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                boxShadow: `0 0 ${size * 2}px rgba(249, 115, 22, 0.4)`,
+                animation: `twinkle ${duration}s ease-in-out ${delay}s infinite alternate`,
+              }}
+            />
+          );
+        })}
       </div>
 
       <style jsx>{`
@@ -82,9 +90,10 @@ export default function InteractiveBackground() {
           50% { transform: translate(-8%, -12%); }
           100% { transform: translate(2%, -5%); }
         }
-        @keyframes pulse {
-          0% { opacity: 0.3; transform: scale(1); }
-          100% { opacity: 1; transform: scale(1.5); }
+        @keyframes twinkle {
+          0% { opacity: 0.1; transform: scale(0.8) translateY(0); }
+          50% { opacity: 0.8; transform: scale(1.2) translateY(-10px); }
+          100% { opacity: 0.2; transform: scale(0.9) translateY(0); }
         }
       `}</style>
     </div>
