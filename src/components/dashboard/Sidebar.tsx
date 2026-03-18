@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
-  Database,
   Cpu,
   User,
   Crown,
@@ -40,12 +39,9 @@ const navItems: NavItem[] = [
   { href: '/dashboard/s5', label: 'Settings', icon: Settings, requiredRole: ['owner'] },
 ];
 
-// ===== ROLE SYSTEM =====
 const OWNER_EMAILS = ['chris@sagitarius.cc', 'chris@nolex.me', 'n0lex9999@gmail.com'];
 const ADMIN_EMAILS = ['admin@sagitarius.cc'];
 
-// This should ideally fetch from public.profiles, but keeping sync logic for now
-// We will enhance this to fetch the actual role from supabase in the component
 function getUserRole(email?: string, dbRole?: string): UserRole {
   if (dbRole) return dbRole as UserRole;
   if (!email) return 'member';
@@ -56,50 +52,17 @@ function getUserRole(email?: string, dbRole?: string): UserRole {
 }
 
 function RoleBadge({ role }: { role: UserRole }) {
-  if (role === 'owner') {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold bg-black text-white border border-white/20 shadow-[0_0_12px_rgba(255,255,255,0.08)]">
-        <Crown size={8} strokeWidth={2.5} />
-        Owner
-      </span>
-    );
-  }
-  if (role === 'admin') {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold border"
-        style={{
-          background: 'linear-gradient(135deg, #b8860b 0%, #ffd700 50%, #b8860b 100%)',
-          backgroundSize: '200% 200%',
-          animation: 'goldShimmer 3s ease infinite',
-          color: '#1a1000',
-          borderColor: 'rgba(255, 215, 0, 0.4)',
-          boxShadow: '0 0 10px rgba(255, 215, 0, 0.15)',
-        }}
-      >
-        <Shield size={8} strokeWidth={2.5} />
-        Admin
-      </span>
-    );
-  }
-  if (role === 'vip') {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold bg-orange-500/20 text-orange-400 border border-orange-500/30">
-        VIP
-      </span>
-    );
-  }
-  if (role === 'high_member') {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold bg-orange-600/10 text-orange-300 border border-orange-500/20">
-        High Member
-      </span>
-    );
-  }
-  return (
-    <span className="text-[9px] uppercase tracking-widest text-[#555] font-bold">
-      Member
+  if (role === 'owner') return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold bg-black text-white border border-white/20 shadow-[0_0_12px_rgba(255,255,255,0.08)]">
+      <Crown size={8} strokeWidth={2.5} /> Owner
     </span>
   );
+  if (role === 'admin') return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold border bg-gradient-to-r from-orange-400 to-yellow-600 text-black border-orange-400/20 shadow-[0_0_10px_rgba(255,215,0,0.15)]">
+      <Shield size={8} strokeWidth={2.5} /> Admin
+    </span>
+  );
+  return <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Member</span>;
 }
 
 export default function Sidebar({ user }: { user: AuthUser }) {
@@ -110,18 +73,13 @@ export default function Sidebar({ user }: { user: AuthUser }) {
   useEffect(() => {
     async function fetchRole() {
       const supabase = createClient();
-      const { data } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
+      const { data } = await supabase.from('profiles').select('role').eq('id', user.id).single();
       if (data) setDbRole(data.role);
     }
     fetchRole();
   }, [user.id]);
 
   const role = getUserRole(user?.email, dbRole || undefined);
-
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -129,136 +87,58 @@ export default function Sidebar({ user }: { user: AuthUser }) {
     router.refresh();
   };
 
-  // Filter nav items based on role
-  const visibleItems = navItems.filter(item => {
-    if (!item.requiredRole) return true;
-    return item.requiredRole.includes(role);
-  });
+  const visibleItems = navItems.filter(item => !item.requiredRole || item.requiredRole.includes(role));
 
   return (
     <header className="sticky top-0 z-[100] w-full border-b border-white/[0.04] bg-black/60 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center">
-        {/* Logo & Brand - Left Section (fixed width for centering) */}
-        <div className="w-[200px] flex justify-start">
-          <Link href="/dashboard/software" className="flex items-center gap-4 group shrink-0">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500/10 border border-orange-500/20 shadow-[0_0_20px_rgba(249,115,22,0.1)] transition-all group-hover:scale-110 group-hover:rotate-3 overflow-hidden">
-              <Image src="/logo.svg" alt="Logo" width={28} height={28} className="brightness-125 select-none" />
+        {/* LEFT SECTION (Logo) */}
+        <div className="w-[200px] flex items-center gap-3">
+          <Link href="/dashboard/software" className="flex items-center gap-4 shrink-0 group">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500/10 border border-orange-500/20 transition-all group-hover:scale-110 shadow-[0_0_20px_rgba(249,115,22,0.1)]">
+              <Image src="/logo.svg" alt="Logo" width={26} height={26} className="brightness-125 select-none" />
             </div>
             <div className="flex flex-col">
-              <span className="font-mono text-[11px] font-black uppercase tracking-[0.4em] text-white leading-none">
-                SAGITARIUS
-              </span>
-              <span className="text-[8px] text-orange-500/50 uppercase tracking-[0.3em] font-bold mt-1">
-                Dashboard
-              </span>
+              <span className="font-mono text-[11px] font-black uppercase tracking-[0.4em] text-white leading-none">SAGITARIUS</span>
+              <span className="text-[8px] text-orange-500/50 uppercase tracking-[0.3em] font-bold mt-1">Dashboard</span>
             </div>
           </Link>
         </div>
-        
-        {/* Navigation Items - Center Section (True Center) */}
-        <nav className="flex-1 hidden md:flex items-center justify-center gap-6">
-          {visibleItems.map(({ href, label, icon: Icon, requiredRole }) => {
+
+        {/* CENTER SECTION (Navigation) */}
+        <nav className="flex-1 flex items-center justify-center gap-6">
+          {visibleItems.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href;
-            const isRestricted = !!requiredRole;
             return (
               <Link
                 key={href}
                 href={href}
-                className={`relative flex items-center gap-3 h-10 px-6 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 transform hover:-translate-y-1.5 ${isActive
-                    ? 'bg-orange-500/15 text-white border border-orange-500/30 shadow-[0_8px_30px_rgba(249,115,22,0.15)]'
-                    : 'text-white/40 hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/10 hover:shadow-xl'
-                  }`}
+                className={`flex items-center gap-3 h-10 px-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all transform hover:-translate-y-1 ${
+                  isActive ? 'bg-orange-500/15 text-white border border-orange-500/30' : 'text-white/40 hover:text-white hover:bg-white/5'
+                }`}
               >
                 <Icon size={14} strokeWidth={isActive ? 3 : 1.5} className={isActive ? 'text-orange-400' : ''} />
-                <span>{label}</span>
-                {isRestricted && !isActive && (
-                  <div className="w-1 h-1 rounded-full bg-orange-500/40" />
-                )}
-                {isActive && (
-                  <div className="absolute -bottom-2.5 left-6 right-6 h-0.5 bg-orange-500 rounded-full shadow-[0_0_20px_rgba(249,115,22,1)]" />
-                )}
+                <span className="hidden lg:inline">{label}</span>
               </Link>
             );
           })}
         </nav>
 
-        {/* User Profile - Right Section (balanced with logo) */}
-        <div className="w-[200px] hidden md:flex justify-end items-center gap-4 pl-4 border-l border-white/[0.08]">
-          <div className={`flex items-center gap-3 rounded-2xl p-1.5 pr-4 border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-            role === 'owner' 
-              ? 'bg-white/[0.03] border-white/[0.1] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]' 
-              : role === 'admin'
-                ? 'bg-orange-500/[0.03] border-orange-400/[0.1]'
-                : 'bg-white/[0.02] border-white/[0.05]'
-          }`}>
-            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl font-mono text-sm font-black shadow-lg border transition-all ${
-              role === 'owner'
-                ? 'bg-white text-black border-white'
-                : role === 'admin'
-                  ? 'bg-gradient-to-br from-orange-400 to-yellow-600 border-orange-400 text-white'
-                  : 'bg-white/10 border-white/10 text-white'
-            }`}>
-              {user?.email?.[0].toUpperCase() ?? '?'}
+        {/* RIGHT SECTION (Profile & Logout) */}
+        <div className="w-[200px] flex justify-end items-center gap-4 pl-4 border-l border-white/10">
+          <div className="flex items-center gap-3 rounded-2xl p-1 pr-3 border border-white/5 bg-white/[0.02]">
+            <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-white/10 font-mono text-sm font-black text-white">
+              {user?.email?.[0].toUpperCase()}
             </div>
             <div className="hidden sm:block">
-              <p className="text-[10px] font-black text-white tracking-[0.1em] uppercase">{user?.email?.split('@')[0]}</p>
               <RoleBadge role={role} />
             </div>
           </div>
-          
-          <button
-            onClick={handleLogout}
-            className="p-3 rounded-2xl text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all duration-300 hover:-translate-y-1 group"
-            title="Logout"
-          >
-            <LogOut size={20} strokeWidth={1.5} className="transition-transform group-hover:scale-110" />
+          <button onClick={handleLogout} className="p-2.5 rounded-2xl text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all">
+            <LogOut size={20} />
           </button>
         </div>
       </div>
-
-      {/* MOBILE BOTTOM DOCK */}
-      <div className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-[400px]">
-        <div className="bg-black/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-2 px-3 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-between gap-1">
-          {visibleItems.slice(0, 4).map(({ href, icon: Icon }) => {
-            const isActive = pathname === href;
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={`flex-1 flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all ${
-                  isActive ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' : 'text-white/30 hover:text-white/60'
-                }`}
-              >
-                <Icon size={20} strokeWidth={isActive ? 2.5 : 1.5} />
-              </Link>
-            );
-          })}
-          
-          {/* Profile & Logout Group with a "Slide" feel indicator */}
-          <div className="flex-1 flex items-center justify-center border-l border-white/5 pl-1 ml-1 gap-1">
-            <div className={`h-10 w-10 flex items-center justify-center rounded-2xl border transition-all ${
-              role === 'owner' ? 'bg-white text-black border-white' : 'bg-orange-500/10 border-orange-500/20 text-orange-400'
-            }`}>
-              {user?.email?.[0].toUpperCase()}
-            </div>
-            <button
-               onClick={handleLogout}
-               className="h-10 w-10 flex items-center justify-center rounded-2xl bg-red-500/5 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 transition-all active:scale-95"
-            >
-              <LogOut size={18} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Gold shimmer animation style remains for badges */}
-      <style jsx>{`
-        @keyframes goldShimmer {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-      `}</style>
     </header>
   );
 }
