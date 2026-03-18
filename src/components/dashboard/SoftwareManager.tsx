@@ -325,7 +325,7 @@ export default function SoftwareManager() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
-        <Loader2 className="animate-spin text-purple-500" size={32} />
+        <Loader2 className="animate-spin text-orange-500" size={32} />
         <p className="text-white/40 text-sm animate-pulse">Loading software library...</p>
       </div>
     );
@@ -336,7 +336,7 @@ export default function SoftwareManager() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-            <Package size={28} className="text-purple-500" />
+            <Package size={28} className="text-orange-500" />
             Software Library
           </h1>
           <p className="text-sm text-white/40 mt-1">
@@ -360,14 +360,14 @@ export default function SoftwareManager() {
                value={newCategoryName}
                onChange={e => setNewCategoryName(e.target.value)}
                placeholder="Category name..."
-               className="flex-1 h-12 px-5 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-purple-500/40 transition-all"
+               className="flex-1 h-12 px-5 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-all"
             />
             <input
                type="text"
                value={newCategoryLogo}
                onChange={e => setNewCategoryLogo(e.target.value)}
                placeholder="Logo URL (optional)..."
-               className="flex-1 h-12 px-5 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-purple-500/40 transition-all"
+               className="flex-1 h-12 px-5 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-all"
             />
             <button
                onClick={addCategory}
@@ -466,7 +466,7 @@ export default function SoftwareManager() {
                         onChange={e => setUserInputKeys({ ...userInputKeys, [cat.id]: e.target.value })}
                         onKeyDown={e => e.key === 'Enter' && verifyAndDownload(cat.id)}
                         placeholder="XXXX-XXXX-XXXX-XXXX"
-                        className="w-full h-11 pl-11 pr-4 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500/40 font-mono tracking-wider transition-all"
+                        className="w-full h-11 pl-11 pr-4 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-white focus:outline-none focus:border-orange-500/40 font-mono tracking-wider transition-all"
                       />
                     </div>
                     <button
@@ -485,19 +485,19 @@ export default function SoftwareManager() {
                   <div className="space-y-3">
                     <button 
                       onClick={() => fetchKeys(cat.id)}
-                      className="flex items-center gap-2 text-[10px] font-bold text-purple-400/60 hover:text-purple-400 uppercase tracking-widest transition-all"
+                      className="flex items-center gap-2 text-[10px] font-bold text-orange-400/60 hover:text-orange-400 uppercase tracking-widest transition-all"
                     >
                       <Key size={12} />
                       {cat.isKeysOpen ? 'Close Key Management' : 'Manage Activation Keys'}
                     </button>
 
                     {cat.isKeysOpen && (
-                      <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/10 space-y-4">
+                      <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/10 space-y-4">
                         <div className="flex items-center justify-between">
-                           <h5 className="text-[10px] text-purple-400/80 uppercase tracking-widest font-bold">Active Keys</h5>
+                           <h5 className="text-[10px] text-orange-400/80 uppercase tracking-widest font-bold">Active Keys</h5>
                            <button 
                              onClick={() => createKey(cat.id)}
-                             className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[9px] bg-purple-500 text-white font-bold uppercase tracking-widest hover:bg-purple-600 transition-all"
+                             className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[9px] bg-orange-500 text-white font-bold uppercase tracking-widest hover:bg-orange-600 transition-all"
                            >
                               <Plus size={10} /> Generate New Key
                            </button>
@@ -541,7 +541,7 @@ export default function SoftwareManager() {
                             fileInputRef.current?.click();
                           }}
                           disabled={uploading === cat.id}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] bg-purple-500/10 border border-purple-500/20 text-purple-400 font-bold uppercase tracking-widest hover:bg-purple-500/20 transition-all"
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] bg-orange-500/10 border border-orange-500/20 text-orange-400 font-bold uppercase tracking-widest hover:bg-orange-500/20 transition-all"
                         >
                           {uploading === cat.id ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
                           Add Loader
@@ -564,13 +564,13 @@ export default function SoftwareManager() {
                   {cat.files.map(file => (
                     <div key={file.id} className="flex items-center justify-between p-4 rounded-xl bg-black/40 border border-white/[0.04] hover:border-white/[0.08] transition-all group/file">
                       <div className="flex items-center gap-4">
-                        <div className={`p-2 rounded-lg ${file.is_loader ? 'bg-purple-500/10 text-purple-400' : 'bg-white/[0.03] text-white/40'}`}>
+                        <div className={`p-2 rounded-lg ${file.is_loader ? 'bg-orange-500/10 text-orange-400' : 'bg-white/[0.03] text-white/40'}`}>
                           <Package size={20} />
                         </div>
                         <div>
                           <p className="text-sm font-bold text-white">
                             {file.name}
-                            {file.is_loader && <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] bg-purple-500 text-white leading-none">LOADER</span>}
+                            {file.is_loader && <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] bg-orange-500 text-white leading-none">LOADER</span>}
                           </p>
                           <p className="text-[10px] text-white/30 mt-0.5">Version {file.version || '1.0.0'} • {file.size}</p>
                         </div>

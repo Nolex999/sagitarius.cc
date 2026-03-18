@@ -139,12 +139,12 @@ export default function GetKeyManager() {
     <div className="max-w-6xl mx-auto space-y-12 py-4 px-6">
       <Script src="https://sellauth.com/static/js/embed.js" strategy="afterInteractive" />
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] uppercase font-bold tracking-widest">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[10px] uppercase font-bold tracking-widest">
           <Zap size={12} fill="currentColor" />
           Premium Access
         </div>
         <h1 className="text-4xl font-extrabold text-white tracking-tight sm:text-5xl">
-          Get Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">Access Key</span>
+          Get Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-500">Access Key</span>
         </h1>
         <p className="text-lg text-white/40 max-w-2xl mx-auto leading-relaxed">
           Unlock instant access to Sagitarius private software. Secure, anonymous, and high-performance.
@@ -160,7 +160,7 @@ export default function GetKeyManager() {
             Verify My Purchase
           </button>
           {verifyResult && (
-            <p className="mt-3 text-[10px] text-purple-400 font-bold uppercase tracking-widest animate-pulse">
+            <p className="mt-3 text-[10px] text-orange-400 font-bold uppercase tracking-widest animate-pulse">
               {verifyResult}
             </p>
           )}
@@ -173,12 +173,12 @@ export default function GetKeyManager() {
             key={plan.id}
             className={`relative flex flex-col rounded-[2.5rem] border transition-all duration-500 p-8 group ${
               plan.highlight 
-                ? 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border-purple-500/30 shadow-[0_20px_50px_rgba(168,85,247,0.1)]' 
+                ? 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border-orange-500/30 shadow-[0_20px_50px_rgba(249,115,22,0.1)]' 
                 : 'bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12]'
             }`}
           >
             {plan.highlight && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-purple-500 text-white text-[10px] font-bold uppercase tracking-widest shadow-lg">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-orange-500 text-white text-[10px] font-bold uppercase tracking-widest shadow-lg">
                 Best Value
               </div>
             )}
@@ -251,7 +251,7 @@ export default function GetKeyManager() {
           </div>
         </div>
         <div className="p-8 rounded-[2rem] bg-white/[0.01] border border-white/[0.04] flex items-start gap-6">
-          <div className="h-14 w-14 rounded-2xl bg-purple-500/10 flex items-center justify-center flex-shrink-0 text-purple-400">
+          <div className="h-14 w-14 rounded-2xl bg-orange-500/10 flex items-center justify-center flex-shrink-0 text-orange-400">
             <Globe size={28} />
           </div>
           <div>

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Save, Globe, Copy, Check, ExternalLink, Loader2, Undo2, Redo2 } from 'lucide-react';
+import { Save, Globe, Copy, Check, ExternalLink, Loader2, Undo2, Redo2, User, Layout, Palette, Zap, Music, BarChart3, Layers, Search, Code, Package } from 'lucide-react';
+import Image from 'next/image';
 import BioEditor from '@/components/dashboard/bio/BioEditor';
 import BioPreview from '@/components/dashboard/bio/BioPreview';
 import { createClient } from '@/lib/supabase/client';
@@ -114,6 +115,20 @@ export default function S3Page() {
   // Undo / Redo history
   const [history, setHistory] = useState<BioConfig[]>([defaultConfig]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState('profile');
+
+  const tabs = [
+    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'layout', label: 'Layout', icon: Layout },
+    { id: 'theme', label: 'Theme', icon: Palette },
+    { id: 'effects', label: 'Effects', icon: Zap },
+    { id: 'links', label: 'Links', icon: Layers },
+    { id: 'music', label: 'Music', icon: Music },
+    { id: 'stats', label: 'Stats', icon: BarChart3 },
+    { id: 'widgets', label: 'Widgets', icon: Package },
+    { id: 'seo', label: 'SEO', icon: Search },
+    { id: 'advanced', label: 'Advanced', icon: Code },
+  ];
 
   const handleConfigChange = useCallback((newConfig: BioConfig) => {
     setConfig(newConfig);
@@ -303,118 +318,129 @@ export default function S3Page() {
   }
 
   return (
-    <div className="flex h-full">
-      {/* Editor Panel */}
-      <div className="w-[420px] shrink-0 overflow-y-auto border-r border-[var(--border)] bg-[var(--bg-base)]">
-        <BioEditor config={config} onChange={handleConfigChange} />
-      </div>
-      
-      {/* Preview Panel */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Preview Controls */}
-        <div className="flex items-center justify-between px-6 py-3 border-b border-[var(--border)]">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1 rounded-lg bg-white/[0.03] border border-white/[0.06] p-0.5">
-              <button 
-                onClick={() => setPreviewMode('desktop')}
-                className={`px-3 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold transition-all ${
-                  previewMode === 'desktop' ? 'bg-white/10 text-white' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-                }`}
-              >
-                Desktop
-              </button>
-              <button 
-                onClick={() => setPreviewMode('mobile')}
-                className={`px-3 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold transition-all ${
-                  previewMode === 'mobile' ? 'bg-white/10 text-white' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-                }`}
-              >
-                Mobile
-              </button>
-            </div>
-            
-            <div className="flex items-center gap-1 rounded-lg bg-white/[0.03] border border-white/[0.06] p-0.5 ml-1">
-              <button 
-                onClick={undo} 
-                disabled={historyIndex === 0} 
-                className={`p-1.5 rounded-md transition-all ${historyIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/10 text-white'}`}
-                title="Undo"
-              >
-                <Undo2 size={13} />
-              </button>
-              <button 
-                onClick={redo} 
-                disabled={historyIndex === history.length - 1} 
-                className={`p-1.5 rounded-md transition-all ${historyIndex === history.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/10 text-white'}`}
-                title="Redo"
-              >
-                <Redo2 size={13} />
-              </button>
-            </div>
-
-            {config.username && (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleCopyUrl}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[10px] text-[var(--text-secondary)] hover:text-white hover:border-white/15 transition-all"
-                >
-                  {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} />}
-                  <span className="font-mono">{publicUrl}</span>
-                </button>
-                {isPublished && (
-                  <a
-                    href={publicUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] text-green-400/70 hover:text-green-400 transition-all"
-                  >
-                    <ExternalLink size={11} />
-                  </a>
-                )}
-              </div>
-            )}
+    <div className="flex flex-col h-full bg-[#020202]">
+      {/* Top Navigation Bar */}
+      <div className="flex items-center justify-between px-6 pt-[15px] pb-4 border-b border-white/[0.04] bg-[#050505]/80 backdrop-blur-xl z-30">
+        <div className="flex items-center gap-8">
+          <div className="flex items-center gap-3">
+             <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+                <Image src="/logo.svg" alt="Logo" width={18} height={18} className="brightness-125" />
+             </div>
+             <span className="font-mono text-[10px] font-black uppercase tracking-[0.4em] text-white">Sagitarius</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleTogglePublish}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-wider font-bold transition-all border ${
-                isPublished
-                  ? 'bg-green-500/10 border-green-400/20 text-green-400'
-                  : 'bg-white/[0.02] border-white/[0.06] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-              }`}
-            >
-              <Globe size={12} />
-              {isPublished ? 'Online' : 'Offline'}
-            </button>
-
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[10px] uppercase tracking-wider font-bold transition-all border ${
-                saved
-                  ? 'bg-green-500/15 border-green-400/25 text-green-400'
-                  : 'bg-white/10 border-white/15 text-white hover:bg-white/15'
-              } disabled:opacity-50`}
-            >
-              {saving ? (
-                <Loader2 size={12} className="animate-spin" />
-              ) : saved ? (
-                <Check size={12} />
-              ) : (
-                <Save size={12} />
-              )}
-              {saving ? 'Saving...' : saved ? 'Saved!' : 'Save'}
-            </button>
+          <div className="flex items-center gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/[0.06]">
+            {tabs.map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`group relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-300 ${
+                    isActive 
+                      ? 'bg-orange-500/20 text-orange-300 shadow-[0_0_20px_rgba(249,115,22,0.1)]' 
+                      : 'text-white/30 hover:text-white hover:bg-white/5'
+                  }`}
+                  title={tab.label}
+                >
+                  <Icon size={16} strokeWidth={isActive ? 2.5 : 1.5} />
+                  {isActive && (
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-[2px] bg-orange-400 rounded-full" />
+                  )}
+                  {/* Tooltip */}
+                  <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-black border border-white/10 text-[8px] font-bold uppercase tracking-widest text-white opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-50 whitespace-nowrap shadow-2xl translate-y-2 group-hover:translate-y-0">
+                    {tab.label}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 rounded-lg bg-white/[0.03] border border-white/[0.06] p-0.5 mr-2">
+            <button 
+              onClick={undo} 
+              disabled={historyIndex === 0} 
+              className={`p-1.5 rounded-md transition-all ${historyIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/10 text-white'}`}
+            >
+              <Undo2 size={13} />
+            </button>
+            <button 
+              onClick={redo} 
+              disabled={historyIndex === history.length - 1} 
+              className={`p-1.5 rounded-md transition-all ${historyIndex === history.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/10 text-white'}`}
+            >
+              <Redo2 size={13} />
+            </button>
+          </div>
+
+          <button
+            onClick={handleTogglePublish}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] uppercase font-black tracking-widest transition-all border ${
+              isPublished
+                ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                : 'bg-white/5 border-white/10 text-white/40 hover:text-white'
+            }`}
+          >
+            <Globe size={12} />
+            {isPublished ? 'Online' : 'Offline'}
+          </button>
+
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-[10px] uppercase font-black tracking-widest transition-all shadow-[0_4px_20px_rgba(234,88,12,0.2)] disabled:opacity-50"
+          >
+            {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Editor Panel */}
+        <div className="w-[400px] shrink-0 overflow-y-auto border-r border-white/[0.04] bg-[#050505]/50">
+          <BioEditor config={config} onChange={handleConfigChange} activeTab={activeTab as any} />
+        </div>
         
-        {/* Preview Area */}
-        <div className="flex-1 flex items-center justify-center p-6 bg-[#050505] overflow-auto">
-          <div className={`transition-all duration-500 ${
-            previewMode === 'mobile' ? 'w-[390px] h-[844px] rounded-[2.5rem] border-4 border-white/10 shadow-2xl overflow-hidden' : 'w-full h-full rounded-xl overflow-hidden border border-white/[0.06]'
-          }`}>
-            <BioPreview config={config} />
+        {/* Preview Panel */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-[#0a0a0a]">
+          {/* Sub-bar for Preview Controls */}
+          <div className="flex items-center justify-between px-8 py-4 bg-[#050505]/30 border-b border-white/[0.04]">
+            <div className="flex items-center gap-4">
+               <div className="flex items-center gap-1 bg-white/[0.02] border border-white/[0.06] rounded-xl p-1">
+                 <button onClick={() => setPreviewMode('desktop')} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${previewMode === 'desktop' ? 'bg-white text-black' : 'text-white/40 hover:text-white'}`}>Desktop View</button>
+                 <button onClick={() => setPreviewMode('mobile')} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${previewMode === 'mobile' ? 'bg-white text-black' : 'text-white/40 hover:text-white'}`}>Mobile View</button>
+               </div>
+               
+               {config.username && (
+                 <button onClick={handleCopyUrl} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] text-[10px] text-white/40 hover:text-white transition-all">
+                   {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+                   <span className="font-mono opacity-60">/{config.username}</span>
+                 </button>
+               )}
+            </div>
+            
+            <div className="text-[10px] text-white/20 font-black uppercase tracking-[0.2em] flex items-center gap-2">
+               <div className="w-1.5 h-1.5 rounded-full bg-orange-500/50 animate-pulse" />
+               Live Preview
+            </div>
+          </div>
+          
+          {/* Preview Area */}
+          <div className="flex-1 flex items-center justify-center p-12 overflow-auto relative">
+            {/* Background pattern */}
+            <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+            
+            <div className={`transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+              previewMode === 'mobile' 
+                ? 'w-[390px] h-[844px] rounded-[3.5rem] border-[12px] border-[#111] shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden scale-[0.85]' 
+                : 'w-full h-full rounded-2xl overflow-hidden border border-white/[0.06] shadow-2xl'
+            }`}>
+              <BioPreview config={config} />
+            </div>
           </div>
         </div>
       </div>

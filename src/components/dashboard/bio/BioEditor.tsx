@@ -1421,7 +1421,20 @@ export default function BioEditor({ config, onChange }: EditorProps) {
     );
   };
 
-  const tabContent: Record<TabId, () => React.ReactNode> = {
+export default function BioEditor({ 
+  config, 
+  onChange,
+  activeTab
+}: { 
+  config: BioConfig; 
+  onChange: (newConfig: BioConfig) => void;
+  activeTab: any;
+}) {
+  const update = (key: keyof BioConfig, value: any) => {
+    onChange({ ...config, [key]: value });
+  };
+...
+  const tabContent: Record<string, () => React.ReactNode> = {
     profile: renderProfile,
     layout: renderLayout,
     theme: renderTheme,
@@ -1436,56 +1449,17 @@ export default function BioEditor({ config, onChange }: EditorProps) {
 
   return (
     <div className="flex flex-col h-full bg-[var(--bg-base)]">
-      {/* Tab Navigation — Modern Top Bar */}
-      <div className="pt-[15px] px-4 pb-3 border-b border-white/[0.04] bg-white/[0.01] backdrop-blur-md sticky top-0 z-20">
-        <div className="flex items-center justify-center gap-1">
-          {tabs.map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                title={tab.label}
-                className={`relative flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300 ease-out group ${
-                  isActive
-                    ? 'bg-orange-500/15 text-orange-300 scale-110 shadow-[0_0_20px_rgba(249,115,22,0.1)]'
-                    : 'text-[var(--text-muted)] hover:text-white hover:bg-white/[0.05] hover:scale-105'
-                }`}
-              >
-                <Icon size={15} strokeWidth={isActive ? 2.5 : 1.5} />
-                
-                {/* Smooth indicator line */}
-                {isActive && (
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-orange-400 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.6)] animate-in fade-in zoom-in duration-300" />
-                )}
-
-                {/* Tooltip */}
-                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-black/90 border border-white/10 text-[8px] font-extrabold uppercase tracking-widest text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 transform translate-y-1 group-hover:translate-y-0 shadow-xl">
-                  {tab.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+      {/* Tab Content Header */}
+      <div className="px-6 py-6 border-b border-white/[0.04]">
+        <h2 className="text-[11px] font-black text-orange-400 uppercase tracking-[0.2em]">
+          {activeTab} Settings
+        </h2>
+        <div className="h-0.5 w-8 bg-orange-500/50 mt-1 rounded-full" />
       </div>
 
-      {/* Editor Header — Secondary style */}
-      <div className="px-6 py-4 flex items-center justify-between">
-        <div>
-          <h2 className="text-[11px] font-black text-white uppercase tracking-[0.2em] opacity-80">
-            {tabs.find(t => t.id === activeTab)?.label}
-          </h2>
-          <div className="h-0.5 w-4 bg-orange-500/50 mt-1 rounded-full" />
-        </div>
-        <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest font-bold">
-          Bio Builder
-        </span>
-      </div>
-
-      {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto px-5 pb-6 pt-4">
-        {tabContent[activeTab]()}
+      {/* Tab Content Body */}
+      <div className="flex-1 overflow-y-auto px-5 pb-20 pt-4">
+        {tabContent[activeTab] ? tabContent[activeTab]() : null}
       </div>
     </div>
   );

@@ -90,7 +90,7 @@ function RoleBadge({ role }: { role: UserRole }) {
   }
   if (role === 'high_member') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold bg-orange-600/10 text-orange-300 border border-orange-500/20">
         High Member
       </span>
     );
@@ -136,78 +136,92 @@ export default function Sidebar({ user }: { user: AuthUser }) {
   });
 
   return (
-    <aside className="flex w-[260px] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--bg-base)]">
-      <div className="flex items-center gap-4 px-6 py-8">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.03] border border-white/10 shadow-inner overflow-hidden">
-          <Image src="/logo.svg" alt="Logo" width={24} height={24} className="brightness-125 select-none" />
-        </div>
-        <span className="font-mono text-[11px] font-bold uppercase tracking-[0.3em] text-[var(--text-primary)]">
-          SAGITARIUS.CC
-        </span>
-      </div>
-      
-      <nav className="flex-1 space-y-1.5 px-4 py-4">
-        {visibleItems.map(({ href, label, icon: Icon, requiredRole }) => {
-          const isActive = pathname === href;
-          const isRestricted = !!requiredRole;
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`flex h-11 items-center gap-4 rounded-xl px-4 text-[11px] font-bold uppercase tracking-[0.15em] transition-all duration-300 ${isActive
-                  ? 'bg-white/5 text-white shadow-xl border border-white/10 backdrop-blur-md'
-                  : 'text-[var(--text-secondary)] hover:bg-white/[0.03] hover:text-white'
-                }`}
-            >
-              <Icon size={18} strokeWidth={isActive ? 2 : 1.5} />
-              <span className="flex-1">{label}</span>
-              {isRestricted && !isActive && (
-                <div className="w-1.5 h-1.5 rounded-full bg-orange-400/30" />
-              )}
-            </Link>
-          );
-        })}
-      </nav>
+    <header className="sticky top-0 z-[100] w-full border-b border-white/[0.04] bg-black/60 backdrop-blur-xl">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-8">
+        {/* Logo & Brand */}
+        <Link href="/dashboard/software" className="flex items-center gap-4 group shrink-0">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500/10 border border-orange-500/20 shadow-[0_0_20px_rgba(249,115,22,0.1)] transition-all group-hover:scale-110 group-hover:rotate-3 overflow-hidden">
+            <Image src="/logo.svg" alt="Logo" width={28} height={28} className="brightness-125 select-none" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-mono text-[11px] font-black uppercase tracking-[0.4em] text-white leading-none">
+              SAGITARIUS
+            </span>
+            <span className="text-[8px] text-orange-500/50 uppercase tracking-[0.3em] font-bold mt-1">
+              Dashboard
+            </span>
+          </div>
+        </Link>
+        
+        {/* Navigation Items */}
+        <nav className="flex-1 flex items-center gap-1">
+          {visibleItems.map(({ href, label, icon: Icon, requiredRole }) => {
+            const isActive = pathname === href;
+            const isRestricted = !!requiredRole;
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`relative flex items-center gap-3 h-11 px-4 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 ${isActive
+                    ? 'bg-white/5 text-white border border-white/10 shadow-lg'
+                    : 'text-white/40 hover:text-white hover:bg-white/[0.03]'
+                  }`}
+              >
+                <Icon size={16} strokeWidth={isActive ? 2.5 : 1.5} className={isActive ? 'text-orange-400' : ''} />
+                <span>{label}</span>
+                {isRestricted && !isActive && (
+                  <div className="w-1 h-1 rounded-full bg-orange-500/40" />
+                )}
+                {isActive && (
+                  <div className="absolute -bottom-4 left-4 right-4 h-0.5 bg-orange-500 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)]" />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
 
-      <div className="mt-auto border-t border-[var(--border)] p-5">
-        <div className={`mb-4 flex items-center gap-3 rounded-2xl p-3 border ${
-          role === 'owner' 
-            ? 'bg-white/[0.03] border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]' 
-            : role === 'admin'
-              ? 'bg-yellow-500/[0.03] border-yellow-400/[0.08]'
-              : 'bg-white/[0.02] border-white/[0.03]'
-        }`}>
-          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-mono text-sm font-bold shadow-lg border ${
-            role === 'owner'
-              ? 'bg-black border-white/20 text-white'
+        {/* User Profile */}
+        <div className="flex items-center gap-4 pl-4 border-l border-white/[0.08]">
+          <div className={`flex items-center gap-3 rounded-2xl p-1.5 pr-4 border transition-all ${
+            role === 'owner' 
+              ? 'bg-white/[0.03] border-white/[0.1] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]' 
               : role === 'admin'
-                ? 'bg-gradient-to-br from-yellow-600/30 to-yellow-900/20 border-yellow-400/20 text-yellow-300'
-                : 'bg-gradient-to-br from-white/10 to-transparent border-white/10 text-white'
+                ? 'bg-orange-500/[0.03] border-orange-400/[0.1]'
+                : 'bg-white/[0.02] border-white/[0.05]'
           }`}>
-            {user?.email?.[0].toUpperCase() ?? '?'}
+            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl font-mono text-sm font-black shadow-lg border transition-all ${
+              role === 'owner'
+                ? 'bg-white text-black border-white'
+                : role === 'admin'
+                  ? 'bg-gradient-to-br from-orange-400 to-yellow-600 border-orange-400 text-white'
+                  : 'bg-white/10 border-white/10 text-white'
+            }`}>
+              {user?.email?.[0].toUpperCase() ?? '?'}
+            </div>
+            <div className="hidden sm:block">
+              <p className="text-[10px] font-black text-white tracking-tight uppercase">{user?.email?.split('@')[0]}</p>
+              <RoleBadge role={role} />
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="truncate text-xs font-bold text-white tracking-tight">{user?.email?.split('@')[0]}</p>
-            <RoleBadge role={role} />
-          </div>
+          
+          <button
+            onClick={handleLogout}
+            className="p-3 rounded-xl text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all group"
+            title="Logout"
+          >
+            <LogOut size={20} strokeWidth={1.5} className="transition-transform group-hover:scale-110" />
+          </button>
         </div>
-        <button
-          onClick={handleLogout}
-          className="group flex h-11 w-full items-center gap-4 rounded-xl px-4 text-[11px] font-bold uppercase tracking-[0.15em] text-[#444] transition-all hover:bg-red-500/10 hover:text-red-400"
-        >
-          <LogOut size={18} strokeWidth={1.5} className="transition-transform group-hover:-translate-x-0.5" />
-          Logout
-        </button>
       </div>
 
-      {/* Gold shimmer animation */}
-      <style>{`
+      {/* Gold shimmer animation style remains for badges */}
+      <style jsx>{`
         @keyframes goldShimmer {
           0% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
         }
       `}</style>
-    </aside>
+    </header>
   );
 }
