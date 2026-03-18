@@ -5,12 +5,12 @@ import TopGradientBar from '@/components/TopGradientBar';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Sagitarius.cc | Premium Product Catalog',
-  description: 'The ultimate destination for premium products and specialized developer firmware. Powered by Archer Intelligence.',
+  title: 'Sagitarius.cc | Precision Software',
+  description: 'Premium counter-strike software. Join the elite.',
   metadataBase: new URL('https://sagitarius.cc'),
   openGraph: {
     title: 'Sagitarius.cc',
-    description: 'Premium products & specialized firmware. The ultimate product catalog.',
+    description: 'Precision built. Elite performance.',
     url: 'https://sagitarius.cc',
     siteName: 'Sagitarius',
     images: [
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Sagitarius.cc',
-    description: 'Premium products & specialized firmware.',
+    description: 'Elite gaming software.',
     images: ['/og-image.png'],
   },
   icons: {
@@ -53,9 +53,9 @@ export default function RootLayout({
         <TopGradientBar />
         <SplashOverlay />
         {children}
-        <Script 
-          type="module" 
-          src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module" 
+        <Script
+          type="module"
+          src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"
           strategy="afterInteractive"
         />
       </body>
