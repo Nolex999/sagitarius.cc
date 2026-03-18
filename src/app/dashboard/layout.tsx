@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Sidebar from '@/components/dashboard/Sidebar';
-import PageHeader from '@/components/dashboard/PageHeader';
+import InteractiveBackground from '@/components/dashboard/InteractiveBackground';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,13 +20,16 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[var(--bg-base)]">
-      <Sidebar user={session.user} />
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto w-full h-full px-6 py-8">
-          {children}
-        </div>
-      </main>
+    <div className="relative min-h-screen">
+      <InteractiveBackground />
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <Sidebar user={session.user} />
+        <main className="flex-1">
+          <div className="max-w-7xl mx-auto w-full h-full px-6 py-8">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
