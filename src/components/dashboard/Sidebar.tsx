@@ -83,7 +83,7 @@ function RoleBadge({ role }: { role: UserRole }) {
   }
   if (role === 'vip') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold bg-purple-500/20 text-purple-400 border border-purple-500/30">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold bg-orange-500/20 text-orange-400 border border-orange-500/30">
         VIP
       </span>
     );
@@ -162,7 +162,7 @@ export default function Sidebar({ user }: { user: AuthUser }) {
               <Icon size={18} strokeWidth={isActive ? 2 : 1.5} />
               <span className="flex-1">{label}</span>
               {isRestricted && !isActive && (
-                <div className="w-1.5 h-1.5 rounded-full bg-purple-400/30" />
+                <div className="w-1.5 h-1.5 rounded-full bg-orange-400/30" />
               )}
             </Link>
           );

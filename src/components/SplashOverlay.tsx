@@ -110,7 +110,7 @@ export default function SplashOverlay() {
             width: '60%',
             height: '1px',
             margin: '1.5rem auto 0',
-            background: 'linear-gradient(90deg, transparent, rgba(168,85,247,0.3), rgba(99,102,241,0.3), transparent)',
+            background: 'linear-gradient(90deg, transparent, rgba(249,115,22,0.3), rgba(251,191,36,0.3), transparent)',
             opacity: 0,
             animation: 'splashTitleReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards',
           }}

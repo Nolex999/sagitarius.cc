@@ -84,15 +84,15 @@ export default function PaletteSelector({ currentTheme, onChange }: PaletteSelec
                   onClick={() => onChange(palette.colors)}
                   className={`group relative flex flex-col gap-1.5 p-2 rounded-lg border transition-all text-left overflow-hidden ${
                     active 
-                      ? 'bg-purple-500/10 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.15)]' 
+                      ? 'bg-orange-500/10 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.15)]' 
                       : 'bg-white/[0.02] border-white/[0.05] hover:border-white/20 hover:bg-white/[0.04]'
                   }`}
                 >
                   <div className="flex items-center justify-between z-10">
-                    <span className={`text-[10px] font-bold tracking-wide ${active ? 'text-purple-300' : 'text-white/70'}`}>
+                    <span className={`text-[10px] font-bold tracking-wide ${active ? 'text-orange-300' : 'text-white/70'}`}>
                       {palette.name}
                     </span>
-                    {active && <Check size={12} className="text-purple-400" />}
+                    {active && <Check size={12} className="text-orange-400" />}
                   </div>
                   
                   <div className="flex w-full h-3 rounded-sm overflow-hidden z-10 shadow-sm border border-white/10">

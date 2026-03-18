@@ -142,11 +142,11 @@ function ToggleSwitch({ value, onChange }: { value: boolean; onChange: (v: boole
     <button
       onClick={() => onChange(!value)}
       className={`relative w-10 h-5 rounded-full transition-all duration-300 ${
-        value ? 'bg-purple-500/50 border-purple-400/30' : 'bg-white/[0.06] border-white/[0.08]'
+        value ? 'bg-orange-500/50 border-orange-400/30' : 'bg-white/[0.06] border-white/[0.08]'
       } border`}
     >
       <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-all duration-300 ${
-        value ? 'left-[calc(100%-18px)] bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'left-0.5 bg-white/30'
+        value ? 'left-[calc(100%-18px)] bg-orange-400 shadow-[0_0_8px_rgba(249,115,22,0.5)]' : 'left-0.5 bg-white/30'
       }`} />
     </button>
   );
@@ -161,7 +161,7 @@ function OptionGrid({ value, onChange, options, cols = 2 }: { value: string; onC
           onClick={() => onChange(opt.value)}
           className={`flex items-center gap-2 h-9 px-3 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all ${
             value === opt.value
-              ? 'bg-purple-500/15 border border-purple-400/30 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.1)]'
+              ? 'bg-orange-500/15 border border-orange-400/30 text-orange-300 shadow-[0_0_12px_rgba(249,115,22,0.1)]'
               : 'bg-white/[0.02] border border-white/[0.06] text-[var(--text-secondary)] hover:bg-white/[0.04] hover:text-white'
           }`}
         >
@@ -342,7 +342,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
                   key={emoji}
                   onClick={() => updateStatus('emoji', emoji)}
                   className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all ${
-                    config.statusIndicator.emoji === emoji ? 'bg-purple-500/20 border border-purple-400/30 scale-110' : 'bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04]'
+                    config.statusIndicator.emoji === emoji ? 'bg-orange-500/20 border border-orange-400/30 scale-110' : 'bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04]'
                   }`}
                 >
                   {emoji}
@@ -379,7 +379,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
               }}
               className={`px-2.5 py-1 rounded-md text-[9px] uppercase tracking-wider font-bold transition-all ${
                 isActive
-                  ? 'bg-purple-500/20 border border-purple-400/30 text-purple-300'
+                  ? 'bg-orange-500/20 border border-orange-400/30 text-orange-300'
                   : 'bg-white/[0.02] border border-white/[0.06] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
             >
@@ -404,7 +404,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
                 setCustomBadge('');
               }
             }}
-            className="shrink-0 h-9 w-9 flex items-center justify-center rounded-lg bg-purple-500/15 border border-purple-400/20 text-purple-400 hover:bg-purple-500/25 transition-all"
+            className="shrink-0 h-9 w-9 flex items-center justify-center rounded-lg bg-orange-500/15 border border-orange-400/20 text-orange-400 hover:bg-orange-500/25 transition-all"
           >
             <Plus size={14} />
           </button>
@@ -877,6 +877,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
             { value: 'underline-slide', label: 'Underline' },
             { value: 'border-glow', label: 'Brd Glow' },
             { value: 'tilt-3d', label: 'Tilt 3D' },
+            { value: 'haul', label: 'Haul' },
           ]}
           cols={3}
         />
@@ -1132,7 +1133,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
                   href={config.music.url} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-purple-400 hover:underline transition-colors flex items-center gap-1"
+                  className="text-orange-400 hover:underline transition-colors flex items-center gap-1"
                 >
                   Tester le lien <ExternalLink size={10} />
                 </a>
@@ -1375,12 +1376,12 @@ export default function BioEditor({ config, onChange }: EditorProps) {
         <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">
           Add custom CSS to customize your page even more. All your CSS will be injected dynamically.
           <br/>
-          <span className="text-purple-400">Important:</span> Prefix your selectors with <code className="text-white bg-white/10 px-1 py-0.5 rounded">.bio-page</code> to avoid global conflicts.
+          <span className="text-orange-400">Important:</span> Prefix your selectors with <code className="text-white bg-white/10 px-1 py-0.5 rounded">.bio-page</code> to avoid global conflicts.
         </p>
         
         <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.05] mb-4">
           <p className="text-[9px] text-white/50 font-mono mb-2">Example:</p>
-          <pre className="text-[10px] text-purple-300/70 font-mono leading-relaxed">
+          <pre className="text-[10px] text-orange-300/70 font-mono leading-relaxed">
 {`.bio-page .username { 
   color: #ff00ff; 
   text-shadow: 0 0 10px #ff00ff;
@@ -1410,7 +1411,7 @@ export default function BioEditor({ config, onChange }: EditorProps) {
             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
               cssStatus === 'success' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
               cssStatus === 'error' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-              'bg-purple-600 text-white hover:bg-purple-500'
+              'bg-orange-600 text-white hover:bg-orange-500'
             }`}
           >
             Apply CSS
@@ -1434,37 +1435,52 @@ export default function BioEditor({ config, onChange }: EditorProps) {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Editor Header */}
-      <div className="px-5 pt-5 pb-2 border-b border-white/[0.04]">
-        <h2 className="text-sm font-bold text-white tracking-tight">Bio Builder</h2>
-        <p className="text-[9px] text-[var(--text-muted)] mt-0.5 uppercase tracking-widest">Customize everything</p>
+    <div className="flex flex-col h-full bg-[var(--bg-base)]">
+      {/* Tab Navigation — Modern Top Bar */}
+      <div className="pt-[15px] px-4 pb-3 border-b border-white/[0.04] bg-white/[0.01] backdrop-blur-md sticky top-0 z-20">
+        <div className="flex items-center justify-center gap-1">
+          {tabs.map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                title={tab.label}
+                className={`relative flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300 ease-out group ${
+                  isActive
+                    ? 'bg-orange-500/15 text-orange-300 scale-110 shadow-[0_0_20px_rgba(249,115,22,0.1)]'
+                    : 'text-[var(--text-muted)] hover:text-white hover:bg-white/[0.05] hover:scale-105'
+                }`}
+              >
+                <Icon size={15} strokeWidth={isActive ? 2.5 : 1.5} />
+                
+                {/* Smooth indicator line */}
+                {isActive && (
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-orange-400 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.6)] animate-in fade-in zoom-in duration-300" />
+                )}
+
+                {/* Tooltip */}
+                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-black/90 border border-white/10 text-[8px] font-extrabold uppercase tracking-widest text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 transform translate-y-1 group-hover:translate-y-0 shadow-xl">
+                  {tab.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Tab Navigation — Compact Icon Bar */}
-      <div className="flex items-center justify-center gap-0.5 px-3 py-2.5 border-b border-white/[0.04] bg-white/[0.01]">
-        {tabs.map(tab => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              title={tab.label}
-              className={`relative flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200 group ${
-                isActive
-                  ? 'bg-purple-500/20 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.15)]'
-                  : 'text-[var(--text-muted)] hover:text-white hover:bg-white/[0.05]'
-              }`}
-            >
-              <Icon size={15} strokeWidth={isActive ? 2.5 : 1.5} />
-              {/* Tooltip */}
-              <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-black/90 border border-white/10 text-[8px] font-bold uppercase tracking-wider text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                {tab.label}
-              </span>
-            </button>
-          );
-        })}
+      {/* Editor Header — Secondary style */}
+      <div className="px-6 py-4 flex items-center justify-between">
+        <div>
+          <h2 className="text-[11px] font-black text-white uppercase tracking-[0.2em] opacity-80">
+            {tabs.find(t => t.id === activeTab)?.label}
+          </h2>
+          <div className="h-0.5 w-4 bg-orange-500/50 mt-1 rounded-full" />
+        </div>
+        <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest font-bold">
+          Bio Builder
+        </span>
       </div>
 
       {/* Tab Content */}

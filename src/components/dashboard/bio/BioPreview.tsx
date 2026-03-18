@@ -762,6 +762,20 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           .bio-link-hover { transition: all 0.2s ease; transform-style: preserve-3d; perspective: 600px; }
           .bio-link-hover:hover { transform: perspective(600px) rotateX(-5deg) rotateY(3deg) translateY(-3px); box-shadow: 5px 10px 20px rgba(0,0,0,0.3); }
         ` : ''}
+        ${effects.hoverEffect === 'haul' ? `
+          @keyframes hover-haul-pull {
+            0% { transform: scale(1) translateX(0); }
+            30% { transform: scale(0.96) translateX(-4px); filter: brightness(1.2); }
+            50% { transform: scale(0.96) translateX(-5px); }
+            100% { transform: scale(1.02) translateX(2px); filter: brightness(1.1); }
+          }
+          .bio-link-hover { transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+          .bio-link-hover:hover { 
+            animation: hover-haul-pull 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            box-shadow: 0 10px 30px rgba(249, 115, 22, 0.2), -5px 0 15px rgba(249,115,22,0.1); 
+            border-color: ${theme.primaryColor}80 !important;
+          }
+        ` : ''}
 
         /* OVERLAYS */
         .bio-overlay {

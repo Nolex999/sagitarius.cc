@@ -215,7 +215,7 @@ input:-webkit-autofill:active {
 }
 
 .h1s {
-  color: rgba(255, 178, 249, 0.863);
+  color: rgba(255, 165, 0, 0.863);
   position: absolute;
   left: 100%;
   bottom: 0;
