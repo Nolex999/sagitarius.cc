@@ -226,11 +226,7 @@ export default function GetKeyManager() {
 
               <div className="flex items-center justify-center gap-4 text-[10px] text-white/20 font-bold uppercase tracking-widest py-2">
                 <div className="flex items-center gap-1.5">
-                  <Coins size={12} /> Crypto
-                </div>
-                <div className="w-1 h-1 rounded-full bg-white/10" />
-                <div className="flex items-center gap-1.5">
-                  <CreditCard size={12} /> Card
+                  <Coins size={12} /> Crypto Only
                 </div>
               </div>
             </div>
@@ -246,7 +242,7 @@ export default function GetKeyManager() {
           <div>
             <h4 className="text-lg font-bold text-white mb-2">Secure Transactions</h4>
             <p className="text-sm text-white/30 leading-relaxed">
-              All payments are processed through encrypted channels. We accept Bitcoin, Ethereum, LTC, and all major Credit Cards.
+              All payments are processed through encrypted channels. We accept Bitcoin, Ethereum, and Litecoin via SellAuth.
             </p>
           </div>
         </div>
