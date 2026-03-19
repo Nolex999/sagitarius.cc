@@ -503,11 +503,11 @@ export default function SoftwareManager() {
                   </div>
                 )}
 
-                {/* Files List */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <h5 className="text-[10px] text-white/20 uppercase tracking-[0.2em] font-bold">Available Files</h5>
-                    {isManager && (
+                {/* Files List - Only visible to managers (Owner/Admin) per user request */}
+                {isManager && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <h5 className="text-[10px] text-white/20 uppercase tracking-[0.2em] font-bold">Available Files</h5>
                       <div className="flex gap-2">
                         <button
                           onClick={() => {
@@ -532,54 +532,41 @@ export default function SoftwareManager() {
                           Add Public File
                         </button>
                       </div>
-                    )}
-                  </div>
-                  
-                  {cat.files.map(file => (
-                    <div key={file.id} className="flex items-center justify-between p-4 rounded-xl bg-black/40 border border-white/[0.04] hover:border-white/[0.08] transition-all group/file">
-                      <div className="flex items-center gap-4">
-                        <div className={`p-2 rounded-lg ${file.is_loader ? 'bg-orange-500/10 text-orange-400' : 'bg-white/[0.03] text-white/40'}`}>
-                          <Package size={20} />
+                    </div>
+                    
+                    {cat.files.map(file => (
+                      <div key={file.id} className="flex items-center justify-between p-4 rounded-xl bg-black/40 border border-white/[0.04] hover:border-white/[0.08] transition-all group/file">
+                        <div className="flex items-center gap-4">
+                          <div className={`p-2 rounded-lg ${file.is_loader ? 'bg-orange-500/10 text-orange-400' : 'bg-white/[0.03] text-white/40'}`}>
+                            <Package size={20} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-white">
+                              {file.name}
+                              {file.is_loader && <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] bg-orange-500 text-white leading-none">LOADER</span>}
+                            </p>
+                            <p className="text-[10px] text-white/30 mt-0.5">Version {file.version || '1.0.0'} • {file.size}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-bold text-white">
-                            {file.name}
-                            {file.is_loader && <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] bg-orange-500 text-white leading-none">LOADER</span>}
-                          </p>
-                          <p className="text-[10px] text-white/30 mt-0.5">Version {file.version || '1.0.0'} • {file.size}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        {isManager ? (
+                        
+                        <div className="flex items-center gap-2">
                           <button
                             onClick={() => deleteFile(cat.id, file.id)}
                             className="p-2 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all"
                           >
                             <Trash2 size={14} />
                           </button>
-                        ) : (
-                          !file.is_loader && (
-                            <a
-                              href={file.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-2 rounded-lg text-white/20 hover:text-white hover:bg-white/10 transition-all"
-                            >
-                              <Download size={16} />
-                            </a>
-                          )
-                        )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                  
-                  {cat.files.length === 0 && (
-                    <div className="text-center py-6 border-2 border-dashed border-white/[0.02] rounded-2xl">
-                      <p className="text-[11px] text-white/10 font-bold uppercase tracking-widest">No files yet</p>
-                    </div>
-                  )}
-                </div>
+                    ))}
+                    
+                    {cat.files.length === 0 && (
+                      <div className="text-center py-6 border-2 border-dashed border-white/[0.02] rounded-2xl">
+                        <p className="text-[11px] text-white/10 font-bold uppercase tracking-widest">No files yet</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
