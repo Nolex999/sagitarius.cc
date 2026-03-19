@@ -43,6 +43,10 @@ const pricingOptions = [
       'UNDETECTED',
     ],
     highlight: false,
+    billgang: {
+      faceit: { productId: 'FACEIT_7D_ID' },
+      external: { productId: 'EXTERNAL_7D_ID' }
+    },
     sellAuth: {
       faceit: { productId: 653923, variantId: 1030917 },
       external: { productId: 653938, variantId: 1030944 }
@@ -59,6 +63,10 @@ const pricingOptions = [
       'UNDETECTED',
     ],
     highlight: true,
+    billgang: {
+      faceit: { productId: 'FACEIT_1M_ID' },
+      external: { productId: 'EXTERNAL_1M_ID' }
+    },
     sellAuth: {
       faceit: { productId: 653928, variantId: 1030922 },
       external: { productId: 653942, variantId: 1030948 }
@@ -75,6 +83,10 @@ const pricingOptions = [
       'UNDETECTED',
     ],
     highlight: false,
+    billgang: {
+      faceit: { productId: 'FACEIT_3M_ID' },
+      external: { productId: 'EXTERNAL_3M_ID' }
+    },
     sellAuth: {
       faceit: { productId: 653933, variantId: 1030931 },
       external: { productId: 653944, variantId: 1030957 }
@@ -88,6 +100,7 @@ export default function GetKeyManager() {
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verifyResult, setVerifyResult] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleVerify = async () => {
     setVerifying(true);
@@ -112,24 +125,32 @@ export default function GetKeyManager() {
     setShowCategorySelector(true);
   };
 
-  const handleFinalPurchase = (category: 'faceit' | 'external') => {
-    const config = selectedPlan.sellAuth[category];
+  const handleFinalPurchase = async (category: 'faceit' | 'external') => {
+    const config = selectedPlan.billgang?.[category] || selectedPlan.sellAuth?.[category];
     setShowCategorySelector(false);
+    setLoading(true);
+    setError(null);
 
-    if (config && (window as any).sellAuthEmbed) {
-      (window as any).sellAuthEmbed.checkout({
-        shopId: 224106,
-        productId: config.productId,
-        variantId: config.variantId,
-        // Passing user ID to custom fields if possible in embed
-        // Note: Check SellAuth embed docs if custom fields are supported here
+    try {
+      const res = await fetch('/api/payments/billgang/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: config.productId || config.product_id,
+          variantId: config.variantId || config.variant_id,
+        })
       });
-    } else {
-      // Fallback to direct product link if embed fails
-      const slug = category === 'faceit' 
-          ? `faceit-${selectedPlan.id}` 
-          : `cs2-external-${selectedPlan.id}`;
-      window.open(`https://buy-on-sagitarius.mysellauth.com/product/${slug}`, '_blank');
+
+      const data = await res.json();
+      if (data.success && data.payment_url) {
+        window.location.href = data.payment_url;
+      } else {
+        setError(data.error || 'Failed to initialize Billgang checkout.');
+      }
+    } catch (err) {
+      setError('Connection error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -316,11 +337,23 @@ export default function GetKeyManager() {
         </div>
       )}
 
-      {/* SellAuth Embed Script */}
-      <Script 
-        src="https://buy-on-sagitarius.mysellauth.com/embed.js" 
-        strategy="lazyOnload"
-      />
+      {error && (
+        <div className="fixed bottom-10 right-10 z-[100] p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5">
+          <AlertCircle size={18} />
+          <span className="text-sm font-bold">{error}</span>
+          <button onClick={() => setError(null)} className="ml-2 hover:text-white"><X size={14} /></button>
+        </div>
+      )}
+
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 size={40} className="text-orange-500 animate-spin" />
+            <p className="text-sm font-black text-white uppercase tracking-widest">Initializing Secure Checkout...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

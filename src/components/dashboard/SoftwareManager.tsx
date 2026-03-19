@@ -192,7 +192,7 @@ export default function SoftwareManager() {
   };
 
   const createKey = async (catId: string) => {
-    const randomKey = Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + 
+    const randomKey = 'SAG-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + 
                       Math.random().toString(36).substring(2, 10).toUpperCase();
     try {
       const { data, error } = await supabase
