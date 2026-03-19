@@ -27,14 +27,17 @@ export async function POST(req: NextRequest) {
         'Accept': 'application/json'
       },
       body: JSON.stringify({
-        product_id: productId,
-        variant_id: variantId,
+        cart: [
+          {
+            product_id: productId,
+            variant_id: variantId,
+            quantity: 1
+          }
+        ],
         email: email || user.email || 'customer@sagitarius.cc',
         custom_fields: {
             user_id: user.id
-        },
-        // We can pre-select a gateway if the user wants "Crypto Only"
-        // gateway: 'BTC' // or 'LTC'
+        }
       })
     });
 
