@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         cart: [
           {
-            product_id: productId,
-            variant_id: variantId,
+            productId: productId,
+            variantId: variantId,
             quantity: 1
           }
         ],
