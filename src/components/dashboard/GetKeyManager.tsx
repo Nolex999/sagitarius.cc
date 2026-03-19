@@ -88,9 +88,6 @@ export default function GetKeyManager() {
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verifyResult, setVerifyResult] = useState<string | null>(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentInfo, setPaymentInfo] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const handleVerify = async () => {
     setVerifying(true);
@@ -115,35 +112,24 @@ export default function GetKeyManager() {
     setShowCategorySelector(true);
   };
 
-  const handleFinalPurchase = async (category: 'faceit' | 'external') => {
+  const handleFinalPurchase = (category: 'faceit' | 'external') => {
     const config = selectedPlan.sellAuth[category];
     setShowCategorySelector(false);
-    setLoading(true);
-    setError(null);
 
-    try {
-      const res = await fetch('/api/payments/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId: config.productId,
-          variantId: config.variantId,
-          // We'll let the backend try to find the user session, 
-          // but we can pass a hint if needed.
-        })
+    if (config && (window as any).sellAuthEmbed) {
+      (window as any).sellAuthEmbed.checkout({
+        shopId: 224106,
+        productId: config.productId,
+        variantId: config.variantId,
+        // Passing user ID to custom fields if possible in embed
+        // Note: Check SellAuth embed docs if custom fields are supported here
       });
-
-      const data = await res.json();
-      if (data.success) {
-        setPaymentInfo(data.checkout);
-        setShowPaymentModal(true);
-      } else {
-        setError(data.error || 'Failed to initialize payment.');
-      }
-    } catch (err) {
-      setError('Connection error. Please try again.');
-    } finally {
-      setLoading(false);
+    } else {
+      // Fallback to direct product link if embed fails
+      const slug = category === 'faceit' 
+          ? `faceit-${selectedPlan.id}` 
+          : `cs2-external-${selectedPlan.id}`;
+      window.open(`https://buy-on-sagitarius.mysellauth.com/product/${slug}`, '_blank');
     }
   };
 
@@ -329,90 +315,12 @@ export default function GetKeyManager() {
           </div>
         </div>
       )}
-      {error && (
-        <div className="fixed bottom-10 right-10 z-[100] p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5">
-          <AlertCircle size={18} />
-          <span className="text-sm font-bold">{error}</span>
-          <button onClick={() => setError(null)} className="ml-2 hover:text-white"><X size={14} /></button>
-        </div>
-      )}
 
-      {/* Loading Overlay */}
-      {loading && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 size={40} className="text-orange-500 animate-spin" />
-            <p className="text-sm font-black text-white uppercase tracking-widest">Initializing Secure Checkout...</p>
-          </div>
-        </div>
-      )}
-
-      {/* SellAuth Custom Payment Modal */}
-      {showPaymentModal && paymentInfo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl animate-in fade-in duration-300">
-          <div className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-10 shadow-3xl text-center space-y-8 overflow-hidden">
-            <div className="absolute top-8 right-8">
-              <button 
-                onClick={() => setShowPaymentModal(false)}
-                className="p-3 rounded-full hover:bg-white/5 text-white/20 hover:text-white transition-all"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] uppercase font-bold tracking-widest">
-                <ShieldCheck size={12} /> Secure Invoice Created
-              </div>
-              <h3 className="text-3xl font-black text-white tracking-widest uppercase">Complete Payment</h3>
-              <p className="text-sm text-white/40">Your invoice #{paymentInfo.id || 'N/A'} is ready.</p>
-            </div>
-
-            <div className="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 space-y-6">
-              {/* If SellAuth provides direct address/amount in response, we'd show it here.
-                  Otherwise, we lead them to their unique checkout page which IS the checkout, not the storefront. */}
-              <div className="space-y-4">
-                <div className="flex flex-col items-center gap-2">
-                  <p className="text-[11px] text-white/20 font-bold uppercase tracking-widest">Total to Pay</p>
-                  <div className="text-4xl font-black text-white tracking-tighter">
-                    {paymentInfo.total_amount || paymentInfo.price || 0} {paymentInfo.currency || 'EUR'}
-                  </div>
-                </div>
-
-                <div className="h-[1px] w-full bg-white/5" />
-
-                <div className="space-y-4 pt-4">
-                    <p className="text-xs text-white/40 leading-relaxed px-10">
-                        Please proceed to the secure SellAuth checkout page to select your preferred cryptocurrency and get the payment address.
-                    </p>
-                    
-                    <a 
-                      href={paymentInfo.url || paymentInfo.checkout_url || `https://buy-on-sagitarius.mysellauth.com/product/${paymentInfo.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-3 px-10 py-5 rounded-2xl bg-orange-500 text-white font-black text-sm uppercase tracking-widest hover:bg-orange-600 transition-all hover:scale-[1.02] shadow-[0_15px_30px_rgba(249,115,22,0.3)]"
-                    >
-                      <Zap size={18} fill="currentColor" />
-                      Go to Checkout
-                    </a>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center gap-8 text-[9px] text-white/20 font-bold uppercase tracking-widest">
-                <div className="flex items-center gap-2">
-                    <Check size={12} className="text-green-500" /> Instant Delivery
-                </div>
-                <div className="flex items-center gap-2">
-                    <Check size={12} className="text-green-500" /> Anonymous
-                </div>
-                <div className="flex items-center gap-2">
-                    <Check size={12} className="text-green-500" /> SSL Secured
-                </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* SellAuth Embed Script */}
+      <Script 
+        src="https://buy-on-sagitarius.mysellauth.com/embed.js" 
+        strategy="lazyOnload"
+      />
     </div>
   );
 }
