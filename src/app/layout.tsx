@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
-import SplashOverlay from '@/components/SplashOverlay';
 import TopGradientBar from '@/components/TopGradientBar';
 import './globals.css';
 
@@ -51,7 +50,6 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <TopGradientBar />
-        <SplashOverlay />
         {children}
         <Script
           type="module"

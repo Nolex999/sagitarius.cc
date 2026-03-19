@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Sidebar from '@/components/dashboard/Sidebar';
 import InteractiveBackground from '@/components/dashboard/InteractiveBackground';
+import SplashOverlay from '@/components/SplashOverlay';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,7 @@ export default async function DashboardLayout({
   return (
     <div className="relative min-h-screen">
       <InteractiveBackground />
+      <SplashOverlay />
       <div className="relative z-10 flex flex-col min-h-screen">
         <Sidebar user={session.user} />
         <main className="flex-1">
