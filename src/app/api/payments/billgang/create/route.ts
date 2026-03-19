@@ -18,7 +18,13 @@ export async function POST(req: Request) {
     }
 
     // 2. Create Charge on Billgang
-    // Following user's provided logic: POST https://pg-api.billgang.com/charges
+    console.log('Creating Billgang Charge for Product:', productId, 'User:', user.email);
+    
+    if (!apiKey) {
+      console.error('BILLGANG_API_KEY is missing');
+      return NextResponse.json({ success: false, error: 'Billgang API key not configured' }, { status: 500 });
+    }
+
     const response = await fetch('https://pg-api.billgang.com/charges', {
       method: 'POST',
       headers: {
@@ -27,7 +33,7 @@ export async function POST(req: Request) {
         'Accept': 'application/json'
       },
       body: JSON.stringify({
-        product_id: productId, // or variantId if Billgang uses separate IDs
+        product_id: productId,
         email: user.email,
         metadata: {
           user_id: user.id
@@ -35,15 +41,29 @@ export async function POST(req: Request) {
       })
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('Billgang Error:', data);
+    let data;
+    const text = await response.text();
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      console.error('Billgang returned non-JSON response:', text);
       return NextResponse.json({ 
         success: false, 
-        error: data.message || 'Failed to create Billgang checkout' 
+        error: `Billgang Error: Invalid JSON response (Status ${response.status})`,
+        details: text.substring(0, 100)
+      }, { status: 500 });
+    }
+
+    if (!response.ok) {
+      console.error('Billgang API Error:', response.status, data);
+      return NextResponse.json({ 
+        success: false, 
+        error: data.message || `Billgang API Error ${response.status}`,
+        details: data
       }, { status: response.status });
     }
+
+    console.log('Billgang Charge Created:', data.checkout_url || data.url);
 
     // 3. Return the checkout_url
     return NextResponse.json({ 
@@ -51,8 +71,12 @@ export async function POST(req: Request) {
       payment_url: data.checkout_url || data.url 
     });
 
-  } catch (error) {
-    console.error('Payment Error:', error);
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Payment Error (Full):', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Internal server error', 
+      details: error.message 
+    }, { status: 500 });
   }
 }
