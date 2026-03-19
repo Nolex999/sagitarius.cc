@@ -44,12 +44,8 @@ const pricingOptions = [
     ],
     highlight: false,
     billgang: {
-      faceit: { productId: 'FACEIT_7D_ID' },
-      external: { productId: 'EXTERNAL_7D_ID' }
-    },
-    sellAuth: {
-      faceit: { productId: 653923, variantId: 1030917 },
-      external: { productId: 653938, variantId: 1030944 }
+      faceit: { productId: 254762214 },
+      external: { productId: 254762217 }
     }
   },
   {
@@ -64,12 +60,8 @@ const pricingOptions = [
     ],
     highlight: true,
     billgang: {
-      faceit: { productId: 'FACEIT_1M_ID' },
-      external: { productId: 'EXTERNAL_1M_ID' }
-    },
-    sellAuth: {
-      faceit: { productId: 653928, variantId: 1030922 },
-      external: { productId: 653942, variantId: 1030948 }
+      faceit: { productId: 254762215 },
+      external: { productId: 254762218 }
     }
   },
   {
@@ -84,12 +76,8 @@ const pricingOptions = [
     ],
     highlight: false,
     billgang: {
-      faceit: { productId: 'FACEIT_3M_ID' },
-      external: { productId: 'EXTERNAL_3M_ID' }
-    },
-    sellAuth: {
-      faceit: { productId: 653933, variantId: 1030931 },
-      external: { productId: 653944, variantId: 1030957 }
+      faceit: { productId: 254762216 },
+      external: { productId: 254762219 }
     }
   }
 ];
