@@ -36,26 +36,22 @@ export default function InteractiveBackground() {
           const dy = this.y - mouse.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           
-          if (dist < 150) {
-            const force = (150 - dist) / 150;
-            // Stronger push but smoother decay
-            this.vx += (dx / dist) * force * 1.5;
-            this.vy += (dy / dist) * force * 1.5;
+          if (dist < 100) {
+            const force = (100 - dist) / 100;
+            this.vx += (dx / dist) * force * 0.6;
+            this.vy += (dy / dist) * force * 0.6;
           }
         }
 
-        // Slight random drift to maintain movement
-        this.vx += (Math.random() - 0.5) * 0.02;
-        this.vy += (Math.random() - 0.5) * 0.02;
+        this.vx += (Math.random() - 0.5) * 0.01;
+        this.vy += (Math.random() - 0.5) * 0.01;
 
-        // Higher friction (0.95-0.98) for "floaty" feel
         this.vx *= 0.96;
         this.vy *= 0.96;
 
         this.x += this.vx;
         this.y += this.vy;
 
-        // Wrap around screen
         if (this.x < -100) this.x = width + 100;
         if (this.x > width + 100) this.x = -100;
         if (this.y < -100) this.y = height + 100;
@@ -85,9 +81,9 @@ export default function InteractiveBackground() {
       ctx.fillStyle = '#020202';
       ctx.fillRect(0, 0, width, height);
 
-      // Calculate parallax offsets (subtle depth)
-      const parallaxX = mouse.active ? (mouse.x - width / 2) * 0.02 : 0;
-      const parallaxY = mouse.active ? (mouse.y - height / 2) * 0.02 : 0;
+      // Calculate parallax offsets (very subtle depth)
+      const parallaxX = mouse.active ? (mouse.x - width / 2) * 0.01 : 0;
+      const parallaxY = mouse.active ? (mouse.y - height / 2) * 0.01 : 0;
 
       for (let i = 0; i < particles.length; i++) {
         const p1 = particles[i];
@@ -112,9 +108,9 @@ export default function InteractiveBackground() {
           const dy = ry1 - ry2;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
-          if (dist < 150) {
+          if (dist < 100) {
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(249, 115, 22, ${0.15 * (1 - dist / 150)})`;
+            ctx.strokeStyle = `rgba(249, 115, 22, ${0.1 * (1 - dist / 100)})`;
             ctx.lineWidth = 1;
             ctx.moveTo(rx1, ry1);
             ctx.lineTo(rx2, ry2);
@@ -127,9 +123,9 @@ export default function InteractiveBackground() {
           const dy = ry1 - mouse.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
-          if (dist < 200) {
+          if (dist < 100) {
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(249, 115, 22, ${0.2 * (1 - dist / 200)})`;
+            ctx.strokeStyle = `rgba(249, 115, 22, ${0.15 * (1 - dist / 100)})`;
             ctx.lineWidth = 1;
             ctx.moveTo(rx1, ry1);
             ctx.lineTo(mouse.x, mouse.y);
