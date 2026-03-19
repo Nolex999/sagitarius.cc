@@ -63,37 +63,53 @@ export default function InteractiveBackground() {
       ctx.fillStyle = '#020202';
       ctx.fillRect(0, 0, width, height);
 
+      // Calculate parallax offsets
+      const parallaxX = mouse.active ? (mouse.x - width / 2) * 0.05 : 0;
+      const parallaxY = mouse.active ? (mouse.y - height / 2) * 0.05 : 0;
+
       for (let i = 0; i < particles.length; i++) {
         const p1 = particles[i];
         p1.update();
-        p1.draw();
+        
+        // Final render position with parallax
+        const rx1 = p1.x + parallaxX;
+        const ry1 = p1.y + parallaxY;
+
+        // Draw particle
+        ctx.beginPath();
+        ctx.arc(rx1, ry1, p1.size, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(249, 115, 22, 0.4)';
+        ctx.fill();
 
         for (let j = i + 1; j < particles.length; j++) {
           const p2 = particles[j];
-          const dx = p1.x - p2.x;
-          const dy = p1.y - p2.y;
+          const rx2 = p2.x + parallaxX;
+          const ry2 = p2.y + parallaxY;
+          
+          const dx = rx1 - rx2;
+          const dy = ry1 - ry2;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < 150) {
             ctx.beginPath();
             ctx.strokeStyle = `rgba(249, 115, 22, ${0.15 * (1 - dist / 150)})`;
             ctx.lineWidth = 1;
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
+            ctx.moveTo(rx1, ry1);
+            ctx.lineTo(rx2, ry2);
             ctx.stroke();
           }
         }
 
         if (mouse.active) {
-          const dx = p1.x - mouse.x;
-          const dy = p1.y - mouse.y;
+          const dx = rx1 - mouse.x;
+          const dy = ry1 - mouse.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < 200) {
             ctx.beginPath();
             ctx.strokeStyle = `rgba(249, 115, 22, ${0.2 * (1 - dist / 200)})`;
             ctx.lineWidth = 1;
-            ctx.moveTo(p1.x, p1.y);
+            ctx.moveTo(rx1, ry1);
             ctx.lineTo(mouse.x, mouse.y);
             ctx.stroke();
           }
