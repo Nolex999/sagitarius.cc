@@ -12,78 +12,112 @@ export default function InteractiveBackground() {
     if (!ctx) return;
 
     let width: number, height: number;
-    let frame = 0;
+    let particles: Particle[] = [];
     const mouse = { x: 0, y: 0, active: false };
 
-    const resize = () => {
+    class Particle {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      size: number;
+
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+        this.size = Math.random() * 2 + 1;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x < 0) this.x = width;
+        if (this.x > width) this.x = 0;
+        if (this.y < 0) this.y = height;
+        if (this.y > height) this.y = 0;
+      }
+
+      draw() {
+        if (!ctx) return;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(249, 115, 22, 0.4)'; // Archer Orange
+        ctx.fill();
+      }
+    }
+
+    const init = () => {
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
+      particles = [];
+      const count = Math.floor((width * height) / 15000);
+      for (let i = 0; i < count; i++) {
+        particles.push(new Particle());
+      }
     };
 
     const draw = () => {
       ctx.fillStyle = '#020202';
       ctx.fillRect(0, 0, width, height);
 
-      // We draw 3 layers of fluid waves
-      for (let layer = 0; layer < 3; layer++) {
-        ctx.beginPath();
-        const offset = layer * 300;
-        const time = frame * 0.005;
-        
-        ctx.moveTo(0, height);
-        
-        for (let x = 0; x <= width; x += 10) {
-          // Complex wave formula for a "liquid" look
-          const y = (height * 0.7) + 
-                    Math.sin(x * 0.002 + time + offset) * 50 +
-                    Math.cos(x * 0.001 - time * 0.5) * 30 +
-                    (mouse.active ? Math.exp(-Math.pow(x - mouse.x, 2) / 20000) * -40 : 0);
-          
-          ctx.lineTo(x, y);
+      for (let i = 0; i < particles.length; i++) {
+        const p1 = particles[i];
+        p1.update();
+        p1.draw();
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(249, 115, 22, ${0.15 * (1 - dist / 150)})`;
+            ctx.lineWidth = 1;
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
         }
 
-        ctx.lineTo(width, height);
-        
-        // Gradient for the wave "rim"
-        const grad = ctx.createLinearGradient(0, height * 0.5, 0, height);
-        const alpha = 0.05 + (layer * 0.02);
-        grad.addColorStop(0, `rgba(249, 115, 22, ${alpha})`);
-        grad.addColorStop(1, 'rgba(2, 2, 2, 0)');
-        
-        ctx.fillStyle = grad;
-        ctx.fill();
-        
-        // Subtle outline for the "rim light"
-        ctx.strokeStyle = `rgba(249, 115, 22, ${alpha * 0.5})`;
-        ctx.lineWidth = 1;
-        ctx.stroke();
+        if (mouse.active) {
+          const dx = p1.x - mouse.x;
+          const dy = p1.y - mouse.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 200) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(249, 115, 22, ${0.2 * (1 - dist / 200)})`;
+            ctx.lineWidth = 1;
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.stroke();
+          }
+        }
       }
 
-      // Mouse Spotlight
-      if (mouse.active) {
-        const spotlight = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 300);
-        spotlight.addColorStop(0, 'rgba(249, 115, 22, 0.03)');
-        spotlight.addColorStop(1, 'rgba(2, 2, 2, 0)');
-        ctx.fillStyle = spotlight;
-        ctx.fillRect(0, 0, width, height);
-      }
-
-      frame++;
       requestAnimationFrame(draw);
     };
 
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', init);
     window.addEventListener('mousemove', (e) => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
       mouse.active = true;
     });
+    window.addEventListener('mouseleave', () => {
+      mouse.active = false;
+    });
 
-    resize();
+    init();
     draw();
 
     return () => {
-      window.removeEventListener('resize', resize);
+      window.removeEventListener('resize', init);
     };
   }, []);
 
@@ -91,14 +125,17 @@ export default function InteractiveBackground() {
     <div className="fixed inset-0 z-[-1] overflow-hidden bg-[#020202]">
       <canvas ref={canvasRef} className="absolute inset-0 block" />
       
+      {/* Subtle Bottom Glow for context */}
+      <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-orange-500/5 to-transparent pointer-events-none" />
+      
       {/* Absolute Black Overlay for Top Header Area to keep it clean */}
       <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-[#020202] to-transparent pointer-events-none" />
       
       {/* Fine Micro-Grain */}
-      <div className="absolute inset-0 opacity-[0.015] pointer-events-none noise-overlay" />
+      <div className="absolute inset-0 opacity-[0.015] pointer-events-none" id="noise-overlay" />
 
       <style jsx>{`
-        .noise-overlay {
+        #noise-overlay {
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
         }
       `}</style>
