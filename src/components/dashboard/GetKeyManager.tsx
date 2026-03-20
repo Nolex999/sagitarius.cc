@@ -131,7 +131,7 @@ export default function GetKeyManager() {
   return (
     <div className="max-w-6xl mx-auto space-y-12 py-4 px-6">
       <Script 
-        src="https://embed.billgang.store/embed.js" 
+        src="https://platform.billgang.com/embed.js" 
         strategy="lazyOnload"
       />
       <div className="text-center space-y-4">
