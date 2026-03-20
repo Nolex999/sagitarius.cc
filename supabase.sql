@@ -227,33 +227,41 @@ CREATE TABLE IF NOT EXISTS public.software_keys (
   metadata jsonb DEFAULT '{}'::jsonb
 );
 
--- Verification logic for keys
-CREATE OR REPLACE FUNCTION public.verify_software_key(p_category_id uuid, p_key text)
-RETURNS TABLE (loader_url text, success boolean, message text) AS $$
+-- Verification logic for keys (Updated for auto-detection and unlimited downloads)
+CREATE OR REPLACE FUNCTION public.verify_software_key(p_key text)
+RETURNS TABLE (loader_url text, category_name text, success boolean, message text) AS $$
 DECLARE
   v_file_url text;
   v_key_id uuid;
+  v_category_id uuid;
+  v_category_name text;
 BEGIN
-  SELECT id INTO v_key_id
+  -- Search for key across all categories
+  SELECT id, category_id INTO v_key_id, v_category_id
   FROM public.software_keys
-  WHERE key = p_key AND category_id = p_category_id AND is_active = true
-    AND (max_uses = 0 OR current_uses < max_uses);
+  WHERE key = p_key AND is_active = true;
 
   IF v_key_id IS NULL THEN
-    RETURN QUERY SELECT NULL::text, false, 'Invalid or expired key'::text;
+    RETURN QUERY SELECT NULL::text, NULL::text, false, 'Invalid or disabled key'::text;
     RETURN;
   END IF;
 
+  -- Get category info
+  SELECT name INTO v_category_name FROM public.software_categories WHERE id = v_category_id;
+
+  -- Get loader file
   SELECT url INTO v_file_url FROM public.software_files
-  WHERE category_id = p_category_id AND is_loader = true LIMIT 1;
+  WHERE category_id = v_category_id AND is_loader = true LIMIT 1;
 
   IF v_file_url IS NULL THEN
-    RETURN QUERY SELECT NULL::text, false, 'Error: No loader configured'::text;
+    RETURN QUERY SELECT NULL::text, v_category_name, false, 'Error: No loader configured for this product'::text;
     RETURN;
   END IF;
 
+  -- Increment uses but don't block if max_uses exceeded (per user request for unlimited)
   UPDATE public.software_keys SET current_uses = current_uses + 1 WHERE id = v_key_id;
-  RETURN QUERY SELECT v_file_url, true, 'Success'::text;
+  
+  RETURN QUERY SELECT v_file_url, v_category_name, true, 'Success'::text;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

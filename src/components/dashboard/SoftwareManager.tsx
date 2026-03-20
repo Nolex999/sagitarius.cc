@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   FolderPlus, 
   FilePlus, 
@@ -14,7 +14,10 @@ import {
   Package, 
   Key, 
   ExternalLink,
-  Plus
+  Plus,
+  ShieldCheck,
+  Zap,
+  Globe
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
@@ -59,7 +62,6 @@ export default function SoftwareManager() {
   const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<string>('member');
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'FACEIT' | 'CS2 EXTERNAL'>('FACEIT');
   
   // Management state
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -68,9 +70,8 @@ export default function SoftwareManager() {
   const [uploadTarget, setUploadTarget] = useState<{ catId: string; isLoader: boolean } | null>(null);
   const [fileInputRef] = [useRef<HTMLInputElement>(null)];
   
-  // Key state (For users downloading)
-  const [userInputKeys, setUserInputKeys] = useState<Record<string, string>>({}); // catId -> key
-  const [verifying, setVerifying] = useState<string | null>(null); // catId
+  const [userInputKey, setUserInputKey] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
   const supabase = createClient();
 
@@ -163,7 +164,7 @@ export default function SoftwareManager() {
         .delete()
         .eq('id', id);
       if (error) throw error;
-      setCategories(categories.filter(c => c.id !== id));
+      setCategories(categories.filter((c: any) => c.id !== id));
     } catch (err: any) {
       setError(err.message);
     }
@@ -293,17 +294,15 @@ export default function SoftwareManager() {
     }
   };
 
-  const verifyAndDownload = async (catId: string) => {
-    const key = userInputKeys[catId];
-    if (!key) return;
+  const verifyAndDownloadGlobal = async () => {
+    if (!userInputKey) return;
     
-    setVerifying(catId);
+    setVerifying(true);
     setError(null);
     
     try {
       const { data, error } = await supabase.rpc('verify_software_key', {
-        p_category_id: catId,
-        p_key: key
+        p_key: userInputKey
       });
 
       if (error) throw error;
@@ -311,14 +310,14 @@ export default function SoftwareManager() {
       const result = data[0];
       if (result.success && result.loader_url) {
         window.open(result.loader_url, '_blank');
-        setUserInputKeys(prev => ({ ...prev, [catId]: '' }));
+        setUserInputKey('');
       } else {
         setError(result.message || 'Verification failed');
       }
     } catch (err: any) {
       setError(err.message);
     } finally {
-      setVerifying(null);
+      setVerifying(false);
     }
   };
 
@@ -336,11 +335,11 @@ export default function SoftwareManager() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-            <Package size={28} className="text-orange-500" />
-            Product Catalog
+            <Download size={28} className="text-orange-500" />
+            Downloads
           </h1>
           <p className="text-sm text-white/40 mt-1">
-            Browse our available products and download loaders
+            Enter your key to download your software loader
           </p>
         </div>
       </div>
@@ -354,38 +353,63 @@ export default function SoftwareManager() {
 
       {/* Category Creation removed per user request */}
 
-      <div className="flex gap-2 p-1 rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-xl">
-        <button
-          onClick={() => setActiveTab('FACEIT')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${
-            activeTab === 'FACEIT'
-              ? 'bg-white text-black shadow-[0_4px_20px_rgba(255,255,255,0.1)]'
-              : 'text-white/40 hover:text-white hover:bg-white/5'
-          }`}
-        >
-          Faceit Client
-        </button>
-        <button
-          onClick={() => setActiveTab('CS2 EXTERNAL')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${
-            activeTab === 'CS2 EXTERNAL'
-              ? 'bg-white text-black shadow-[0_4px_20px_rgba(255,255,255,0.1)]'
-              : 'text-white/40 hover:text-white hover:bg-white/5'
-          }`}
-        >
-          CS2 External
-        </button>
-      </div>
+      {/* Global Download Box */}
+      {!isManager && (
+        <div className="bg-white/[0.02] border border-white/[0.06] rounded-[2.5rem] p-10 flex flex-col items-center gap-6 text-center backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          
+          <div className="h-20 w-20 rounded-3xl bg-orange-500/10 flex items-center justify-center text-orange-500 mb-2 shadow-[0_0_30px_rgba(249,115,22,0.1)] group-hover:scale-110 transition-transform duration-500">
+            <Download size={40} />
+          </div>
+
+          <div className="space-y-2 relative z-10">
+            <h2 className="text-2xl font-black text-white uppercase tracking-widest">Download Loader</h2>
+            <p className="text-sm text-white/40 max-w-md mx-auto">
+              Access your software instantly. Enter your activation key below to begin the secure download.
+            </p>
+          </div>
+          
+          <div className="flex w-full max-w-lg gap-4 relative z-10">
+            <div className="relative flex-1 group/input">
+              <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within/input:text-orange-500 transition-colors" size={20} />
+              <input
+                type="text"
+                value={userInputKey}
+                onChange={e => setUserInputKey(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && verifyAndDownloadGlobal()}
+                placeholder="XXXX-XXXX-XXXX-XXXX"
+                className="w-full h-14 pl-12 pr-4 rounded-2xl bg-black/40 border border-white/[0.08] text-white focus:outline-none focus:border-orange-500/40 font-mono tracking-widest transition-all text-lg"
+              />
+            </div>
+            <button
+              onClick={verifyAndDownloadGlobal}
+              disabled={verifying || !userInputKey}
+              className="h-14 px-10 rounded-2xl bg-white text-black text-xs font-black uppercase tracking-[0.2em] hover:bg-white/90 disabled:opacity-50 transition-all flex items-center gap-3 shadow-[0_4px_20px_rgba(255,255,255,0.1)] hover:-translate-y-1"
+            >
+              {verifying ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+              Download
+            </button>
+          </div>
+
+          <div className="pt-4 flex items-center gap-6 text-[10px] text-white/20 font-bold uppercase tracking-[0.3em]">
+            <span className="flex items-center gap-2"><ShieldCheck size={12} /> Secure</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-white/5" />
+            <span className="flex items-center gap-2"><Zap size={12} /> Instant</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-white/5" />
+            <span className="flex items-center gap-2"><Globe size={12} /> Global</span>
+          </div>
+        </div>
+      )}
+
+      {/* Tabs removed per user request for simplicity */}
 
       <div className="space-y-4 min-h-[400px]">
         {categories
-          .filter(cat => {
-            const name = cat.name.toUpperCase();
-            if (activeTab === 'FACEIT') return name.includes('FACEIT') || name.includes('CLIENT');
-            if (activeTab === 'CS2 EXTERNAL') return name.includes('CS2') || name.includes('EXTERNAL');
-            return true;
+          .filter((cat: any) => {
+            if (isManager) return true;
+            return cat.is_active;
           })
-          .map(cat => (
+          .map((cat: any) => (
           <div key={cat.id} className="rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden group">
             <div 
               className="p-5 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] transition-all"
@@ -420,36 +444,29 @@ export default function SoftwareManager() {
             </div>
 
             {cat.isOpen && (
-              <div className="px-5 pb-6 pt-2 space-y-6">
-                {/* Activation Key Section (For Users) */}
-                <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 flex flex-col items-center gap-4 text-center">
-                  <div className="space-y-1">
-                    <h4 className="text-sm font-bold text-white uppercase tracking-wider">Download Loader</h4>
-                    <p className="text-[11px] text-white/40">Enter your activation key to download the loader for {cat.name}</p>
-                  </div>
-                  
-                  <div className="flex w-full max-w-sm gap-3">
+               <div className="px-5 pb-6 pt-2 space-y-6 text-center">
+                 <p className="text-[11px] text-white/40">Enter activation key below to download loader for {cat.name}</p>
+                 <div className="flex w-full max-w-sm mx-auto gap-3">
                     <div className="relative flex-1">
                       <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" size={16} />
                       <input
                         type="text"
-                        value={userInputKeys[cat.id] || ''}
-                        onChange={e => setUserInputKeys({ ...userInputKeys, [cat.id]: e.target.value })}
-                        onKeyDown={e => e.key === 'Enter' && verifyAndDownload(cat.id)}
-                        placeholder="XXXX-XXXX-XXXX-XXXX"
-                        className="w-full h-11 pl-11 pr-4 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-white focus:outline-none focus:border-orange-500/40 font-mono tracking-wider transition-all"
+                        value={userInputKey}
+                        onChange={e => setUserInputKey(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && verifyAndDownloadGlobal()}
+                        placeholder="Key"
+                        className="w-full h-11 pl-11 pr-4 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-white focus:outline-none focus:border-orange-500/40 font-mono transition-all"
                       />
                     </div>
                     <button
-                      onClick={() => verifyAndDownload(cat.id)}
-                      disabled={verifying === cat.id || !userInputKeys[cat.id]}
+                      onClick={verifyAndDownloadGlobal}
+                      disabled={verifying || !userInputKey}
                       className="h-11 px-6 rounded-xl bg-white text-black text-xs font-bold uppercase tracking-widest hover:bg-white/90 disabled:opacity-50 transition-all flex items-center gap-2"
                     >
-                      {verifying === cat.id ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                      {verifying ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                       Download
                     </button>
                   </div>
-                </div>
 
                 {/* Key Management (Owner/Admin only) */}
                 {isManager && (
@@ -531,7 +548,7 @@ export default function SoftwareManager() {
                       </div>
                     </div>
                     
-                    {cat.files.map(file => (
+                    {cat.files.map((file: any) => (
                       <div key={file.id} className="flex items-center justify-between p-4 rounded-xl bg-black/40 border border-white/[0.04] hover:border-white/[0.08] transition-all group/file">
                         <div className="flex items-center gap-4">
                           <div className={`p-2 rounded-lg ${file.is_loader ? 'bg-orange-500/10 text-orange-400' : 'bg-white/[0.03] text-white/40'}`}>

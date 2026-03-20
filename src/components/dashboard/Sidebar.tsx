@@ -31,7 +31,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/dashboard/software', label: 'Products', icon: Package },
+  { href: '/dashboard/software', label: 'Downloads', icon: Package },
   { href: '/dashboard/get-key', label: 'Get Key', icon: CreditCard },
   { href: '/dashboard/inbox', label: 'Inbox', icon: Inbox },
   { href: '/dashboard/firmware', label: 'Firmware', icon: Cpu, requiredRole: ['owner', 'admin'] },
@@ -99,12 +99,11 @@ export default function Sidebar({ user }: { user: AuthUser }) {
         {/* LEFT SECTION (Logo) */}
         <div className="w-[200px] flex items-center gap-3">
           <Link href="/dashboard/software" className="flex items-center gap-4 shrink-0 group">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500/10 border border-orange-500/20 transition-all group-hover:scale-110 shadow-[0_0_20px_rgba(249,115,22,0.1)]">
-              <Image src="/logo.svg" alt="Logo" width={26} height={26} className="brightness-125 select-none" />
+            <div className="flex h-11 w-11 items-center justify-center transition-all group-hover:scale-110">
+              <Image src="/logo.svg" alt="Logo" width={28} height={28} className="brightness-125 select-none" />
             </div>
             <div className="flex flex-col">
               <span className="font-mono text-[11px] font-black uppercase tracking-[0.4em] text-white leading-none">SAGITARIUS</span>
-              <span className="text-[8px] text-orange-500/50 uppercase tracking-[0.3em] font-bold mt-1">Dashboard</span>
             </div>
           </Link>
         </div>
@@ -129,14 +128,14 @@ export default function Sidebar({ user }: { user: AuthUser }) {
 
         {/* RIGHT SECTION (Profile & Logout) */}
         <div className="w-[200px] flex justify-end items-center gap-4 pl-4 border-l border-white/10">
-          <div className="flex items-center gap-3 rounded-2xl p-1 pr-3 border border-white/5 bg-white/[0.02]">
-            <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-white/10 font-mono text-sm font-black text-white">
+          <Link href="/dashboard/profile" className="flex items-center gap-3 rounded-2xl p-1 pr-3 border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-all group">
+            <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-white/10 font-mono text-sm font-black text-white group-hover:bg-orange-500/20 group-hover:text-orange-500 transition-colors">
               {user?.email?.[0].toUpperCase()}
             </div>
             <div className="hidden sm:block">
               <RoleBadge role={role} />
             </div>
-          </div>
+          </Link>
           <button onClick={handleLogout} className="p-2.5 rounded-2xl text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all">
             <LogOut size={20} />
           </button>

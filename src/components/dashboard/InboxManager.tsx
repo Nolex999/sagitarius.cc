@@ -203,10 +203,10 @@ export default function InboxManager() {
                     <button 
                       onClick={() => deleteMessage(msg.id)}
                       disabled={deleting === msg.id}
-                      className="p-1 text-white/10 hover:text-red-500 transition-colors"
+                      className="p-1.5 text-white/40 hover:text-red-500 transition-colors bg-white/[0.03] rounded-lg border border-white/10 hover:border-red-500/50"
                       title="Delete message"
                     >
-                      {deleting === msg.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                      {deleting === msg.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                     </button>
                   </div>
                 </div>
