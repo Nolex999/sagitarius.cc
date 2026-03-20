@@ -16,9 +16,9 @@ import {
   Globe,
   Loader2,
   AlertCircle,
-  Package,
   X
 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 declare global {
   interface Window {
