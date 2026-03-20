@@ -102,11 +102,21 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
     setLoading(true);
     setError(null);
     try {
-      const code = newCode || 'SAG-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+      // Generate a longer, trully random code (no prefix)
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let code = '';
+      if (newCode) {
+        code = newCode.trim();
+      } else {
+        for (let i = 0; i < 16; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+      }
+      
       const { data, error } = await supabase
         .from('inv_code')
         .insert({
-          code: code.trim(),
+          code: code,
           max_uses: maxUses,
           created_by: (await supabase.auth.getUser()).data.user?.id
         })
@@ -126,11 +136,11 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
   };
 
   const deleteInvite = async (id: string) => {
-    if (!confirm('Delete this invite code?')) return;
     try {
       const { error } = await supabase.from('inv_code').delete().eq('id', id);
       if (error) throw error;
       setInvites(invites.filter((inv: any) => inv.id !== id));
+      setSuccess('Invite deleted successfully!');
     } catch (err: any) {
       setError(err.message);
     }

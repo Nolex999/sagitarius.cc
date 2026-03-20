@@ -77,7 +77,6 @@ export default function InboxManager() {
   };
 
   const deleteMessage = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this message?')) return;
     setDeleting(id);
     try {
       const { error } = await supabase

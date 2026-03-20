@@ -54,8 +54,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   created_at timestamptz DEFAULT now()
 );
 
--- FIX: Assurer que la colonne email existe dans profiles
+-- FIX: Assurer que les colonnes nécessaires existent dans profiles
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url text;
 
 -- Mise à jour de la contrainte ROLE
 ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
@@ -316,6 +317,17 @@ CREATE POLICY "Anyone can view files" ON public.software_files FOR SELECT TO aut
 
 DROP POLICY IF EXISTS "Anyone can view own keys" ON public.software_keys;
 CREATE POLICY "Anyone can view own keys" ON public.software_keys FOR SELECT TO authenticated USING (true);
+
+-- 6.6 Storage Policies (Avatars)
+-- Note: Replace 'avatars' with your bucket name if it differs
+-- These should be run in the SQL editor as storage tables are in the 'storage' schema
+/*
+INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT (id) DO NOTHING;
+
+CREATE POLICY "Avatar images are publicly accessible" ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
+CREATE POLICY "Anyone can upload an avatar" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'avatars');
+CREATE POLICY "Anyone can update their own avatar" ON storage.objects FOR UPDATE USING (auth.uid() = owner) WITH CHECK (bucket_id = 'avatars');
+*/
 
 -- (Autres politiques simplifiées pour brevity...)
 DROP POLICY IF EXISTS "Public can read published bio profiles" ON public.bio_profiles;
