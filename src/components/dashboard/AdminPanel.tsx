@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, 
   Send, 
@@ -17,7 +17,11 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
-export default function AdminPanel() {
+interface AdminPanelProps {
+  userRole?: 'owner' | 'admin' | string;
+}
+
+export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
   const [activeTab, setActiveTab] = useState<'messaging' | 'invites'>('messaging');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -267,8 +271,8 @@ export default function AdminPanel() {
           </form>
 
           <div className="space-y-2">
-            {invites.map((inv) => (
-              <div key={inv.id} className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-between group">
+            {invites.map((inv: any) => (
+              <div key={inv.id} className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-center group">
                 <div className="space-y-1">
                   <div className="flex items-center gap-3">
                     <span className="font-mono text-xs text-white font-bold tracking-wider">{inv.code}</span>

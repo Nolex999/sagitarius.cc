@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Inbox, 
   Key, 
@@ -86,7 +86,7 @@ export default function InboxManager() {
         .eq('id', id);
       
       if (error) throw error;
-      setMessages(messages.filter(m => m.id !== id));
+      setMessages(messages.filter((m: any) => m.id !== id));
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -169,7 +169,7 @@ export default function InboxManager() {
       )}
 
       <div className="space-y-3">
-        {messages.map((msg) => (
+        {messages.map((msg: any) => (
           <div 
             key={msg.id} 
             className={`rounded-2xl border transition-all overflow-hidden ${
