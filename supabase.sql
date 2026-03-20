@@ -181,7 +181,8 @@ CREATE TABLE IF NOT EXISTS public.software_keys (
   max_uses int DEFAULT 1,
   current_uses int DEFAULT 0,
   created_at timestamptz DEFAULT now(),
-  created_by uuid REFERENCES auth.users(id)
+  created_by uuid REFERENCES auth.users(id),
+  metadata jsonb DEFAULT '{}'::jsonb
 );
 
 -- Verification logic for keys

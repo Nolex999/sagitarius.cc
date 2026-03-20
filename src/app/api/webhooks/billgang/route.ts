@@ -23,6 +23,22 @@ export async function POST(req: NextRequest) {
        if (userField) userId = userField.value;
     }
 
+    // FALLBACK: Look up user by email if userId is still missing
+    const customerEmail = order.customer?.email || payload.customer?.email;
+    if (!userId && customerEmail) {
+      console.log('User ID missing, searching by email:', customerEmail);
+      const { data: profile } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('email', customerEmail)
+        .maybeSingle();
+      
+      if (profile) {
+        userId = profile.id;
+        console.log('Found User ID by email:', userId);
+      }
+    }
+
     console.log('--- DIAGNOSTICS ---');
     console.log('Service Role Key Present:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
     console.log('Processing order for:', productName || 'Unknown Product', 'User ID:', userId);
