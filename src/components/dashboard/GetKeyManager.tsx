@@ -25,7 +25,7 @@ declare global {
   }
 }
 
-const BILLGANG_DOMAIN = 'sagitarius.billgang.store';
+const BILLGANG_DOMAIN = 'sagitarius.bgng.io';
 
 const pricingOptions = [
   {
@@ -117,17 +117,34 @@ export default function GetKeyManager() {
   };
 
   const handleFinalPurchase = (category: 'faceit' | 'external') => {
-    // The Billgang script handles the click via data attributes.
-    // We don't close the modal immediately to allow the script to detect the click.
-    console.log(`Purchase initiated for ${category}`);
-    // Optional: add a tiny delay before closing, or just let the user close it after the checkout opens
+    const plan = selectedPlan.billgang[category];
+    console.log(`[Billgang] Attempting purchase for ${category} with path ${plan.path}`);
+    
+    // Check if script is loaded
+    if (typeof window !== 'undefined' && !window.Billgang) {
+      console.warn('[Billgang] Script not detected in window. Fallback to direct URL.');
+      window.open(`https://${BILLGANG_DOMAIN}/product/${plan.path}`, '_blank');
+      setShowCategorySelector(false);
+      return;
+    }
+
+    // If script is loaded, we still allow a small delay for it to intercept
+    // but we can also try to manually trigger if we knew the method.
+    // Setting a shorter timeout for UI responsiveness
     setTimeout(() => {
       setShowCategorySelector(false);
-    }, 2000); 
+    }, 500); 
   };
 
   return (
     <div className="max-w-6xl mx-auto space-y-12 py-4 px-6">
+      <Script 
+        src="https://embed.billgang.store/embed.js" 
+        strategy="lazyOnload"
+        onLoad={() => console.log('[Billgang] Script loaded via next/script')}
+      />
+      {/* LOUD LOG FOR DEBUGGING */}
+      <script dangerouslySetInnerHTML={{ __html: `console.log('--- GETKEYMANAGER RENDERED ---');` }} />
       <div className="text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[10px] uppercase font-bold tracking-widest">
           <Zap size={12} fill="currentColor" />
