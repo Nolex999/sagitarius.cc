@@ -31,6 +31,7 @@ export default function InboxManager() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [revealing, setRevealing] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   const supabase = createClient();
 
@@ -42,6 +43,7 @@ export default function InboxManager() {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
       if (!user) throw new Error('Not authenticated');
 
       const { data, error } = await supabase
