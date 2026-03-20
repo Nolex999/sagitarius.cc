@@ -121,12 +121,89 @@ export default function GetKeyManager() {
   };
 
   const handleFinalPurchase = (category: 'faceit' | 'external') => {
-    // The Billgang script (platform.billgang.com/embed.js) 
-    // listens for clicks on buttons with data-billgang attributes.
-    // We just need to give it a moment before closing our modal.
-    setTimeout(() => {
+    const plan = selectedPlan.billgang[category];
+    const productPath = plan.path;
+    const domain = BILLGANG_DOMAIN.includes('https://') ? BILLGANG_DOMAIN : `https://${BILLGANG_DOMAIN}`;
+
+    // 1. First, check if the Billgang script has already opened a modal
+    const existingEmbed = document.getElementById(`billgang-embed-${productPath}`);
+    if (existingEmbed) {
       setShowCategorySelector(false);
-    }, 500); 
+      return;
+    }
+
+    // 2. If no modal is open after 100ms, manually trigger the logic from embed.js
+    // to ensure it works even if the script's DOMContentLoaded listener failed.
+    setTimeout(() => {
+      const alreadyOpened = document.getElementById(`billgang-embed-${productPath}`);
+      if (alreadyOpened) {
+        setShowCategorySelector(false);
+        return;
+      }
+
+      console.log('Manually triggering Billgang embed for:', productPath);
+      
+      // Ensure container exists
+      let container = document.getElementById('billgang-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'billgang-container';
+        document.body.appendChild(container);
+      }
+
+      // Create modal (same logic as platform.billgang.com/embed.js)
+      document.body.style.overflow = 'hidden';
+      const modal = document.createElement('div');
+      modal.id = 'billgang-embed-' + productPath;
+      modal.style.position = 'fixed';
+      modal.style.width = '100%';
+      modal.style.height = '100%';
+      modal.style.zIndex = '9998';
+      modal.style.top = '0';
+      modal.style.left = '0';
+
+      const modalBackdrop = document.createElement('div');
+      modalBackdrop.classList.add('billgang-backdrop');
+      modalBackdrop.style.position = 'absolute';
+      modalBackdrop.style.width = '100%';
+      modalBackdrop.style.height = '100%';
+      modalBackdrop.style.background = '#00000075';
+      modalBackdrop.style.backdropFilter = 'blur(3px)';
+      modal.appendChild(modalBackdrop);
+
+      const iframeWrapper = document.createElement('div');
+      iframeWrapper.style.position = 'absolute';
+      iframeWrapper.style.width = '100%';
+      iframeWrapper.style.height = '100%';
+      iframeWrapper.style.margin = 'auto';
+      iframeWrapper.style.zIndex = '1';
+
+      const spinner = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" width="35" height="35" style="shape-rendering: auto; display: block; background: transparent;"><g><circle cx="50" cy="50" fill="none" stroke="rgba(255, 255, 255, 1)" stroke-width="10" r="35" stroke-dasharray="164.93361431346415 56.97787143782138"><animateTransform attributeName="transform" type="rotate" repeatCount="indefinite" dur="1s" values="0 50 50;360 50 50" keyTimes="0;1"></animateTransform></circle></g></svg>`;
+      const loader = document.createElement('div');
+      loader.id = "billgang-loader";
+      loader.style.position = 'absolute';
+      loader.style.width = '100%';
+      loader.style.height = '100%';
+      loader.style.display = 'flex';
+      loader.style.justifyContent = 'center';
+      loader.style.alignItems = 'center';
+      loader.innerHTML = spinner;
+      iframeWrapper.appendChild(loader);
+
+      const iframe = document.createElement('iframe');
+      iframe.src = `${domain}/embed/${productPath}`;
+      iframe.style.position = 'absolute';
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      iframe.onload = () => document.getElementById('billgang-loader')?.remove();
+      iframe.scrolling = 'auto';
+      
+      iframeWrapper.appendChild(iframe);
+      modal.appendChild(iframeWrapper);
+      container.appendChild(modal);
+
+      setShowCategorySelector(false);
+    }, 100);
   };
 
   return (

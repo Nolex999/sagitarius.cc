@@ -56,7 +56,6 @@ export default function RootLayout({
           src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"
           strategy="afterInteractive"
         />
-        <Script src="https://embed.billgang.store/embed.js" strategy="afterInteractive" />
       </body>
     </html>
   );
