@@ -16,7 +16,9 @@ import {
   Inbox,
   CreditCard,
   ShieldCheck,
-  MessageCircle
+  MessageCircle,
+  Menu,
+  X
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { User as AuthUser } from '@supabase/supabase-js';
@@ -73,6 +75,7 @@ export default function Sidebar({ user }: { user: AuthUser }) {
   const pathname = usePathname();
   const router = useRouter();
   const [dbRole, setDbRole] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     async function fetchRole() {
@@ -82,6 +85,10 @@ export default function Sidebar({ user }: { user: AuthUser }) {
     }
     fetchRole();
   }, [user.id]);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   const role = getUserRole(user?.email, dbRole || undefined);
   const handleLogout = async () => {
@@ -94,53 +101,114 @@ export default function Sidebar({ user }: { user: AuthUser }) {
   const visibleItems = navItems.filter(item => !item.requiredRole || item.requiredRole.includes(role));
 
   return (
-    <header className="sticky top-0 z-[100] w-full border-b border-white/[0.04] bg-black/60 backdrop-blur-xl">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center">
-        {/* LEFT SECTION (Logo) */}
-        <div className="w-[200px] flex items-center gap-3">
-          <Link href="/dashboard/software" className="flex items-center gap-4 shrink-0 group">
-            <div className="flex h-11 w-11 items-center justify-center transition-all group-hover:scale-110">
-              <Image src="/logo.svg" alt="Logo" width={28} height={28} className="brightness-125 select-none" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-mono text-[11px] font-black uppercase tracking-[0.4em] text-white leading-none">SAGITARIUS</span>
-            </div>
-          </Link>
-        </div>
+    <>
+      <header className="sticky top-0 z-[100] w-full border-b border-white/[0.04] bg-black/60 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
+          {/* LEFT SECTION (Logo) */}
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="xl:hidden p-2 rounded-xl text-white/40 hover:text-white hover:bg-white/5 transition-all"
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+            <Link href="/dashboard/software" className="flex items-center shrink-0 group">
+              <Image src="/logo.svg" alt="Logo" width={32} height={32} className="brightness-125 select-none transition-transform group-hover:scale-110" />
+            </Link>
+          </div>
 
-        {/* CENTER SECTION (Navigation) */}
-        <nav className="flex-1 flex items-center justify-center gap-6">
-          {visibleItems.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname === href;
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={`flex items-center gap-3 h-10 px-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all transform hover:-translate-y-1 ${isActive ? 'bg-orange-500/15 text-white border border-orange-500/30' : 'text-white/40 hover:text-white hover:bg-white/5'
+          {/* CENTER SECTION (Navigation) - Desktop */}
+          <nav className="hidden xl:flex items-center justify-center gap-1">
+            {visibleItems.map(({ href, label, icon: Icon }) => {
+              const isActive = pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex items-center gap-2.5 h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
+                    isActive 
+                      ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20 shadow-[0_0_15px_rgba(249,115,22,0.1)]' 
+                      : 'text-white/40 hover:text-white hover:bg-white/5'
                   }`}
-              >
-                <Icon size={14} strokeWidth={isActive ? 3 : 1.5} className={isActive ? 'text-orange-400' : ''} />
-                <span className="hidden lg:inline">{label}</span>
-              </Link>
-            );
-          })}
-        </nav>
+                >
+                  <Icon size={14} strokeWidth={isActive ? 3 : 1.5} />
+                  <span className="hidden min-[1300px]:inline">{label}</span>
+                </Link>
+              );
+            })}
+          </nav>
 
-        {/* RIGHT SECTION (Profile & Logout) */}
-        <div className="w-[200px] flex justify-end items-center gap-4 pl-4 border-l border-white/10">
-          <Link href="/dashboard/profile" className="flex items-center gap-3 rounded-2xl p-1 pr-3 border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-all group">
-            <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-white/10 font-mono text-sm font-black text-white group-hover:bg-orange-500/20 group-hover:text-orange-500 transition-colors">
-              {user?.email?.[0].toUpperCase()}
-            </div>
-            <div className="hidden sm:block">
-              <RoleBadge role={role} />
-            </div>
-          </Link>
-          <button onClick={handleLogout} className="p-2.5 rounded-2xl text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all">
-            <LogOut size={20} />
-          </button>
+          {/* RIGHT SECTION (Profile & Logout) */}
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Link href="/dashboard/profile" className="flex items-center gap-3 rounded-xl p-1 pr-3 border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-all group">
+              <div className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center rounded-lg bg-white/10 font-mono text-sm font-black text-white group-hover:bg-orange-500/20 group-hover:text-orange-500 transition-colors">
+                {user?.email?.[0].toUpperCase()}
+              </div>
+              <div className="hidden sm:block">
+                <RoleBadge role={role} />
+              </div>
+            </Link>
+            <button onClick={handleLogout} className="p-2 sm:p-2.5 rounded-xl text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all">
+              <LogOut size={18} />
+            </button>
+          </div>
         </div>
+      </header>
+
+      {/* MOBILE MENU OVERLAY */}
+      <div className={`fixed inset-0 z-[90] xl:hidden transition-all duration-500 ${isMobileMenuOpen ? 'visible' : 'invisible'}`}>
+        <div 
+          className={`absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity duration-500 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0'}`}
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+        <nav className={`absolute left-0 top-0 bottom-0 w-[280px] bg-[#050505] border-r border-white/5 p-6 flex flex-col gap-2 transition-transform duration-500 shadow-2xl ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <div className="flex items-center gap-3 mb-8 px-2">
+            <Image src="/logo.svg" alt="Logo" width={28} height={28} className="brightness-125" />
+            <span className="font-mono text-[10px] font-black uppercase tracking-[0.4em] text-white">SAGITARIUS</span>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto pr-2 scrollbar-premium flex flex-col gap-1">
+            {visibleItems.map(({ href, label, icon: Icon }) => {
+              const isActive = pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex items-center gap-4 h-12 px-4 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${
+                    isActive 
+                      ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' 
+                      : 'text-white/40 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Icon size={16} strokeWidth={isActive ? 2.5 : 1.5} />
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="mt-auto pt-6 border-t border-white/5 flex flex-col gap-4">
+             <div className="flex items-center gap-3 px-2">
+               <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 font-mono text-white text-lg font-black">
+                 {user?.email?.[0].toUpperCase()}
+               </div>
+               <div className="flex flex-col">
+                 <span className="text-[10px] text-white font-black uppercase tracking-wider truncate max-w-[150px]">{user?.email}</span>
+                 <div className="scale-90 origin-left mt-1">
+                   <RoleBadge role={role} />
+                 </div>
+               </div>
+             </div>
+             <button 
+               onClick={handleLogout}
+               className="w-full h-12 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-3"
+             >
+               <LogOut size={16} />
+               Logout
+             </button>
+          </div>
+        </nav>
       </div>
-    </header>
+    </>
   );
 }

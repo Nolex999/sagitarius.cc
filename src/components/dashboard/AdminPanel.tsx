@@ -22,7 +22,7 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
-  const [activeTab, setActiveTab] = useState<'messaging' | 'invites'>('messaging');
+  const [activeTab, setActiveTab] = useState<'messaging' | 'invites' | 'users'>('messaging');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -38,11 +38,17 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
   const [newCode, setNewCode] = useState('');
   const [maxUses, setMaxUses] = useState(1);
 
+  // Users State
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+
   const supabase = createClient();
 
   useEffect(() => {
     if (activeTab === 'invites') {
       fetchInvites();
+    } else if (activeTab === 'users') {
+      fetchProfiles();
     }
   }, [activeTab]);
 
@@ -55,6 +61,75 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
         .order('created_at', { ascending: false });
       if (error) throw error;
       setInvites(data || []);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchProfiles = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setProfiles(data || []);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateUserRole = async (userId: string, newRole: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: newRole })
+        .eq('id', userId);
+      
+      if (error) throw error;
+      setProfiles(profiles.map(p => p.id === userId ? { ...p, role: newRole } : p));
+      setSuccess('User role updated successfully!');
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const giftInvite = async (userId: string, userEmail: string) => {
+    setLoading(true);
+    try {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let code = '';
+      for (let i = 0; i < 16; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const { error: invError } = await supabase
+        .from('inv_code')
+        .insert({
+          code: code,
+          max_uses: 1,
+          created_by: user?.id,
+          assigned_to: userId
+        });
+      
+      if (invError) throw invError;
+
+      // Also send a direct message to inform them
+      await supabase.rpc('send_direct_message', {
+        p_email: userEmail,
+        p_title: 'You received a gift! 🎁',
+        p_content: `An administrator has gifted you an invitation code: ${code}. You can find it in your profile or use it to invite a friend.`,
+        p_type: 'notification'
+      });
+
+      setSuccess(`Invite ${code} gifted to ${userEmail}!`);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -168,6 +243,15 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
           <Ticket size={14} />
           Invite Codes
         </button>
+        <button
+          onClick={() => setActiveTab('users')}
+          className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
+            activeTab === 'users' ? 'bg-orange-500 text-black' : 'text-white/40 hover:text-white'
+          }`}
+        >
+          <Users size={14} />
+          Users
+        </button>
       </div>
 
       {error && (
@@ -185,191 +269,241 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
 
       {activeTab === 'messaging' && (
         <form onSubmit={handleSendMessage} className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-3xl bg-white/[0.02] border border-white/[0.05]">
+          <div className="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
             <button
               type="button"
               onClick={() => setMsgType('broadcast')}
-              className={`p-6 rounded-2xl border transition-all flex flex-col items-center gap-3 group relative overflow-hidden ${
+              className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 group relative overflow-hidden ${
                 msgType === 'broadcast' 
                   ? 'bg-orange-500/10 border-orange-500/50 text-orange-400' 
                   : 'bg-white/[0.02] border-white/10 text-white/40 hover:border-white/20'
               }`}
             >
-              <Users size={28} className={msgType === 'broadcast' ? 'scale-110' : ''} />
+              <Users size={20} className={msgType === 'broadcast' ? 'scale-110' : ''} />
               <div className="text-center">
-                <span className="block text-[10px] font-black uppercase tracking-[0.2em]">Broadcast All</span>
-                <span className="text-[9px] text-white/20 font-medium">Send to every registered user</span>
+                <span className="block text-[8px] font-black uppercase tracking-[0.2em]">Broadcast All</span>
               </div>
             </button>
             <button
               type="button"
               onClick={() => setMsgType('direct')}
-              className={`p-6 rounded-2xl border transition-all flex flex-col items-center gap-3 group relative overflow-hidden ${
+              className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 group relative overflow-hidden ${
                 msgType === 'direct' 
                   ? 'bg-blue-500/10 border-blue-500/50 text-blue-400' 
                   : 'bg-white/[0.02] border-white/10 text-white/40 hover:border-white/20'
               }`}
             >
-              <Mail size={28} className={msgType === 'direct' ? 'scale-110' : ''} />
+              <Mail size={20} className={msgType === 'direct' ? 'scale-110' : ''} />
               <div className="text-center">
-                <span className="block text-[10px] font-black uppercase tracking-[0.2em]">Direct Message</span>
-                <span className="text-[9px] text-white/20 font-medium">Target a specific user by email</span>
+                <span className="block text-[8px] font-black uppercase tracking-[0.2em]">Direct Message</span>
               </div>
             </button>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {msgType === 'direct' && (
               <div className="relative group">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-blue-400 transition-colors" size={18} />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-blue-400 transition-colors" size={16} />
                 <input
                   type="email"
                   placeholder="Target User Email..."
                   required
                   value={targetEmail}
-                  onChange={(e) => setTargetEmail(e.target.value)}
-                  className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-4 h-14 text-sm text-white focus:border-blue-500/50 outline-none transition-all"
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTargetEmail(e.target.value)}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 h-12 text-xs text-white focus:border-blue-500/50 outline-none transition-all"
                 />
               </div>
             )}
             <div className="relative group">
-              <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-orange-500 transition-colors" size={18} />
+              <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-orange-500 transition-colors" size={16} />
               <input
                 type="text"
                 placeholder="Message Title..."
                 required
                 value={msgTitle}
-                onChange={(e) => setMsgTitle(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-4 h-14 text-sm text-white focus:border-orange-500/50 outline-none transition-all"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMsgTitle(e.target.value)}
+                className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 h-12 text-xs text-white focus:border-orange-500/50 outline-none transition-all"
               />
             </div>
             <textarea
               placeholder="Write your message here..."
               required
-              rows={5}
+              rows={3}
               value={msgContent}
               onChange={(e) => setMsgContent(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 text-sm text-white focus:border-orange-500/50 outline-none transition-all resize-none min-h-[150px]"
+              className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xs text-white focus:border-orange-500/50 outline-none transition-all resize-none min-h-[100px]"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-14 rounded-2xl bg-orange-500 text-black text-xs font-black uppercase tracking-[0.3em] hover:bg-orange-400 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-[0_10px_20px_rgba(249,115,22,0.15)]"
+            className="w-full h-12 rounded-xl bg-orange-500 text-black text-[10px] font-black uppercase tracking-[0.3em] hover:bg-orange-400 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
           >
-            {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-            {msgType === 'broadcast' ? 'Broadcast to Everyone' : 'Send Direct Message'}
+            {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+            {msgType === 'broadcast' ? 'Broadcast' : 'Send Direct Message'}
           </button>
         </form>
       )}
 
       {activeTab === 'invites' && (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <form onSubmit={handleCreateInvite} className="p-6 rounded-3xl bg-white/[0.02] border border-white/[0.05] flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative group">
-              <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-orange-500 transition-colors" size={18} />
-              <input
-                type="text"
-                placeholder="Custom Code (optional)"
-                value={newCode}
-                onChange={(e) => setNewCode(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-4 h-12 text-sm text-white focus:border-orange-500/50 outline-none transition-all uppercase font-mono tracking-widest"
-              />
-            </div>
-            <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-2xl px-4 h-12 group focus-within:border-orange-500/50 transition-all">
-              <Plus size={18} className="text-white/20 group-focus-within:text-orange-500 transition-colors" />
-              <input
-                type="number"
-                min="0"
-                placeholder="Uses"
-                value={maxUses}
-                onChange={(e) => setMaxUses(parseInt(e.target.value))}
-                className="w-16 bg-transparent h-full text-sm text-white outline-none font-bold"
-                title="Max Uses (0 for unlimited)"
-              />
-              <span className="text-[10px] text-white/20 font-black uppercase tracking-widest border-l border-white/10 pl-3">Uses</span>
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <form onSubmit={handleCreateInvite} className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 relative group">
+                <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-orange-500 transition-colors" size={16} />
+                <input
+                  type="text"
+                  placeholder="Custom Code (optional)"
+                  value={newCode}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewCode(e.target.value)}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 h-10 text-xs text-white focus:border-orange-500/50 outline-none transition-all uppercase font-mono tracking-widest"
+                />
+              </div>
+              <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl px-4 h-10 group focus-within:border-orange-500/50 transition-all">
+                <Plus size={16} className="text-white/20 group-focus-within:text-orange-500 transition-colors" />
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Uses"
+                  value={maxUses}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMaxUses(parseInt(e.target.value))}
+                  className="w-12 bg-transparent h-full text-xs text-white outline-none font-bold"
+                />
+                <span className="text-[8px] text-white/20 font-black uppercase tracking-widest border-l border-white/10 pl-2">Uses</span>
+              </div>
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="h-12 px-8 rounded-2xl bg-white text-black text-[11px] font-black uppercase tracking-widest hover:bg-white/90 transition-all flex items-center justify-center gap-2 shrink-0 shadow-lg active:scale-95"
+              className="h-10 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:bg-white/90 transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95"
             >
-              <Plus size={18} />
+              <Plus size={16} />
               Create Code
             </button>
           </form>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-premium">
             {invites.map((inv: any) => (
-              <div key={inv.id} className="p-6 rounded-[2rem] bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all flex flex-col md:flex-row items-center justify-between gap-6 group relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                
-                <div className="flex flex-col md:flex-row items-center gap-6 relative z-10 w-full md:w-auto">
-                  <div className={`h-16 w-16 rounded-2xl flex items-center justify-center shrink-0 shadow-inner ${
+              <div key={inv.id} className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all flex flex-col sm:flex-row items-center justify-between gap-4 group relative overflow-hidden">
+                <div className="flex items-center gap-4 w-full sm:w-auto">
+                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${
                     inv.is_active ? 'bg-orange-500/10 text-orange-500' : 'bg-red-500/10 text-red-500'
                   }`}>
-                    <Ticket size={32} />
+                    <Ticket size={18} />
                   </div>
-                  
-                  <div className="text-center md:text-left flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-2">
-                      <span className="font-mono text-xl md:text-2xl text-white font-black tracking-[0.2em] uppercase select-all">
-                        {inv.code}
-                      </span>
-                      <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full border ${
-                        inv.is_active 
-                          ? 'bg-green-500/10 border-green-500/20 text-green-400' 
-                          : 'bg-red-500/10 border-red-500/20 text-red-400'
-                      }`}>
-                        {inv.is_active ? 'Active' : 'Inactive'}
-                      </span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-sm text-white font-bold tracking-wider uppercase truncate">{inv.code}</span>
+                      {inv.assigned_to && (
+                        <span className="px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[8px] font-black uppercase">GIFTED</span>
+                      )}
                     </div>
-                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-[10px] text-white/30 font-bold uppercase tracking-[0.2em]">
-                      <span className="flex items-center gap-2"><Hash size={14} className="text-white/10" /> {inv.current_uses} / {inv.max_uses === 0 ? '∞' : inv.max_uses} REDEEMED</span>
-                      <span className="h-1 w-1 rounded-full bg-white/10 hidden md:block" />
-                      <span className="flex items-center gap-2"><Calendar size={14} className="text-white/10" /> CREATED {new Date(inv.created_at).toLocaleDateString()}</span>
+                    <div className="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-0.5">
+                      {inv.current_uses} / {inv.max_uses === 0 ? '∞' : inv.max_uses} REDEEMED • {new Date(inv.created_at).toLocaleDateString()}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 relative z-10 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-white/[0.05]">
-                  <button
+                <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                   <button
                     onClick={() => {
                       const link = `https://sagitarius.cc/claim/${inv.code}`;
                       navigator.clipboard.writeText(link);
-                      setSuccess('Claim link copied to clipboard!');
+                      setSuccess('Claim link copied!');
                     }}
-                    className="flex-1 md:flex-none h-11 px-6 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[10px] font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all shadow-xl"
+                    className="flex-1 sm:flex-none h-8 px-3 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[9px] font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all"
                   >
-                    Copy Link
+                    Link
                   </button>
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(inv.code);
-                      setSuccess('Code copied to clipboard!');
+                      setSuccess('Code copied!');
                     }}
-                    className="flex-1 md:flex-none h-11 px-6 rounded-xl bg-white/[0.03] border border-white/10 text-white/60 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all shadow-xl"
+                    className="flex-1 sm:flex-none h-8 px-3 rounded-lg bg-white/[0.03] border border-white/10 text-white/40 text-[9px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all"
                   >
-                    Copy Code
+                    Code
                   </button>
                   <button
                     onClick={() => deleteInvite(inv.id)}
-                    className="h-11 w-11 flex items-center justify-center rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all shadow-xl group/del"
-                    title="Delete invite code"
+                    className="h-8 w-8 flex items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all shadow-xl"
                   >
-                    <Trash2 size={20} className="transition-transform group-hover/del:scale-110" />
+                    <Trash2 size={14} />
                   </button>
                 </div>
               </div>
             ))}
-            {invites.length === 0 && !loading && (
-              <div className="text-center py-20 bg-white/[0.01] rounded-[2rem] border border-white/[0.04] border-dashed">
-                <Ticket size={48} className="mx-auto mb-4 text-white/5" />
-                <h4 className="text-white/40 font-bold uppercase tracking-widest text-xs">No invite codes found</h4>
-                <p className="text-white/10 text-[10px] mt-2 font-mono uppercase">Create your first code above</p>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'users' && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+           <div className="relative group">
+            <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-orange-500 transition-colors" size={16} />
+            <input
+              type="text"
+              placeholder="Search users by email or username..."
+              value={searchQuery}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+              className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 h-11 text-xs text-white focus:border-orange-500/50 outline-none transition-all"
+            />
+          </div>
+
+          <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-premium">
+            {profiles
+              .filter((p: any) => 
+                p.email?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                p.username?.toLowerCase().includes(searchQuery.toLowerCase())
+              )
+              .map((profile: any) => (
+              <div key={profile.id} className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all flex flex-col sm:flex-row items-center justify-between gap-4 group relative">
+                <div className="flex items-center gap-4 w-full sm:w-auto">
+                  <div className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-bold text-white uppercase overflow-hidden">
+                    {profile.avatar_url ? (
+                      <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      profile.username?.[0] || profile.email?.[0]
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                       <span className="text-sm text-white font-bold truncate">{profile.username}</span>
+                       <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase border ${
+                         profile.role === 'owner' ? 'bg-black text-white border-white/20' :
+                         profile.role === 'admin' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' :
+                         profile.role === 'vip' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                         'bg-white/5 text-white/40 border-white/10'
+                       }`}>
+                         {profile.role}
+                       </span>
+                    </div>
+                    <div className="text-[10px] text-white/20 truncate">{profile.email}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <select 
+                    value={profile.role}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateUserRole(profile.id, e.target.value)}
+                    className="flex-1 sm:flex-none h-9 px-3 rounded-lg bg-white/[0.03] border border-white/10 text-white/60 text-[10px] font-bold outline-none focus:border-orange-500/30 transition-all"
+                  >
+                    <option value="member">Member</option>
+                    <option value="vip">VIP</option>
+                    <option value="admin">Admin</option>
+                    <option value="owner" disabled>Owner</option>
+                  </select>
+                  <button
+                    onClick={() => giftInvite(profile.id, profile.email)}
+                    disabled={loading}
+                    className="flex-1 sm:flex-none h-9 px-4 rounded-lg bg-orange-500 text-black text-[9px] font-black uppercase tracking-wider hover:bg-orange-400 transition-all flex items-center justify-center gap-2"
+                  >
+                    Gift Invite
+                  </button>
+                </div>
               </div>
-            )}
+            ))}
           </div>
         </div>
       )}

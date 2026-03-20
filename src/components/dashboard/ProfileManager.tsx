@@ -131,7 +131,7 @@ export default function ProfileManager() {
       const { data, error } = await supabase
         .from('inv_code')
         .select('*')
-        .eq('created_by', authUser.id)
+        .or(`created_by.eq.${authUser.id},assigned_to.eq.${authUser.id}`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -238,7 +238,7 @@ export default function ProfileManager() {
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-4">
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-[10px] text-white/40 font-bold uppercase tracking-[0.1em]">
                 <Calendar size={14} className="text-orange-500/50" />
-                Joined {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
+                Joined {profile?.created_at && !isNaN(new Date(profile.created_at).getTime()) ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
               </div>
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-[10px] text-white/40 font-bold uppercase tracking-[0.1em]">
                 <Zap size={14} className="text-blue-500/50" />
@@ -272,7 +272,7 @@ export default function ProfileManager() {
                 </div>
                 <div>
                   <div className="flex items-center gap-3 mb-1">
-                    <span className="font-mono text-sm text-white font-black tracking-widest uppercase">{inv.code}</span>
+                    <span className="font-mono text-lg text-white font-black tracking-[0.2em] uppercase">{inv.code}</span>
                     <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full border ${
                       inv.is_active ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'
                     }`}>

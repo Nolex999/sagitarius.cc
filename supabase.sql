@@ -71,7 +71,8 @@ CREATE TABLE IF NOT EXISTS public.inv_code (
   max_uses int DEFAULT 1,
   current_uses int DEFAULT 0,
   expires_at timestamptz,
-  created_by uuid REFERENCES auth.users(id)
+  created_by uuid REFERENCES auth.users(id),
+  assigned_to uuid REFERENCES auth.users(id)
 );
 
 -- Création auto du profil
@@ -305,8 +306,9 @@ CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE TO au
 -- 6.4 Inbox Policies
 DROP POLICY IF EXISTS "Users can view own messages" ON public.inbox_messages;
 CREATE POLICY "Users can view own messages" ON public.inbox_messages FOR SELECT TO authenticated USING (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Users can update own messages" ON public.inbox_messages;
 CREATE POLICY "Users can update own messages" ON public.inbox_messages FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete own messages" ON public.inbox_messages;
+CREATE POLICY "Users can delete own messages" ON public.inbox_messages FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 -- 6.5 Software System Policies
 DROP POLICY IF EXISTS "Anyone can view categories" ON public.software_categories;

@@ -31,7 +31,7 @@ const BILLGANG_DOMAIN = 'sagitarius.bgng.io';
 const pricingOptions = [
   {
     id: '7-days',
-    name: '7 Days',
+    name: 'Faceit 7 Days',
     price: '12.00',
     description: 'Perfect for testing our software features.',
     features: [
@@ -41,7 +41,7 @@ const pricingOptions = [
     ],
     highlight: false,
     billgang: {
-      faceit: { path: 'test' },
+      faceit: { path: 'faceit-7-days' },
       external: { path: 'CS2-7-days' }
     }
   },
