@@ -41,7 +41,7 @@ const pricingOptions = [
     ],
     highlight: false,
     billgang: {
-      faceit: { path: 'faceit-7-days' },
+      faceit: { path: 'test' },
       external: { path: 'CS2-7-days' }
     }
   },

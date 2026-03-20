@@ -197,7 +197,7 @@ BEGIN
     AND (max_uses = 0 OR current_uses < max_uses);
 
   IF v_key_id IS NULL THEN
-    RETURN QUERY SELECT NULL::text, false, 'Clé invalide ou expirée'::text;
+    RETURN QUERY SELECT NULL::text, false, 'Invalid or expired key'::text;
     RETURN;
   END IF;
 
@@ -205,12 +205,12 @@ BEGIN
   WHERE category_id = p_category_id AND is_loader = true LIMIT 1;
 
   IF v_file_url IS NULL THEN
-    RETURN QUERY SELECT NULL::text, false, 'Erreur: Aucun loader configuré'::text;
+    RETURN QUERY SELECT NULL::text, false, 'Error: No loader configured'::text;
     RETURN;
   END IF;
 
   UPDATE public.software_keys SET current_uses = current_uses + 1 WHERE id = v_key_id;
-  RETURN QUERY SELECT v_file_url, true, 'Succès'::text;
+  RETURN QUERY SELECT v_file_url, true, 'Success'::text;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
