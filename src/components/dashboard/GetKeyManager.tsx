@@ -87,7 +87,15 @@ export default function GetKeyManager() {
   const [verifyResult, setVerifyResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialized Billgang logs removed
+  useEffect(() => {
+    // Manually create the Billgang container if it's not there,
+    // because the script's DOMContentLoaded listener might not fire in a SPA.
+    if (typeof document !== 'undefined' && !document.getElementById('billgang-container')) {
+      const container = document.createElement('div');
+      container.id = 'billgang-container';
+      document.body.appendChild(container);
+    }
+  }, []);
 
   const handleVerify = async () => {
     setVerifying(true);
@@ -113,26 +121,19 @@ export default function GetKeyManager() {
   };
 
   const handleFinalPurchase = (category: 'faceit' | 'external') => {
-    const plan = selectedPlan.billgang[category];
-    
-    // Check if script is loaded
-    if (typeof window !== 'undefined' && !window.Billgang) {
-      window.open(`https://${BILLGANG_DOMAIN}/product/${plan.path}`, '_blank');
-      setShowCategorySelector(false);
-      return;
-    }
-
-    // Small delay to allow script to intercept if it's there
+    // The Billgang script (platform.billgang.com/embed.js) 
+    // listens for clicks on buttons with data-billgang attributes.
+    // We just need to give it a moment before closing our modal.
     setTimeout(() => {
       setShowCategorySelector(false);
-    }, 100); 
+    }, 500); 
   };
 
   return (
     <div className="max-w-6xl mx-auto space-y-12 py-4 px-6">
       <Script 
         src="https://platform.billgang.com/embed.js" 
-        strategy="lazyOnload"
+        strategy="afterInteractive"
       />
       <div className="text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[10px] uppercase font-bold tracking-widest">
@@ -293,10 +294,9 @@ export default function GetKeyManager() {
                 onClick={() => handleFinalPurchase('faceit')}
                 data-billgang-product-path={selectedPlan.billgang.faceit.path}
                 data-billgang-domain={BILLGANG_DOMAIN}
-                data-billgang-embed="true"
-                className="billgang-checkout group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-orange-500/30 transition-all duration-500 h-[220px]"
+                className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-orange-500/30 transition-all duration-500 h-[220px]"
               >
-                <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110">
+                <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110 pointer-events-none">
                   <Image
                     src={faceitLogo}
                     alt="Faceit"
@@ -304,7 +304,7 @@ export default function GetKeyManager() {
                     className="object-contain"
                   />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 pointer-events-none">
                   <p className="text-xs font-black text-white uppercase tracking-widest">Faceit Client</p>
                   <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">Premium Protection</p>
                 </div>
@@ -314,10 +314,9 @@ export default function GetKeyManager() {
                 onClick={() => handleFinalPurchase('external')}
                 data-billgang-product-path={selectedPlan.billgang.external.path}
                 data-billgang-domain={BILLGANG_DOMAIN}
-                data-billgang-embed="true"
-                className="billgang-checkout group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-blue-500/30 transition-all duration-500 h-[220px]"
+                className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-blue-500/30 transition-all duration-500 h-[220px]"
               >
-                <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110">
+                <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110 pointer-events-none">
                   <Image
                     src={cs2Logo}
                     alt="CS2"
@@ -325,7 +324,7 @@ export default function GetKeyManager() {
                     className="object-contain"
                   />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 pointer-events-none">
                   <p className="text-xs font-black text-white uppercase tracking-widest">CS2 External</p>
                   <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">High Performance</p>
                 </div>
