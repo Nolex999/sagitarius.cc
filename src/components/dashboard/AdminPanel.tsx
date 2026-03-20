@@ -224,11 +224,11 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
   return (
     <div className="space-y-6">
       {/* Tabs */}
-      <div className="flex gap-2 p-1 bg-white/[0.03] border border-white/10 rounded-xl w-fit">
+      <div className="flex gap-1.5 p-1 bg-white/[0.02] border border-white/5 rounded-xl w-fit">
         <button
           onClick={() => setActiveTab('messaging')}
-          className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
-            activeTab === 'messaging' ? 'bg-orange-500 text-black' : 'text-white/40 hover:text-white'
+          className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2.5 ${
+            activeTab === 'messaging' ? 'bg-orange-500 text-black shadow-lg shadow-orange-500/20' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
           }`}
         >
           <Send size={14} />
@@ -236,17 +236,17 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
         </button>
         <button
           onClick={() => setActiveTab('invites')}
-          className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
-            activeTab === 'invites' ? 'bg-orange-500 text-black' : 'text-white/40 hover:text-white'
+          className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2.5 ${
+            activeTab === 'invites' ? 'bg-orange-500 text-black shadow-lg shadow-orange-500/20' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
           }`}
         >
           <Ticket size={14} />
-          Invite Codes
+          Invites
         </button>
         <button
           onClick={() => setActiveTab('users')}
-          className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
-            activeTab === 'users' ? 'bg-orange-500 text-black' : 'text-white/40 hover:text-white'
+          className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2.5 ${
+            activeTab === 'users' ? 'bg-orange-500 text-black shadow-lg shadow-orange-500/20' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
           }`}
         >
           <Users size={14} />
@@ -269,33 +269,33 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
 
       {activeTab === 'messaging' && (
         <form onSubmit={handleSendMessage} className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <div className="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+          <div className="grid grid-cols-2 gap-3 p-2 rounded-2xl bg-white/[0.01] border border-white/[0.04]">
             <button
               type="button"
               onClick={() => setMsgType('broadcast')}
-              className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 group relative overflow-hidden ${
+              className={`p-5 rounded-xl border transition-all flex flex-col items-center gap-3 group relative overflow-hidden ${
                 msgType === 'broadcast' 
-                  ? 'bg-orange-500/10 border-orange-500/50 text-orange-400' 
-                  : 'bg-white/[0.02] border-white/10 text-white/40 hover:border-white/20'
+                  ? 'bg-orange-500/[0.03] border-orange-500/20 text-orange-400' 
+                  : 'bg-white/[0.01] border-white/5 text-white/20 hover:border-white/10 hover:text-white/40'
               }`}
             >
-              <Users size={20} className={msgType === 'broadcast' ? 'scale-110' : ''} />
+              <Users size={20} className={msgType === 'broadcast' ? 'scale-110 shadow-orange-500/50' : ''} />
               <div className="text-center">
-                <span className="block text-[8px] font-black uppercase tracking-[0.2em]">Broadcast All</span>
+                <span className="block text-[9px] font-black uppercase tracking-[0.3em]">Broadcast</span>
               </div>
             </button>
             <button
               type="button"
               onClick={() => setMsgType('direct')}
-              className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 group relative overflow-hidden ${
+              className={`p-5 rounded-xl border transition-all flex flex-col items-center gap-3 group relative overflow-hidden ${
                 msgType === 'direct' 
-                  ? 'bg-blue-500/10 border-blue-500/50 text-blue-400' 
-                  : 'bg-white/[0.02] border-white/10 text-white/40 hover:border-white/20'
+                  ? 'bg-blue-500/[0.03] border-blue-500/20 text-blue-400' 
+                  : 'bg-white/[0.01] border-white/5 text-white/20 hover:border-white/10 hover:text-white/40'
               }`}
             >
-              <Mail size={20} className={msgType === 'direct' ? 'scale-110' : ''} />
+              <Mail size={20} className={msgType === 'direct' ? 'scale-110 shadow-blue-500/50' : ''} />
               <div className="text-center">
-                <span className="block text-[8px] font-black uppercase tracking-[0.2em]">Direct Message</span>
+                <span className="block text-[9px] font-black uppercase tracking-[0.3em]">Direct</span>
               </div>
             </button>
           </div>
@@ -315,14 +315,14 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
               </div>
             )}
             <div className="relative group">
-              <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-orange-500 transition-colors" size={16} />
+              <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-orange-500 transition-colors" size={14} />
               <input
                 type="text"
                 placeholder="Message Title..."
                 required
                 value={msgTitle}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMsgTitle(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 h-12 text-xs text-white focus:border-orange-500/50 outline-none transition-all"
+                className="w-full bg-white/[0.01] border border-white/5 rounded-xl pl-12 pr-4 h-11 text-[11px] text-white focus:border-orange-500/30 outline-none transition-all placeholder:text-white/10"
               />
             </div>
             <textarea
@@ -331,7 +331,7 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
               rows={3}
               value={msgContent}
               onChange={(e) => setMsgContent(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xs text-white focus:border-orange-500/50 outline-none transition-all resize-none min-h-[100px]"
+              className="w-full bg-white/[0.01] border border-white/5 rounded-xl p-4 text-[11px] text-white focus:border-orange-500/30 outline-none transition-all resize-none min-h-[100px] placeholder:text-white/10"
             />
           </div>
 
@@ -383,36 +383,36 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
             </button>
           </form>
 
-          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-premium">
+          <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 scrollbar-premium">
             {invites.map((inv: any) => (
-              <div key={inv.id} className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all flex flex-col sm:flex-row items-center justify-between gap-4 group relative overflow-hidden">
+              <div key={inv.id} className="p-3.5 rounded-2xl bg-white/[0.01] border border-white/5 hover:border-white/10 transition-all flex flex-col sm:flex-row items-center justify-between gap-4 group relative">
                 <div className="flex items-center gap-4 w-full sm:w-auto">
-                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${
-                    inv.is_active ? 'bg-orange-500/10 text-orange-500' : 'bg-red-500/10 text-red-500'
+                  <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 border ${
+                    inv.is_active ? 'bg-orange-500/[0.03] border-orange-500/10 text-orange-500/50' : 'bg-red-500/[0.03] border-red-500/10 text-red-500/50'
                   }`}>
-                    <Ticket size={18} />
+                    <Ticket size={16} />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm text-white font-bold tracking-wider uppercase truncate">{inv.code}</span>
+                      <span className="font-mono text-[13px] text-white/90 font-bold tracking-wider uppercase truncate">{inv.code}</span>
                       {inv.assigned_to && (
-                        <span className="px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[8px] font-black uppercase">GIFTED</span>
+                        <span className="px-1.5 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/10 text-blue-400 text-[8px] font-black uppercase tracking-widest">Gifted</span>
                       )}
                     </div>
-                    <div className="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-0.5">
-                      {inv.current_uses} / {inv.max_uses === 0 ? '∞' : inv.max_uses} REDEEMED • {new Date(inv.created_at).toLocaleDateString()}
+                    <div className="text-[9px] text-white/20 font-black uppercase tracking-[0.2em] mt-0.5">
+                      {inv.current_uses} / {inv.max_uses === 0 ? '∞' : inv.max_uses} used • {new Date(inv.created_at).toLocaleDateString()}
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
-                   <button
+                  <button
                     onClick={() => {
                       const link = `https://sagitarius.cc/claim/${inv.code}`;
                       navigator.clipboard.writeText(link);
                       setSuccess('Claim link copied!');
                     }}
-                    className="flex-1 sm:flex-none h-8 px-3 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[9px] font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all"
+                    className="flex-1 sm:flex-none h-8 px-4 rounded-lg bg-orange-500/5 border border-orange-500/10 text-orange-500/60 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-orange-500 hover:text-black transition-all"
                   >
                     Link
                   </button>
@@ -421,15 +421,15 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
                       navigator.clipboard.writeText(inv.code);
                       setSuccess('Code copied!');
                     }}
-                    className="flex-1 sm:flex-none h-8 px-3 rounded-lg bg-white/[0.03] border border-white/10 text-white/40 text-[9px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all"
+                    className="flex-1 sm:flex-none h-8 px-4 rounded-lg bg-white/[0.02] border border-white/5 text-white/30 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-white/10 hover:text-white transition-all"
                   >
                     Code
                   </button>
                   <button
                     onClick={() => deleteInvite(inv.id)}
-                    className="h-8 w-8 flex items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all shadow-xl"
+                    className="h-8 w-8 shrink-0 flex items-center justify-center rounded-lg bg-red-500/5 border border-red-500/10 text-red-500/40 hover:bg-red-500 hover:text-white transition-all"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={13} />
                   </button>
                 </div>
               </div>
@@ -440,14 +440,14 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
 
       {activeTab === 'users' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-           <div className="relative group">
-            <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-orange-500 transition-colors" size={16} />
+           <div className="relative group max-w-md">
+            <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-orange-500 transition-colors" size={14} />
             <input
               type="text"
-              placeholder="Search users by email or username..."
+              placeholder="Search users..."
               value={searchQuery}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 h-11 text-xs text-white focus:border-orange-500/50 outline-none transition-all"
+              className="w-full bg-white/[0.01] border border-white/5 rounded-xl pl-12 pr-4 h-11 text-[11px] text-white focus:border-orange-500/30 outline-none transition-all placeholder:text-white/10"
             />
           </div>
 
@@ -458,28 +458,28 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
                 p.username?.toLowerCase().includes(searchQuery.toLowerCase())
               )
               .map((profile: any) => (
-              <div key={profile.id} className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all flex flex-col sm:flex-row items-center justify-between gap-4 group relative">
+              <div key={profile.id} className="p-3.5 rounded-2xl bg-white/[0.01] border border-white/5 hover:border-white/10 transition-all flex flex-col sm:flex-row items-center justify-between gap-4 group relative">
                 <div className="flex items-center gap-4 w-full sm:w-auto">
-                  <div className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-bold text-white uppercase overflow-hidden">
+                  <div className="h-10 w-10 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center font-bold text-white/50 uppercase overflow-hidden">
                     {profile.avatar_url ? (
-                      <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                      <img src={profile.avatar_url} alt="" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                     ) : (
-                      profile.username?.[0] || profile.email?.[0]
+                      <span className="text-xs">{profile.username?.[0] || profile.email?.[0]}</span>
                     )}
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                       <span className="text-sm text-white font-bold truncate">{profile.username}</span>
-                       <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase border ${
-                         profile.role === 'owner' ? 'bg-black text-white border-white/20' :
-                         profile.role === 'admin' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' :
-                         profile.role === 'vip' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
-                         'bg-white/5 text-white/40 border-white/10'
+                       <span className="text-[13px] text-white/90 font-bold truncate">{profile.username || 'Anonymous'}</span>
+                       <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border ${
+                         profile.role === 'owner' ? 'bg-white text-black border-white' :
+                         profile.role === 'admin' ? 'bg-orange-500/10 text-orange-400 border-orange-500/10' :
+                         profile.role === 'vip' ? 'bg-blue-500/10 text-blue-400 border-blue-500/10' :
+                         'bg-white/5 text-white/30 border-white/5'
                        }`}>
                          {profile.role}
                        </span>
                     </div>
-                    <div className="text-[10px] text-white/20 truncate">{profile.email}</div>
+                    <div className="text-[9px] text-white/15 truncate font-mono mt-0.5">{profile.email}</div>
                   </div>
                 </div>
 
@@ -487,7 +487,7 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
                   <select 
                     value={profile.role}
                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateUserRole(profile.id, e.target.value)}
-                    className="flex-1 sm:flex-none h-9 px-3 rounded-lg bg-white/[0.03] border border-white/10 text-white/60 text-[10px] font-bold outline-none focus:border-orange-500/30 transition-all"
+                    className="flex-1 sm:flex-none h-8 px-3 rounded-lg bg-white/[0.02] border border-white/5 text-white/40 text-[9px] font-black uppercase tracking-widest outline-none focus:border-orange-500/20 transition-all"
                   >
                     <option value="member">Member</option>
                     <option value="vip">VIP</option>
@@ -497,7 +497,7 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
                   <button
                     onClick={() => giftInvite(profile.id, profile.email)}
                     disabled={loading}
-                    className="flex-1 sm:flex-none h-9 px-4 rounded-lg bg-orange-500 text-black text-[9px] font-black uppercase tracking-wider hover:bg-orange-400 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 sm:flex-none h-8 px-4 rounded-lg bg-orange-500/5 border border-orange-500/10 text-orange-500/60 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-orange-500 hover:text-black transition-all"
                   >
                     Gift Invite
                   </button>

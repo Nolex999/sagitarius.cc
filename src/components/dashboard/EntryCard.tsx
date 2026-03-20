@@ -16,7 +16,7 @@ export default function EntryCard({
   telephone 
 }: EntryCardProps) {
   return (
-    <div className="group relative mx-3 my-2 border border-white/[0.03] bg-white/[0.02] px-4 py-4 backdrop-blur-sm transition-all hover:bg-white/[0.05] hover:border-white/[0.08] rounded-[var(--radius-lg)]">
+    <div className="group relative mx-1 my-1.5 border border-white/[0.03] bg-white/[0.02] px-4 py-4 backdrop-blur-sm transition-all hover:bg-white/[0.05] hover:border-white/[0.08] rounded-[var(--radius-lg)]">
       <div className="flex items-center justify-between mb-1.5">
         <p className="text-[13px] font-semibold text-[var(--text-primary)] tracking-tight">{name}</p>
         {telephone && (

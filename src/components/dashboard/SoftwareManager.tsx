@@ -355,48 +355,48 @@ export default function SoftwareManager() {
 
       {/* Global Download Box */}
       {!isManager && (
-        <div className="bg-white/[0.02] border border-white/[0.06] rounded-[2.5rem] p-10 flex flex-col items-center gap-6 text-center backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="bg-white/[0.01] border border-white/5 rounded-[2.5rem] p-10 flex flex-col items-center gap-6 text-center backdrop-blur-3xl relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-b from-orange-500/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
           
-          <div className="h-20 w-20 rounded-3xl bg-orange-500/10 flex items-center justify-center text-orange-500 mb-2 shadow-[0_0_30px_rgba(249,115,22,0.1)] group-hover:scale-110 transition-transform duration-500">
-            <Download size={40} />
+          <div className="h-16 w-16 rounded-2xl bg-orange-500/[0.03] border border-orange-500/10 flex items-center justify-center text-orange-500/40 mb-2 group-hover:scale-105 transition-transform duration-500">
+            <Download size={32} />
           </div>
 
-          <div className="space-y-2 relative z-10">
-            <h2 className="text-2xl font-black text-white uppercase tracking-widest">Download Loader</h2>
-            <p className="text-sm text-white/40 max-w-md mx-auto">
-              Access your software instantly. Enter your activation key below to begin the secure download.
+          <div className="space-y-1 relative z-10">
+            <h2 className="text-xl font-black text-white uppercase tracking-[0.3em]">Download Loader</h2>
+            <p className="text-[10px] text-white/20 max-w-md mx-auto font-black uppercase tracking-widest">
+              Enter activation key below to begin the secure download.
             </p>
           </div>
           
-          <div className="flex w-full max-w-lg gap-4 relative z-10">
-            <div className="relative flex-1 group/input">
-              <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within/input:text-orange-500 transition-colors" size={20} />
+          <div className="flex w-full max-w-md gap-3 relative z-10">
+            <div className="relative flex-1">
+              <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-white/10" size={16} />
               <input
                 type="text"
                 value={userInputKey}
                 onChange={e => setUserInputKey(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && verifyAndDownloadGlobal()}
                 placeholder="XXXX-XXXX-XXXX-XXXX"
-                className="w-full h-14 pl-12 pr-4 rounded-2xl bg-black/40 border border-white/[0.08] text-white focus:outline-none focus:border-orange-500/40 font-mono tracking-widest transition-all text-lg"
+                className="w-full h-12 pl-12 pr-4 rounded-xl bg-white/[0.01] border border-white/5 text-white focus:outline-none focus:border-orange-500/30 font-mono tracking-wider transition-all placeholder:text-white/10"
               />
             </div>
             <button
               onClick={verifyAndDownloadGlobal}
               disabled={verifying || !userInputKey}
-              className="h-14 px-10 rounded-2xl bg-white text-black text-xs font-black uppercase tracking-[0.2em] hover:bg-white/90 disabled:opacity-50 transition-all flex items-center gap-3 shadow-[0_4px_20px_rgba(255,255,255,0.1)] hover:-translate-y-1"
+              className="h-12 px-8 rounded-xl bg-orange-500/5 border border-orange-500/10 text-orange-500/60 text-[9px] font-black uppercase tracking-[0.3em] hover:bg-orange-500 hover:text-black disabled:opacity-30 transition-all flex items-center gap-3"
             >
-              {verifying ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+              {verifying ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
               Download
             </button>
           </div>
 
-          <div className="pt-4 flex items-center gap-6 text-[10px] text-white/20 font-bold uppercase tracking-[0.3em]">
-            <span className="flex items-center gap-2"><ShieldCheck size={12} /> Secure</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-white/5" />
-            <span className="flex items-center gap-2"><Zap size={12} /> Instant</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-white/5" />
-            <span className="flex items-center gap-2"><Globe size={12} /> Global</span>
+          <div className="pt-4 flex items-center gap-6 text-[8px] text-white/10 font-black uppercase tracking-[0.4em]">
+            <span className="flex items-center gap-2">Secure</span>
+            <span className="w-1 h-1 rounded-full bg-white/5" />
+            <span className="flex items-center gap-2">Instant</span>
+            <span className="w-1 h-1 rounded-full bg-white/5" />
+            <span className="flex items-center gap-2">Global</span>
           </div>
         </div>
       )}
@@ -410,21 +410,21 @@ export default function SoftwareManager() {
             return cat.is_active;
           })
           .map((cat: any) => (
-          <div key={cat.id} className="rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden group">
+          <div key={cat.id} className="rounded-2xl bg-white/[0.01] border border-white/5 overflow-hidden group">
             <div 
-              className="p-5 flex items-center justify-between cursor-pointer hover:bg-white/[0.02] transition-all"
+              className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/[0.01] transition-all"
               onClick={() => toggleCategory(cat.id)}
             >
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center overflow-hidden">
+                <div className="h-11 w-11 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center overflow-hidden">
                   {cat.logo_url ? (
-                    <img src={cat.logo_url} alt={cat.name} className="w-full h-full object-cover" />
+                    <img src={cat.logo_url} alt={cat.name} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                   ) : (
-                    <Package className="text-white/20" size={24} />
+                    <Package className="text-white/10" size={20} />
                   )}
                 </div>
                 <div>
-                   <h3 className="text-lg font-bold text-white tracking-tight">{cat.name}</h3>
+                   <h3 className="text-[13px] font-black text-white/90 uppercase tracking-[0.2em]">{cat.name}</h3>
                 </div>
               </div>
 
@@ -432,13 +432,13 @@ export default function SoftwareManager() {
                 {isManager && (
                   <button
                     onClick={(e) => { e.stopPropagation(); deleteCategory(cat.id); }}
-                    className="p-2.5 rounded-xl text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                    className="p-2 rounded-xl text-white/10 hover:text-red-400 hover:bg-red-500/5 transition-all"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={14} />
                   </button>
                 )}
                 <div className={`transition-transform duration-300 ${cat.isOpen ? 'rotate-180' : ''}`}>
-                  <ChevronDown className="text-white/20" size={20} />
+                  <ChevronDown className="text-white/10" size={18} />
                 </div>
               </div>
             </div>
@@ -455,7 +455,7 @@ export default function SoftwareManager() {
                         onChange={e => setUserInputKey(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && verifyAndDownloadGlobal()}
                         placeholder="Key"
-                        className="w-full h-11 pl-11 pr-4 rounded-xl bg-black/40 border border-white/[0.08] text-sm text-white focus:outline-none focus:border-orange-500/40 font-mono transition-all"
+                        className="w-full h-10 pl-10 pr-4 rounded-xl bg-white/[0.01] border border-white/5 text-[11px] text-white focus:outline-none focus:border-orange-500/30 font-mono tracking-wider transition-all placeholder:text-white/10"
                       />
                     </div>
                     <button
@@ -473,44 +473,41 @@ export default function SoftwareManager() {
                   <div className="space-y-3">
                     <button 
                       onClick={() => fetchKeys(cat.id)}
-                      className="flex items-center gap-2 text-[10px] font-bold text-orange-400/60 hover:text-orange-400 uppercase tracking-widest transition-all"
+                      className="flex items-center gap-2 text-[9px] font-black text-orange-500/40 hover:text-orange-500 uppercase tracking-[0.2em] transition-all px-1"
                     >
                       <Key size={12} />
-                      {cat.isKeysOpen ? 'Close Key Management' : 'Manage Activation Keys'}
+                      {cat.isKeysOpen ? 'Close Management' : 'Manage Keys'}
                     </button>
 
                     {cat.isKeysOpen && (
-                      <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/10 space-y-4">
-                        <div className="flex items-center justify-between">
-                           <h5 className="text-[10px] text-orange-400/80 uppercase tracking-widest font-bold">Active Keys</h5>
+                      <div className="p-4 rounded-2xl bg-orange-500/[0.02] border border-orange-500/5 space-y-4">
+                        <div className="flex items-center justify-between px-1">
+                           <h5 className="text-[9px] text-orange-400/30 uppercase tracking-[0.2em] font-black">Active Keys</h5>
                            <button 
                              onClick={() => createKey(cat.id)}
-                             className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[9px] bg-orange-500 text-white font-bold uppercase tracking-widest hover:bg-orange-600 transition-all"
+                             className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[8px] bg-orange-500/5 border border-orange-500/10 text-orange-500/60 font-black uppercase tracking-[0.2em] hover:bg-orange-500 hover:text-black transition-all"
                            >
-                              <Plus size={10} /> Generate New Key
+                              <Plus size={10} /> Generate
                            </button>
                         </div>
 
                         <div className="grid grid-cols-1 gap-2">
                           {(cat.keys || []).map((k: any) => (
-                            <div key={k.id} className="flex items-center justify-between p-3 rounded-lg bg-black/20 border border-white/[0.04]">
+                            <div key={k.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.01] border border-white/5 group/key">
                                <div className="flex flex-col">
-                                 <code className="text-xs text-white/80 font-mono">{k.key}</code>
-                                 <span className="text-[8px] text-white/20 uppercase mt-1">
-                                   Used: {k.current_uses} / {k.max_uses === 0 ? '∞' : k.max_uses}
+                                 <code className="text-[12px] text-white/80 font-mono tracking-wider font-bold uppercase">{k.key}</code>
+                                 <span className="text-[8px] text-white/15 font-black uppercase tracking-[0.2em] mt-1">
+                                   {k.current_uses} / {k.max_uses === 0 ? '∞' : k.max_uses} used
                                  </span>
                                </div>
                                <button 
                                  onClick={() => deleteKey(cat.id, k.id)}
-                                 className="p-1.5 rounded-md text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                                 className="h-8 w-8 flex items-center justify-center rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/5 transition-all"
                                >
-                                  <Trash2 size={12} />
+                                  <Trash2 size={13} />
                                </button>
                             </div>
                           ))}
-                          {(!cat.keys || cat.keys.length === 0) && (
-                            <p className="text-[10px] text-white/10 text-center py-2">No keys generated for this category.</p>
-                          )}
                         </div>
                       </div>
                     )}
@@ -519,9 +516,9 @@ export default function SoftwareManager() {
 
                 {/* Files List - Only visible to managers (Owner/Admin) per user request */}
                 {isManager && (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <h5 className="text-[10px] text-white/20 uppercase tracking-[0.2em] font-bold">Available Files</h5>
+                  <div className="space-y-4 pt-4">
+                    <div className="flex items-center justify-between px-1">
+                      <h5 className="text-[9px] text-white/15 uppercase tracking-[0.2em] font-black">Files</h5>
                       <div className="flex gap-2">
                         <button
                           onClick={() => {
@@ -529,9 +526,8 @@ export default function SoftwareManager() {
                             fileInputRef.current?.click();
                           }}
                           disabled={uploading === cat.id}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] bg-orange-500/10 border border-orange-500/20 text-orange-400 font-bold uppercase tracking-widest hover:bg-orange-500/20 transition-all"
+                          className="px-3 py-1.5 rounded-lg text-[8px] bg-orange-500/5 border border-orange-500/10 text-orange-500/60 font-black uppercase tracking-[0.2em] hover:bg-orange-500 hover:text-black transition-all"
                         >
-                          {uploading === cat.id ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
                           Add Loader
                         </button>
                         <button
@@ -540,45 +536,46 @@ export default function SoftwareManager() {
                             fileInputRef.current?.click();
                           }}
                           disabled={uploading === cat.id}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] bg-white/[0.03] border border-white/[0.08] text-white/40 font-bold uppercase tracking-widest hover:bg-white/[0.08] transition-all"
+                          className="px-3 py-1.5 rounded-lg text-[8px] bg-white/[0.02] border border-white/5 text-white/30 font-black uppercase tracking-[0.2em] hover:bg-white/10 hover:text-white transition-all"
                         >
-                          {uploading === cat.id ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
-                          Add Public File
+                          Add Public
                         </button>
                       </div>
                     </div>
                     
-                    {cat.files.map((file: any) => (
-                      <div key={file.id} className="flex items-center justify-between p-4 rounded-xl bg-black/40 border border-white/[0.04] hover:border-white/[0.08] transition-all group/file">
-                        <div className="flex items-center gap-4">
-                          <div className={`p-2 rounded-lg ${file.is_loader ? 'bg-orange-500/10 text-orange-400' : 'bg-white/[0.03] text-white/40'}`}>
-                            <Package size={20} />
+                    <div className="space-y-2">
+                      {cat.files.map((file: any) => (
+                        <div key={file.id} className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.01] border border-white/5 hover:border-white/10 transition-all group/file">
+                          <div className="flex items-center gap-4">
+                            <div className={`h-9 w-9 rounded-lg flex items-center justify-center border ${file.is_loader ? 'bg-orange-500/[0.03] border-orange-500/10 text-orange-500/40' : 'bg-white/[0.02] border-white/5 text-white/10'}`}>
+                              <Package size={16} />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[13px] font-bold text-white/90 truncate">{file.name}</span>
+                                {file.is_loader && (
+                                  <span className="px-1.5 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/10 text-orange-500 text-[8px] font-black uppercase tracking-widest">Loader</span>
+                                )}
+                              </div>
+                              <p className="text-[9px] text-white/15 font-black uppercase tracking-[0.2em] mt-0.5">Version {file.version || '1.0.0'} • {file.size}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-bold text-white">
-                              {file.name}
-                              {file.is_loader && <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] bg-orange-500 text-white leading-none">LOADER</span>}
-                            </p>
-                            <p className="text-[10px] text-white/30 mt-0.5">Version {file.version || '1.0.0'} • {file.size}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
+                          
                           <button
                             onClick={() => deleteFile(cat.id, file.id)}
-                            className="p-2 rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                            className="h-8 w-8 flex items-center justify-center rounded-lg text-white/10 hover:text-red-400 hover:bg-red-500/5 transition-all"
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={13} />
                           </button>
                         </div>
-                      </div>
-                    ))}
-                    
-                    {cat.files.length === 0 && (
-                      <div className="text-center py-6 border-2 border-dashed border-white/[0.02] rounded-2xl">
-                        <p className="text-[11px] text-white/10 font-bold uppercase tracking-widest">No files yet</p>
-                      </div>
-                    )}
+                      ))}
+                      
+                      {cat.files.length === 0 && (
+                        <div className="text-center py-8 border border-white/5 border-dashed rounded-2xl">
+                          <p className="text-[9px] text-white/10 font-black uppercase tracking-[0.2em]">No files available</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

@@ -252,53 +252,49 @@ export default function ProfileManager() {
       <div className="space-y-6">
         {/* INVITES AREA */}
         <div className="flex items-center justify-between px-2">
-          <h2 className="text-xl font-black text-white flex items-center gap-3">
-            <Ticket className="text-orange-500" size={24} />
-            Your Invitations
+          <h2 className="text-lg font-black text-white flex items-center gap-3 uppercase tracking-widest">
+            <Ticket className="text-orange-500/50" size={20} />
+            Invitations
           </h2>
-          <span className="px-3 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 text-[10px] font-black text-orange-400 uppercase tracking-widest">
+          <span className="px-3 py-1 rounded-md bg-orange-500/5 border border-orange-500/10 text-[9px] font-black text-orange-500/60 uppercase tracking-[0.2em]">
             {invites.length} Available
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {invites.map((inv) => (
-            <div key={inv.id} className="p-6 rounded-[2rem] bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all flex flex-col sm:flex-row items-center justify-between gap-6 group relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              
-              <div className="flex items-center gap-6 relative z-10 w-full sm:w-auto">
-                <div className="h-14 w-14 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500 shrink-0">
-                  <Hash size={24} />
+            <div key={inv.id} className="p-4 rounded-2xl bg-white/[0.01] border border-white/5 hover:border-white/10 transition-all flex flex-col sm:flex-row items-center justify-between gap-4 group relative overflow-hidden">
+              <div className="flex items-center gap-4 relative z-10 w-full sm:w-auto">
+                <div className="h-10 w-10 rounded-xl bg-orange-500/[0.03] border border-orange-500/10 flex items-center justify-center text-orange-500/40 shrink-0">
+                  <Hash size={18} />
                 </div>
                 <div>
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="font-mono text-lg text-white font-black tracking-[0.2em] uppercase">{inv.code}</span>
-                    <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full border ${
-                      inv.is_active ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="font-mono text-[14px] text-white/90 font-bold tracking-wider uppercase">{inv.code}</span>
+                    <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md border ${
+                      inv.is_active ? 'bg-green-500/10 border-green-500/10 text-green-400/50' : 'bg-red-500/10 border-red-500/10 text-red-400/50'
                     }`}>
                       {inv.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </div>
-                  <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest">
-                    {inv.current_uses} / {inv.max_uses === 0 ? '∞' : inv.max_uses} REDEEMED • {inv.created_at ? new Date(inv.created_at).toLocaleDateString() : 'N/A'}
+                  <p className="text-[9px] text-white/15 font-black uppercase tracking-[0.2em]">
+                    {inv.current_uses} / {inv.max_uses === 0 ? '∞' : inv.max_uses} used • {inv.created_at ? new Date(inv.created_at).toLocaleDateString() : 'N/A'}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 relative z-10 w-full sm:w-auto">
-                  <button
+              <div className="flex items-center gap-2 relative z-10 w-full sm:w-auto shrink-0">
+                <button
                   onClick={() => copyToClipboard(`https://sagitarius.cc/claim/${inv.code}`, 'Claim link copied!')}
-                  className="flex-1 sm:flex-none h-10 px-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[9px] font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all flex items-center justify-center gap-2"
+                  className="flex-1 sm:flex-none h-8 px-4 rounded-lg bg-orange-500/5 border border-orange-500/10 text-orange-500/60 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-orange-500 hover:text-black transition-all"
                 >
-                  <ExternalLink size={12} />
-                  Copy Link
+                  Link
                 </button>
                 <button
                   onClick={() => copyToClipboard(inv.code, 'Code copied!')}
-                  className="flex-1 sm:flex-none h-10 px-4 rounded-xl bg-white/[0.03] border border-white/10 text-white/40 text-[9px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
+                  className="flex-1 sm:flex-none h-8 px-4 rounded-lg bg-white/[0.02] border border-white/5 text-white/30 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-white/10 hover:text-white transition-all"
                 >
-                  <Copy size={12} />
-                  Copy Code
+                  Code
                 </button>
               </div>
             </div>

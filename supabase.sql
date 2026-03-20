@@ -72,7 +72,9 @@ CREATE TABLE IF NOT EXISTS public.inv_code (
   max_uses int DEFAULT 1,
   current_uses int DEFAULT 0,
   expires_at timestamptz,
-  created_by uuid REFERENCES auth.users(id),
+  created_by uuid REFERENCES auth.users(id)
+);
+
 -- FIX: Assurer que les colonnes nécessaires existent dans inv_code
 ALTER TABLE public.inv_code ADD COLUMN IF NOT EXISTS assigned_to uuid REFERENCES auth.users(id);
 
