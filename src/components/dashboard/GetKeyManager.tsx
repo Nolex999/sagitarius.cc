@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Script from 'next/script';
 import faceitLogo from '@/assets/faceit.jpg';
@@ -86,6 +86,13 @@ export default function GetKeyManager() {
   const [verifyResult, setVerifyResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    // Check if Billgang is loaded
+    if (typeof window !== 'undefined') {
+      console.log('Billgang script status:', window.Billgang ? 'Loaded' : 'Not Loaded');
+    }
+  }, []);
+
   const handleVerify = async () => {
     setVerifying(true);
     setVerifyResult(null);
@@ -111,8 +118,12 @@ export default function GetKeyManager() {
 
   const handleFinalPurchase = (category: 'faceit' | 'external') => {
     // The Billgang script handles the click via data attributes.
-    // We just close our UI selector here if needed, or let the person click.
-    setShowCategorySelector(false);
+    // We don't close the modal immediately to allow the script to detect the click.
+    console.log(`Purchase initiated for ${category}`);
+    // Optional: add a tiny delay before closing, or just let the user close it after the checkout opens
+    setTimeout(() => {
+      setShowCategorySelector(false);
+    }, 2000); 
   };
 
   return (
@@ -259,7 +270,8 @@ export default function GetKeyManager() {
                 onClick={() => handleFinalPurchase('faceit')}
                 data-billgang-product-path={selectedPlan.billgang.faceit.path}
                 data-billgang-domain={BILLGANG_DOMAIN}
-                className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-orange-500/30 transition-all duration-500 h-[220px]"
+                data-billgang-embed="true"
+                className="billgang-checkout group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-orange-500/30 transition-all duration-500 h-[220px]"
               >
                 <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110">
                   <Image
@@ -279,7 +291,8 @@ export default function GetKeyManager() {
                 onClick={() => handleFinalPurchase('external')}
                 data-billgang-product-path={selectedPlan.billgang.external.path}
                 data-billgang-domain={BILLGANG_DOMAIN}
-                className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-blue-500/30 transition-all duration-500 h-[220px]"
+                data-billgang-embed="true"
+                className="billgang-checkout group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-blue-500/30 transition-all duration-500 h-[220px]"
               >
                 <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110">
                   <Image
