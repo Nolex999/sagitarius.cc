@@ -23,37 +23,59 @@ export async function POST(req: NextRequest) {
        if (userField) userId = userField.value;
     }
 
-    console.log('Processing order for:', productName, 'User ID:', userId);
+    console.log('--- DIAGNOSTICS ---');
+    console.log('Service Role Key Present:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+    console.log('Processing order for:', productName || 'Unknown Product', 'User ID:', userId);
 
     // 2. Identify Category
     let categorySearch = '';
-    const nameLower = productName.toLowerCase();
+    const nameLower = (productName || '').toLowerCase();
     
     if (nameLower.includes('faceit')) categorySearch = 'faceit';
     else if (nameLower.includes('cs2') || nameLower.includes('external')) categorySearch = 'external';
 
     console.log('Searching for category with term:', categorySearch || 'cheat (fallback)');
 
-    let { data: category } = await supabaseAdmin
+    let { data: category, error: catError } = await supabaseAdmin
       .from('software_categories')
       .select('id, name')
       .ilike('name', `%${categorySearch || 'cheat'}%`)
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    // Fallback for "test" or if nothing found
+    if (catError) console.error('Supabase Query Error (Primary):', catError);
+
+    // Fallback if nothing found
     if (!category) {
-      console.log('No specific category found, fetching first available category...');
-      const { data: fallbackCat } = await supabaseAdmin
+      console.log('No specific category found, checking for ANY category...');
+      const { data: allCats, error: allError } = await supabaseAdmin
         .from('software_categories')
-        .select('id, name')
-        .limit(1)
-        .single();
-      category = fallbackCat;
+        .select('id, name');
+      
+      if (allError) console.error('Supabase Query Error (All):', allError);
+      console.log('Total categories in DB:', allCats?.length || 0);
+
+      if (allCats && allCats.length > 0) {
+        category = allCats[0];
+      } else {
+        // AUTO-CREATE A CATEGORY IF TOTALLY EMPTY
+        console.log('DATABASE IS EMPTY! Auto-creating a default category...');
+        const { data: newCat, error: createError } = await supabaseAdmin
+          .from('software_categories')
+          .insert({ name: 'Default Software', logo_url: null })
+          .select()
+          .maybeSingle();
+        
+        if (createError) {
+          console.error('Failed to auto-create category:', createError);
+          return NextResponse.json({ error: 'Database is empty and auto-creation failed' }, { status: 500 });
+        }
+        category = newCat;
+      }
     }
 
     if (!category) {
-      console.error('CRITICAL: No categories found in database at all.');
+      console.error('CRITICAL: No categories found and auto-creation failed.');
       return NextResponse.json({ error: 'Internal configuration error: No categories found' }, { status: 500 });
     }
 
