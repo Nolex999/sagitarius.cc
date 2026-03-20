@@ -17,10 +17,17 @@ export async function POST(req: NextRequest) {
     const metadata = order.metadata || payload.metadata || {};
     
     // Check metadata AND custom_fields for user_id
-    let userId = metadata.user_id;
+    let userId = (order.metadata || payload.metadata || {}).user_id;
+    
+    // Check custom_fields (can be array or object)
     if (!userId && order.custom_fields) {
-       const userField = order.custom_fields.find((f: any) => f.name === 'user_id');
-       if (userField) userId = userField.value;
+       console.log('Inspecting custom_fields:', JSON.stringify(order.custom_fields));
+       if (Array.isArray(order.custom_fields)) {
+         const userField = order.custom_fields.find((f: any) => f.name === 'user_id' || f.name === 'User ID');
+         if (userField) userId = userField.value;
+       } else if (typeof order.custom_fields === 'object') {
+         userId = order.custom_fields.user_id || order.custom_fields['User ID'];
+       }
     }
 
     // 1. Parallelize User lookup and Category identification
