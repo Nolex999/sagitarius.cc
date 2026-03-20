@@ -102,7 +102,7 @@ export default function InboxManager() {
           </p>
           {/* DIAGNOSTICS */}
           <div className="mt-4 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] text-white/20 font-mono">
-            DEBUG: {messages.length} messages | User ID: {messages[0]?.id ? 'Logged' : 'Fetching...'}
+             DEBUG: {messages.length} messages | Current ID: {currentUser?.id || 'Unknown'} | Email: {currentUser?.email || 'None'}
           </div>
         </div>
       </div>
