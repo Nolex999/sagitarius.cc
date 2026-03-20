@@ -9,13 +9,21 @@ const supabaseAdmin = createClient(
 export async function POST(req: NextRequest) {
   try {
     const payload = await req.json();
-    console.log('Billgang Dynamic Delivery Request:', JSON.stringify(payload, null, 2));
+    console.log('BILLGANG WEBHOOK PAYLOAD:', JSON.stringify(payload, null, 2));
 
     // 1. Extract Order Info
     const order = payload.order || payload;
     const productName = order.product_name || order.product?.name || '';
     const metadata = order.metadata || payload.metadata || {};
-    const userId = metadata.user_id;
+    
+    // Check metadata AND custom_fields for user_id
+    let userId = metadata.user_id;
+    if (!userId && order.custom_fields) {
+       const userField = order.custom_fields.find((f: any) => f.name === 'user_id');
+       if (userField) userId = userField.value;
+    }
+
+    console.log('Processing order for:', productName, 'User ID:', userId);
 
     // 2. Identify Category
     let categorySearch = '';

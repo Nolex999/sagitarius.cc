@@ -256,6 +256,16 @@ CREATE POLICY "Users can view own messages" ON public.inbox_messages FOR SELECT 
 DROP POLICY IF EXISTS "Users can update own messages" ON public.inbox_messages;
 CREATE POLICY "Users can update own messages" ON public.inbox_messages FOR UPDATE TO authenticated USING (auth.uid() = user_id);
 
+-- 6.5 Software System Policies
+DROP POLICY IF EXISTS "Anyone can view categories" ON public.software_categories;
+CREATE POLICY "Anyone can view categories" ON public.software_categories FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Anyone can view files" ON public.software_files;
+CREATE POLICY "Anyone can view files" ON public.software_files FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Anyone can view own keys" ON public.software_keys;
+CREATE POLICY "Anyone can view own keys" ON public.software_keys FOR SELECT TO authenticated USING (true);
+
 -- (Autres politiques simplifiées pour brevity...)
 DROP POLICY IF EXISTS "Public can read published bio profiles" ON public.bio_profiles;
 CREATE POLICY "Public can read published bio profiles" ON public.bio_profiles FOR SELECT USING (is_published = true);
