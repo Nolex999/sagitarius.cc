@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 -- FIX: Assurer que les colonnes nécessaires existent dans profiles
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email text;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS created_at timestamptz DEFAULT now();
 
 -- Mise à jour de la contrainte ROLE
 ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
@@ -72,8 +73,8 @@ CREATE TABLE IF NOT EXISTS public.inv_code (
   current_uses int DEFAULT 0,
   expires_at timestamptz,
   created_by uuid REFERENCES auth.users(id),
-  assigned_to uuid REFERENCES auth.users(id)
-);
+-- FIX: Assurer que les colonnes nécessaires existent dans inv_code
+ALTER TABLE public.inv_code ADD COLUMN IF NOT EXISTS assigned_to uuid REFERENCES auth.users(id);
 
 -- Création auto du profil
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -302,13 +303,37 @@ DROP POLICY IF EXISTS "Anyone can view profiles" ON public.profiles;
 CREATE POLICY "Anyone can view profiles" ON public.profiles FOR SELECT TO authenticated USING (true);
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id);
+DROP POLICY IF EXISTS "Admins can update any profile" ON public.profiles;
+CREATE POLICY "Admins can update any profile" ON public.profiles FOR UPDATE TO authenticated USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('admin', 'owner'))
+);
+
+-- 6.1 Celebrities Policies
+DROP POLICY IF EXISTS "Anyone can view celebrities" ON public.celebrities;
+CREATE POLICY "Anyone can view celebrities" ON public.celebrities FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Authenticated users can add celebrities" ON public.celebrities;
+CREATE POLICY "Authenticated users can add celebrities" ON public.celebrities FOR INSERT TO authenticated WITH CHECK (true);
+
+-- 6.2 Lycée Policies
+DROP POLICY IF EXISTS "Anyone can view lycee classes" ON public.lycee_classes;
+CREATE POLICY "Anyone can view lycee classes" ON public.lycee_classes FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Anyone can view lycee entries" ON public.lycee_entries;
+CREATE POLICY "Anyone can view lycee entries" ON public.lycee_entries FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Authenticated users can add lycee entries" ON public.lycee_entries;
+CREATE POLICY "Authenticated users can add lycee entries" ON public.lycee_entries FOR INSERT TO authenticated WITH CHECK (true);
 
 -- 6.4 Inbox Policies
 DROP POLICY IF EXISTS "Users can view own messages" ON public.inbox_messages;
 CREATE POLICY "Users can view own messages" ON public.inbox_messages FOR SELECT TO authenticated USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can update own messages" ON public.inbox_messages;
 CREATE POLICY "Users can update own messages" ON public.inbox_messages FOR UPDATE TO authenticated USING (auth.uid() = user_id);
 DROP POLICY IF EXISTS "Users can delete own messages" ON public.inbox_messages;
 CREATE POLICY "Users can delete own messages" ON public.inbox_messages FOR DELETE TO authenticated USING (auth.uid() = user_id);
+-- Allow admins/owners to delete any message
+DROP POLICY IF EXISTS "Admins can delete any message" ON public.inbox_messages;
+CREATE POLICY "Admins can delete any message" ON public.inbox_messages FOR DELETE TO authenticated USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('admin', 'owner'))
+);
 
 -- 6.5 Software System Policies
 DROP POLICY IF EXISTS "Anyone can view categories" ON public.software_categories;
