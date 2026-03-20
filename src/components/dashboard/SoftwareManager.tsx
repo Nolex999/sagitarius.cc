@@ -400,10 +400,7 @@ export default function SoftwareManager() {
                   )}
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white tracking-tight">{cat.name}</h3>
-                  <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-medium">
-                    {cat.files.length} {cat.files.length === 1 ? 'File' : 'Files'}
-                  </p>
+                   <h3 className="text-lg font-bold text-white tracking-tight">{cat.name}</h3>
                 </div>
               </div>
 

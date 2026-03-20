@@ -100,10 +100,6 @@ export default function InboxManager() {
           <p className="text-sm text-white/40 mt-1">
             Your personal messages and software activation keys
           </p>
-          {/* DIAGNOSTICS */}
-          <div className="mt-4 p-2 rounded-lg bg-white/5 border border-white/10 text-[10px] text-white/20 font-mono">
-             DEBUG: {messages.length} messages | Current ID: {currentUser?.id || 'Unknown'} | Email: {currentUser?.email || 'None'}
-          </div>
         </div>
       </div>
 
