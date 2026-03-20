@@ -5,12 +5,12 @@ import Image from 'next/image';
 import Script from 'next/script';
 import faceitLogo from '@/assets/faceit.jpg';
 import cs2Logo from '@/assets/cs2.webp';
-import { 
-  CreditCard, 
-  Coins, 
-  Check, 
-  ChevronRight, 
-  ShieldCheck, 
+import {
+  CreditCard,
+  Coins,
+  Check,
+  ChevronRight,
+  ShieldCheck,
   Zap,
   Globe,
   Loader2,
@@ -21,15 +21,12 @@ import {
 
 declare global {
   interface Window {
-    sellAuthEmbed: {
-      checkout: (config: {
-        shopId: number | string;
-        productId: number | string;
-        variantId?: number | string;
-      }) => void;
-    };
+    sellAuthEmbed: any;
+    Billgang: any;
   }
 }
+
+const BILLGANG_DOMAIN = 'sagitarius.billgang.store';
 
 const pricingOptions = [
   {
@@ -44,8 +41,8 @@ const pricingOptions = [
     ],
     highlight: false,
     billgang: {
-      faceit: { productId: 254762214 },
-      external: { productId: 254762217 }
+      faceit: { path: 'faceit-7-days' },
+      external: { path: 'cs2-external-7-days' }
     }
   },
   {
@@ -60,8 +57,8 @@ const pricingOptions = [
     ],
     highlight: true,
     billgang: {
-      faceit: { productId: 254762215 },
-      external: { productId: 254762218 }
+      faceit: { path: 'faceit-1-month' },
+      external: { path: 'cs2-external-1-month' }
     }
   },
   {
@@ -76,8 +73,8 @@ const pricingOptions = [
     ],
     highlight: false,
     billgang: {
-      faceit: { productId: 254762216 },
-      external: { productId: 254762219 }
+      faceit: { path: 'faceit-3-months' },
+      external: { path: 'cs2-external-3-months' }
     }
   }
 ];
@@ -113,38 +110,14 @@ export default function GetKeyManager() {
     setShowCategorySelector(true);
   };
 
-  const handleFinalPurchase = async (category: 'faceit' | 'external') => {
-    const config = selectedPlan.billgang?.[category] || selectedPlan.sellAuth?.[category];
+  const handleFinalPurchase = (category: 'faceit' | 'external') => {
+    // The Billgang script handles the click via data attributes.
+    // We just close our UI selector here if needed, or let the person click.
     setShowCategorySelector(false);
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch('/api/payments/billgang/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId: config.productId || config.product_id,
-          variantId: config.variantId || config.variant_id,
-        })
-      });
-
-      const data = await res.json();
-      if (data.success && data.payment_url) {
-        window.location.href = data.payment_url;
-      } else {
-        setError(data.error || 'Failed to initialize Billgang checkout.');
-      }
-    } catch (err) {
-      setError('Connection error. Please try again.');
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
     <div className="max-w-6xl mx-auto space-y-12 py-4 px-6">
-      <Script src="https://sellauth.com/static/js/embed.js" strategy="afterInteractive" />
       <div className="text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[10px] uppercase font-bold tracking-widest">
           <Zap size={12} fill="currentColor" />
@@ -158,7 +131,7 @@ export default function GetKeyManager() {
         </p>
 
         <div className="pt-4">
-          <button 
+          <button
             onClick={handleVerify}
             disabled={verifying}
             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-[11px] font-bold text-white uppercase tracking-widest transition-all"
@@ -176,13 +149,12 @@ export default function GetKeyManager() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {pricingOptions.map((plan) => (
-          <div 
+          <div
             key={plan.id}
-            className={`relative flex flex-col rounded-[2.5rem] border transition-all duration-500 p-8 group ${
-              plan.highlight 
-                ? 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border-orange-500/30 shadow-[0_20px_50px_rgba(249,115,22,0.1)]' 
+            className={`relative flex flex-col rounded-[2.5rem] border transition-all duration-500 p-8 group ${plan.highlight
+                ? 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border-orange-500/30 shadow-[0_20px_50px_rgba(249,115,22,0.1)]'
                 : 'bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12]'
-            }`}
+              }`}
           >
             {plan.highlight && (
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-orange-500 text-white text-[10px] font-bold uppercase tracking-widest shadow-lg">
@@ -217,16 +189,15 @@ export default function GetKeyManager() {
             <div className="space-y-3">
               <button
                 onClick={() => initiatePurchase(plan)}
-                className={`w-full h-14 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-3 ${
-                  plan.highlight
+                className={`w-full h-14 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-3 ${plan.highlight
                     ? 'bg-white text-black hover:bg-white/90 shadow-[0_10px_30px_rgba(255,255,255,0.1)] hover:-translate-y-1'
                     : 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08] hover:-translate-y-1'
-                }`}
+                  }`}
               >
                 Purchase Now
                 <ChevronRight size={14} />
               </button>
-              
+
               <p className="text-[9px] text-white/10 text-center uppercase tracking-widest font-bold">
                 * Keys are delivered to your Inbox instantly
               </p>
@@ -271,7 +242,7 @@ export default function GetKeyManager() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="relative w-full max-w-xl bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-10 shadow-2xl overflow-hidden">
             <div className="absolute top-6 right-6">
-              <button 
+              <button
                 onClick={() => setShowCategorySelector(false)}
                 className="p-2 rounded-full hover:bg-white/5 text-white/40 hover:text-white transition-all"
               >
@@ -285,15 +256,17 @@ export default function GetKeyManager() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <button 
+              <button
                 onClick={() => handleFinalPurchase('faceit')}
+                data-billgang-product-path={selectedPlan.billgang.faceit.path}
+                data-billgang-domain={BILLGANG_DOMAIN}
                 className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-orange-500/30 transition-all duration-500 h-[220px]"
               >
                 <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110">
-                  <Image 
-                    src={faceitLogo} 
-                    alt="Faceit" 
-                    fill 
+                  <Image
+                    src={faceitLogo}
+                    alt="Faceit"
+                    fill
                     className="object-contain"
                   />
                 </div>
@@ -303,15 +276,17 @@ export default function GetKeyManager() {
                 </div>
               </button>
 
-              <button 
+              <button
                 onClick={() => handleFinalPurchase('external')}
+                data-billgang-product-path={selectedPlan.billgang.external.path}
+                data-billgang-domain={BILLGANG_DOMAIN}
                 className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-blue-500/30 transition-all duration-500 h-[220px]"
               >
                 <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110">
-                  <Image 
-                    src={cs2Logo} 
-                    alt="CS2" 
-                    fill 
+                  <Image
+                    src={cs2Logo}
+                    alt="CS2"
+                    fill
                     className="object-contain"
                   />
                 </div>
