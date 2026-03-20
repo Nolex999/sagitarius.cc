@@ -21,7 +21,6 @@ import {
 
 declare global {
   interface Window {
-    sellAuthEmbed: any;
     Billgang: any;
   }
 }
@@ -42,7 +41,7 @@ const pricingOptions = [
     highlight: false,
     billgang: {
       faceit: { path: 'faceit-7-days' },
-      external: { path: 'cs2-external-7-days' }
+      external: { path: 'CS2-7-days' }
     }
   },
   {
@@ -58,7 +57,7 @@ const pricingOptions = [
     highlight: true,
     billgang: {
       faceit: { path: 'faceit-1-month' },
-      external: { path: 'cs2-external-1-month' }
+      external: { path: 'CS2-1-month' }
     }
   },
   {
@@ -74,7 +73,7 @@ const pricingOptions = [
     highlight: false,
     billgang: {
       faceit: { path: 'faceit-3-months' },
-      external: { path: 'cs2-external-3-months' }
+      external: { path: 'CS2-3-months' }
     }
   }
 ];
@@ -220,7 +219,7 @@ export default function GetKeyManager() {
           <div>
             <h4 className="text-lg font-bold text-white mb-2">Secure Transactions</h4>
             <p className="text-sm text-white/30 leading-relaxed">
-              All payments are processed through encrypted channels. We accept Bitcoin, Ethereum, and Litecoin via SellAuth.
+              All payments are processed through encrypted channels. We accept Bitcoin, Ethereum, and Litecoin via Billgang.
             </p>
           </div>
         </div>
