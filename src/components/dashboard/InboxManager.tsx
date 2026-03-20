@@ -11,9 +11,13 @@ import {
   Bell,
   ChevronRight,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Trash2,
+  ShieldCheck,
+  Plus
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import AdminPanel from './AdminPanel';
 
 interface InboxMessage {
   id: string;
@@ -32,6 +36,9 @@ export default function InboxManager() {
   const [error, setError] = useState<string | null>(null);
   const [revealing, setRevealing] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const supabase = createClient();
 
@@ -46,6 +53,15 @@ export default function InboxManager() {
       setCurrentUser(user);
       if (!user) throw new Error('Not authenticated');
 
+      // Fetch user role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      
+      setIsAdmin(profile?.role === 'admin' || profile?.role === 'owner');
+
       const { data, error } = await supabase
         .from('inbox_messages')
         .select('*')
@@ -57,6 +73,24 @@ export default function InboxManager() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteMessage = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this message?')) return;
+    setDeleting(id);
+    try {
+      const { error } = await supabase
+        .from('inbox_messages')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      setMessages(messages.filter(m => m.id !== id));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setDeleting(null);
     }
   };
 
@@ -101,7 +135,31 @@ export default function InboxManager() {
             Your personal messages and software activation keys
           </p>
         </div>
+
+        {isAdmin && (
+          <button
+            onClick={() => setShowAdminPanel(!showAdminPanel)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold uppercase tracking-widest hover:bg-orange-500/20 transition-all"
+          >
+            <ShieldCheck size={16} />
+            {showAdminPanel ? 'Close Admin' : 'Admin Panel'}
+          </button>
+        )}
       </div>
+
+      {showAdminPanel && (
+        <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/10 mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <ShieldCheck className="text-orange-500" />
+              Admin Actions
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+             <AdminPanel />
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
@@ -131,11 +189,26 @@ export default function InboxManager() {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className="text-sm font-bold text-white truncate pr-4">{msg.title}</h3>
-                  <span className="text-[10px] text-white/20 whitespace-nowrap font-mono flex items-center gap-1.5">
-                    <Clock size={10} />
-                    {new Date(msg.created_at).toLocaleDateString()}
-                  </span>
+                  <h3 className="text-sm font-bold text-white truncate pr-4">
+                    {msg.title}
+                    {!msg.is_read && (
+                      <span className="ml-3 px-1.5 py-0.5 rounded-md bg-orange-500 text-black text-[8px] font-black uppercase tracking-tighter">New</span>
+                    )}
+                  </h3>
+                  <div className="flex items-center gap-4">
+                    <span className="text-[10px] text-white/20 whitespace-nowrap font-mono flex items-center gap-1.5">
+                      <Clock size={10} />
+                      {new Date(msg.created_at).toLocaleDateString()}
+                    </span>
+                    <button 
+                      onClick={() => deleteMessage(msg.id)}
+                      disabled={deleting === msg.id}
+                      className="p-1 text-white/10 hover:text-red-500 transition-colors"
+                      title="Delete message"
+                    >
+                      {deleting === msg.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                    </button>
+                  </div>
                 </div>
                 <p className="text-[11px] text-white/40 leading-relaxed mb-4">{msg.content}</p>
 

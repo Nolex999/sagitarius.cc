@@ -40,7 +40,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard/s4', label: 'Admin', icon: Shield, requiredRole: ['admin', 'owner'] },
   { href: '/dashboard/s5', label: 'Settings', icon: Settings, requiredRole: ['owner'] },
   { href: '/dashboard/policies', label: 'Policies', icon: ShieldCheck },
-  { href: 'https://discord.gg/E3uxAnzU', label: 'Support', icon: MessageCircle },
+  { href: '/dashboard/support', label: 'Support', icon: MessageCircle },
 ];
 
 const OWNER_EMAILS = ['n0lex9999@gmail.com'];

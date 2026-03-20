@@ -326,14 +326,12 @@ export default function GetKeyManager() {
               All payments are processed through encrypted channels. We accept Bitcoin, Ethereum, and Litecoin via Billgang.
             </p>
             <div className="flex items-center gap-4">
-              <a 
-                href="https://discord.gg/E3uxAnzU" 
-                target="_blank" 
-                rel="noopener noreferrer"
+              <Link 
+                href="/dashboard/support"
                 className="text-[10px] font-bold text-orange-400 hover:text-orange-300 uppercase tracking-widest transition-all"
               >
-                Support Discord
-              </a>
+                Support Center
+              </Link>
               <span className="w-1 h-1 rounded-full bg-white/10" />
               <Link 
                 href="/dashboard/policies"

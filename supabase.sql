@@ -172,6 +172,48 @@ CREATE TABLE IF NOT EXISTS public.software_files (
   created_by uuid REFERENCES auth.users(id)
 );
 
+-- Function to broadcast a message to all users
+CREATE OR REPLACE FUNCTION public.broadcast_message(p_title text, p_content text, p_type text DEFAULT 'notification')
+RETURNS void AS $$
+BEGIN
+  -- Verify requester is admin or owner
+  IF NOT EXISTS (
+    SELECT 1 FROM public.profiles 
+    WHERE id = auth.uid() AND role IN ('admin', 'owner')
+  ) THEN
+    RAISE EXCEPTION 'Unauthorized';
+  END IF;
+
+  INSERT INTO public.inbox_messages (user_id, title, content, type)
+  SELECT id, p_title, p_content, p_type FROM public.profiles;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to send a message to a specific user by email
+CREATE OR REPLACE FUNCTION public.send_direct_message(p_email text, p_title text, p_content text, p_type text DEFAULT 'notification')
+RETURNS void AS $$
+DECLARE
+  v_user_id uuid;
+BEGIN
+  -- Verify requester is admin or owner
+  IF NOT EXISTS (
+    SELECT 1 FROM public.profiles 
+    WHERE id = auth.uid() AND role IN ('admin', 'owner')
+  ) THEN
+    RAISE EXCEPTION 'Unauthorized';
+  END IF;
+
+  SELECT id INTO v_user_id FROM public.profiles WHERE email = p_email;
+  
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'User not found';
+  END IF;
+
+  INSERT INTO public.inbox_messages (user_id, title, content, type)
+  VALUES (v_user_id, p_title, p_content, p_type);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Software Activation Keys
 CREATE TABLE IF NOT EXISTS public.software_keys (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
