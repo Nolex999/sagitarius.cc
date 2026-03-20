@@ -1,0 +1,99 @@
+{
+  "setupParameters": [
+    {
+      "name": "Project API Key",
+      "variableName": "ProjectApiKey",
+      "required": true,
+      "placeholder": "Enter your dashboard API key",
+      "defaultValue": null,
+      "type": "TEXT"
+    }
+  ],
+  "setupExternalFlow": [
+    {
+      "url": "https://sagitarius.cc/api/payments/billgang-plugin/validate",
+      "method": "POST",
+      "body": {
+        "apiKey": "{{settings.GatewayAccount.ProjectApiKey}}"
+      },
+      "headers": {
+        "Authorization": "Bearer {{settings.GatewayAccount.ProjectApiKey}}"
+      },
+      "save": [
+        {
+          "variableName": "StatusCode",
+          "responseStatusCode": true
+        }
+      ],
+      "validate": [
+        {
+          "firstValue": "{{StatusCode}}",
+          "secondValue": "200",
+          "operation": "EQUALS"
+        }
+      ]
+    }
+  ],
+  "createChargeFlow": [
+    {
+      "url": "https://sagitarius.cc/api/payments/billgang-plugin/create-charge",
+      "method": "POST",
+      "body": {
+        "currency": "{{context.Charge.Price.Currency}}",
+        "amount": "{{context.Charge.Price.Amount}}",
+        "metadata": {
+          "processToken": "{{context.Charge.ProcessToken}}"
+        },
+        "notifyUrl": "{{settings.Gateway.WebhookCallbackUrl}}"
+      },
+      "headers": {
+        "Authorization": "Bearer {{settings.GatewayAccount.ProjectApiKey}}"
+      },
+      "save": [
+        {
+          "variableName": "PaymentId",
+          "responseBodySelectorJson": "['data']['id']"
+        },
+        {
+          "variableName": "StatusCode",
+          "responseStatusCode": true
+        }
+      ],
+      "validate": [
+        {
+          "firstValue": "{{StatusCode}}",
+          "secondValue": "200",
+          "operation": "EQUALS"
+        }
+      ]
+    }
+  ],
+  "webhookHandlingFlow": {
+    "save": [
+      {
+        "variableName": "ProcessToken",
+        "requestQueryParamName": "['data']['processToken']"
+      },
+      {
+        "variableName": "PaymentStatus",
+        "requestQueryParamName": "['data']['status']"
+      }
+    ],
+    "validate": {
+      "PAID": [
+        {
+          "firstValue": "{{context.Variables.PaymentStatus}}",
+          "secondValue": "COMPLETED",
+          "operation": "EQUALS"
+        }
+      ],
+      "PENDING": [
+        {
+          "firstValue": "{{context.Variables.PaymentStatus}}",
+          "secondValue": "PENDING",
+          "operation": "EQUALS"
+        }
+      ]
+    }
+  }
+}

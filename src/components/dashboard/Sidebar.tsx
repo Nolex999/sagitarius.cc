@@ -40,11 +40,11 @@ const navItems: NavItem[] = [
   { href: '/dashboard/s4', label: 'Admin', icon: Shield, requiredRole: ['admin', 'owner'] },
   { href: '/dashboard/s5', label: 'Settings', icon: Settings, requiredRole: ['owner'] },
   { href: '/dashboard/policies', label: 'Policies', icon: ShieldCheck },
-  { href: 'https://discord.gg/your-discord', label: 'Support', icon: MessageCircle },
+  { href: 'https://discord.gg/E3uxAnzU', label: 'Support', icon: MessageCircle },
 ];
 
-const OWNER_EMAILS = ['chris@sagitarius.cc', 'chris@nolex.me', 'n0lex9999@gmail.com'];
-const ADMIN_EMAILS = ['admin@sagitarius.cc'];
+const OWNER_EMAILS = ['n0lex9999@gmail.com'];
+const ADMIN_EMAILS = ['n0lex9999@gmail.com'];
 
 function getUserRole(email?: string, dbRole?: string): UserRole {
   if (dbRole) return dbRole as UserRole;
@@ -117,9 +117,8 @@ export default function Sidebar({ user }: { user: AuthUser }) {
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-3 h-10 px-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all transform hover:-translate-y-1 ${
-                  isActive ? 'bg-orange-500/15 text-white border border-orange-500/30' : 'text-white/40 hover:text-white hover:bg-white/5'
-                }`}
+                className={`flex items-center gap-3 h-10 px-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all transform hover:-translate-y-1 ${isActive ? 'bg-orange-500/15 text-white border border-orange-500/30' : 'text-white/40 hover:text-white hover:bg-white/5'
+                  }`}
               >
                 <Icon size={14} strokeWidth={isActive ? 3 : 1.5} className={isActive ? 'text-orange-400' : ''} />
                 <span className="hidden lg:inline">{label}</span>

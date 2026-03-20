@@ -240,7 +240,7 @@ export default function GetKeyManager() {
             </p>
             <div className="flex items-center gap-4">
               <a 
-                href="https://discord.gg/your-discord" 
+                href="https://discord.gg/E3uxAnzU" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-[10px] font-bold text-orange-400 hover:text-orange-300 uppercase tracking-widest transition-all"
