@@ -111,10 +111,9 @@ export async function POST(req: NextRequest) {
           max_uses: 1,
           current_uses: 1,
           is_active: false, // Already "used" since it's for this specific order
-          metadata: { billgang_order_id: order.id }
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (insertError) {
       console.error('Failed to save generated key:', insertError);
@@ -123,20 +122,28 @@ export async function POST(req: NextRequest) {
 
     // 5. Deliver to Sagitarius Inbox (Optional)
     if (userId) {
-      await supabaseAdmin
+      console.log('Delivering key to User ID:', userId);
+      const { error: inboxError } = await supabaseAdmin
         .from('inbox_messages')
         .insert({
           user_id: userId,
           type: 'key',
-          title: `Access Granted: ${productName}`,
+          title: `Access Granted: ${productName || 'Software Access'}`,
           content: `Your purchase is complete! Your activation key is revealed below.`,
           reveal_content: randomKey,
           is_revealed: false,
           is_read: false
         });
+      
+      if (inboxError) {
+        console.error('Failed to deliver key to inbox:', inboxError);
+      } else {
+        console.log('Key successfully delivered to inbox!');
+      }
     }
 
     // 6. Return the key to Billgang for Dynamic Delivery
+    console.log('Returning key to Billgang:', randomKey);
     return NextResponse.json({ 
       delivered_goods: randomKey 
     });
