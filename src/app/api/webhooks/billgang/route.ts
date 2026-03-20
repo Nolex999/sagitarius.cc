@@ -34,33 +34,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Internal configuration error: Category not found' }, { status: 500 });
     }
 
-    // 3. Fetch an available key for this category
-    const { data: keyData, error: keyError } = await supabaseAdmin
-      .from('software_keys')
-      .select('id, key, current_uses, max_uses')
-      .eq('category_id', category.id)
-      .eq('is_active', true)
-      .gt('max_uses', 0)
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .single();
+    // 3. Generate a NEW key for this category (Automatic Generation)
+    const randomKey = 'SAG-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + 
+                      Math.random().toString(36).substring(2, 6).toUpperCase() + '-' +
+                      Math.random().toString(36).substring(2, 6).toUpperCase();
 
-    if (keyError || !keyData) {
-      console.error('No keys available for category:', category.name);
-      return NextResponse.json({ 
-        delivered_goods: "OUT_OF_STOCK: Please join our Discord for manual delivery: https://discord.gg/E3uxAnzU" 
-      }, { status: 200 });
-    }
-
-    const { data: updatedKey, error: updateError } = await supabaseAdmin
+    // 4. Save the new key to the database
+    const { data: keyData, error: insertError } = await supabaseAdmin
       .from('software_keys')
-      .update({ 
-        current_uses: (keyData.current_uses || 0) + 1,
-        is_active: (keyData.current_uses || 0) + 1 >= (keyData.max_uses || 1) ? false : true
+      .insert({
+          key: randomKey,
+          category_id: category.id,
+          max_uses: 1,
+          current_uses: 1,
+          is_active: false, // Already "used" since it's for this specific order
+          metadata: { billgang_order_id: order.id }
       })
-      .eq('id', keyData.id)
       .select()
       .single();
+
+    if (insertError) {
+      console.error('Failed to save generated key:', insertError);
+      // Continue anyway to deliver to the user if possible
+    }
 
     // 5. Deliver to Sagitarius Inbox (Optional)
     if (userId) {
@@ -71,7 +67,7 @@ export async function POST(req: NextRequest) {
           type: 'key',
           title: `Access Granted: ${productName}`,
           content: `Your purchase is complete! Your activation key is revealed below.`,
-          reveal_content: keyData.key,
+          reveal_content: randomKey,
           is_revealed: false,
           is_read: false
         });
@@ -79,7 +75,7 @@ export async function POST(req: NextRequest) {
 
     // 6. Return the key to Billgang for Dynamic Delivery
     return NextResponse.json({ 
-      delivered_goods: keyData.key 
+      delivered_goods: randomKey 
     });
 
   } catch (error: any) {
