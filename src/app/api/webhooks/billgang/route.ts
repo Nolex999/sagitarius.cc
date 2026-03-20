@@ -94,8 +94,6 @@ export async function POST(req: NextRequest) {
           key: randomKey,
           category_id: category.id,
           max_uses: 1,
-          current_uses: 1,
-          is_active: false, // Already "used" since it's for this specific order
       })
       .select()
       .maybeSingle();
