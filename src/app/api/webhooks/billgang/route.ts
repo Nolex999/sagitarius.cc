@@ -23,43 +23,21 @@ export async function POST(req: NextRequest) {
        if (userField) userId = userField.value;
     }
 
-    // FALLBACK: Look up user by email if userId is still missing
+    // 1. Parallelize User lookup and Category identification
     const customerEmail = order.customer?.email || payload.customer?.email;
-    if (!userId && customerEmail) {
-      console.log('User ID missing, searching by email:', customerEmail);
-      const { data: profile } = await supabaseAdmin
-        .from('profiles')
-        .select('id')
-        .eq('email', customerEmail)
-        .maybeSingle();
-      
-      if (profile) {
-        userId = profile.id;
-        console.log('Found User ID by email:', userId);
-      }
-    }
+    
+    const [userResult, catResult] = await Promise.all([
+      // Lookup user by email if userId missing
+      (!userId && customerEmail) ? supabaseAdmin.from('profiles').select('id').eq('email', customerEmail).maybeSingle() : Promise.resolve({ data: userId ? { id: userId } : null }),
+      // Search for category
+      supabaseAdmin.from('software_categories').select('id, name').ilike('name', `%${(productName || '').toLowerCase().includes('faceit') ? 'faceit' : (productName || '').toLowerCase().includes('cs2') || (productName || '').toLowerCase().includes('external') ? 'external' : 'cheat'}%`).limit(1).maybeSingle()
+    ]);
+
+    if (userResult.data) userId = userResult.data.id;
+    let category = catResult.data;
 
     console.log('--- DIAGNOSTICS ---');
-    console.log('Service Role Key Present:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
-    console.log('Processing order for:', productName || 'Unknown Product', 'User ID:', userId);
-
-    // 2. Identify Category
-    let categorySearch = '';
-    const nameLower = (productName || '').toLowerCase();
-    
-    if (nameLower.includes('faceit')) categorySearch = 'faceit';
-    else if (nameLower.includes('cs2') || nameLower.includes('external')) categorySearch = 'external';
-
-    console.log('Searching for category with term:', categorySearch || 'cheat (fallback)');
-
-    let { data: category, error: catError } = await supabaseAdmin
-      .from('software_categories')
-      .select('id, name')
-      .ilike('name', `%${categorySearch || 'cheat'}%`)
-      .limit(1)
-      .maybeSingle();
-
-    if (catError) console.error('Supabase Query Error (Primary):', catError);
+    console.log('User ID:', userId, '| Category:', category?.name);
 
     // Fallback if nothing found
     if (!category) {
