@@ -86,12 +86,7 @@ export default function GetKeyManager() {
   const [verifyResult, setVerifyResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Check if Billgang is loaded
-    if (typeof window !== 'undefined') {
-      console.log('Billgang script status:', window.Billgang ? 'Loaded' : 'Not Loaded');
-    }
-  }, []);
+  // Initialized Billgang logs removed
 
   const handleVerify = async () => {
     setVerifying(true);
@@ -118,22 +113,18 @@ export default function GetKeyManager() {
 
   const handleFinalPurchase = (category: 'faceit' | 'external') => {
     const plan = selectedPlan.billgang[category];
-    console.log(`[Billgang] Attempting purchase for ${category} with path ${plan.path}`);
     
     // Check if script is loaded
     if (typeof window !== 'undefined' && !window.Billgang) {
-      console.warn('[Billgang] Script not detected in window. Fallback to direct URL.');
       window.open(`https://${BILLGANG_DOMAIN}/product/${plan.path}`, '_blank');
       setShowCategorySelector(false);
       return;
     }
 
-    // If script is loaded, we still allow a small delay for it to intercept
-    // but we can also try to manually trigger if we knew the method.
-    // Setting a shorter timeout for UI responsiveness
+    // Small delay to allow script to intercept if it's there
     setTimeout(() => {
       setShowCategorySelector(false);
-    }, 500); 
+    }, 100); 
   };
 
   return (
@@ -141,10 +132,7 @@ export default function GetKeyManager() {
       <Script 
         src="https://embed.billgang.store/embed.js" 
         strategy="lazyOnload"
-        onLoad={() => console.log('[Billgang] Script loaded via next/script')}
       />
-      {/* LOUD LOG FOR DEBUGGING */}
-      <script dangerouslySetInnerHTML={{ __html: `console.log('--- GETKEYMANAGER RENDERED ---');` }} />
       <div className="text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[10px] uppercase font-bold tracking-widest">
           <Zap size={12} fill="currentColor" />
