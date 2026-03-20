@@ -86,6 +86,15 @@ export default function GetKeyManager() {
   const [verifying, setVerifying] = useState(false);
   const [verifyResult, setVerifyResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await createClient().auth.getUser();
+      setUser(user);
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     // Manually create the Billgang container if it's not there,
@@ -371,6 +380,7 @@ export default function GetKeyManager() {
                 onClick={() => handleFinalPurchase('faceit')}
                 data-billgang-product-path={selectedPlan.billgang.faceit.path}
                 data-billgang-domain={BILLGANG_DOMAIN}
+                data-billgang-user-id={user?.id}
                 className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-orange-500/30 transition-all duration-500 h-[220px]"
               >
                 <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110 pointer-events-none">
@@ -391,6 +401,7 @@ export default function GetKeyManager() {
                 onClick={() => handleFinalPurchase('external')}
                 data-billgang-product-path={selectedPlan.billgang.external.path}
                 data-billgang-domain={BILLGANG_DOMAIN}
+                data-billgang-user-id={user?.id}
                 className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-blue-500/30 transition-all duration-500 h-[220px]"
               >
                 <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110 pointer-events-none">

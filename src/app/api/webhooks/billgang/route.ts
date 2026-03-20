@@ -19,20 +19,37 @@ export async function POST(req: NextRequest) {
 
     // 2. Identify Category
     let categorySearch = '';
-    if (productName.toLowerCase().includes('faceit')) categorySearch = 'faceit';
-    else if (productName.toLowerCase().includes('cs2') || productName.toLowerCase().includes('external')) categorySearch = 'external';
+    const nameLower = productName.toLowerCase();
+    
+    if (nameLower.includes('faceit')) categorySearch = 'faceit';
+    else if (nameLower.includes('cs2') || nameLower.includes('external')) categorySearch = 'external';
 
-    const { data: category } = await supabaseAdmin
+    console.log('Searching for category with term:', categorySearch || 'cheat (fallback)');
+
+    let { data: category } = await supabaseAdmin
       .from('software_categories')
       .select('id, name')
       .ilike('name', `%${categorySearch || 'cheat'}%`)
       .limit(1)
       .single();
 
+    // Fallback for "test" or if nothing found
     if (!category) {
-      console.error('Category not found for product:', productName);
-      return NextResponse.json({ error: 'Internal configuration error: Category not found' }, { status: 500 });
+      console.log('No specific category found, fetching first available category...');
+      const { data: fallbackCat } = await supabaseAdmin
+        .from('software_categories')
+        .select('id, name')
+        .limit(1)
+        .single();
+      category = fallbackCat;
     }
+
+    if (!category) {
+      console.error('CRITICAL: No categories found in database at all.');
+      return NextResponse.json({ error: 'Internal configuration error: No categories found' }, { status: 500 });
+    }
+
+    console.log('Selected category for key generation:', category.name, category.id);
 
     // 3. Generate a NEW key for this category (Automatic Generation)
     const randomKey = 'SAG-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + 
