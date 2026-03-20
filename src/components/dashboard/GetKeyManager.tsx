@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import Script from 'next/script';
 import faceitLogo from '@/assets/faceit.jpg';
 import cs2Logo from '@/assets/cs2.webp';
@@ -234,9 +235,26 @@ export default function GetKeyManager() {
           </div>
           <div>
             <h4 className="text-lg font-bold text-white mb-2">Secure Transactions</h4>
-            <p className="text-sm text-white/30 leading-relaxed">
+            <p className="text-sm text-white/30 leading-relaxed mb-4">
               All payments are processed through encrypted channels. We accept Bitcoin, Ethereum, and Litecoin via Billgang.
             </p>
+            <div className="flex items-center gap-4">
+              <a 
+                href="https://discord.gg/your-discord" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[10px] font-bold text-orange-400 hover:text-orange-300 uppercase tracking-widest transition-all"
+              >
+                Support Discord
+              </a>
+              <span className="w-1 h-1 rounded-full bg-white/10" />
+              <Link 
+                href="/dashboard/policies"
+                className="text-[10px] font-bold text-white/20 hover:text-white/40 uppercase tracking-widest transition-all"
+              >
+                View Policies
+              </Link>
+            </div>
           </div>
         </div>
         <div className="p-8 rounded-[2rem] bg-white/[0.01] border border-white/[0.04] flex items-start gap-6">

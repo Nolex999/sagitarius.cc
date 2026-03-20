@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     if (keyError || !keyData) {
       console.error('No keys available for category:', category.name);
       return NextResponse.json({ 
-        delivered_goods: "OUT_OF_STOCK: Please contact support. Our team will deliver your key manually." 
+        delivered_goods: "OUT_OF_STOCK: Please join our Discord for manual delivery: https://discord.gg/your-discord" 
       }, { status: 200 });
     }
 

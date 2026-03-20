@@ -14,7 +14,9 @@ import {
   Package,
   BarChart3,
   Inbox,
-  CreditCard
+  CreditCard,
+  ShieldCheck,
+  MessageCircle
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { User as AuthUser } from '@supabase/supabase-js';
@@ -37,6 +39,8 @@ const navItems: NavItem[] = [
   { href: '/dashboard/s7', label: 'Analytics', icon: BarChart3, requiredRole: ['owner', 'admin'] },
   { href: '/dashboard/s4', label: 'Admin', icon: Shield, requiredRole: ['admin', 'owner'] },
   { href: '/dashboard/s5', label: 'Settings', icon: Settings, requiredRole: ['owner'] },
+  { href: '/dashboard/policies', label: 'Policies', icon: ShieldCheck },
+  { href: 'https://discord.gg/your-discord', label: 'Support', icon: MessageCircle },
 ];
 
 const OWNER_EMAILS = ['chris@sagitarius.cc', 'chris@nolex.me', 'n0lex9999@gmail.com'];
