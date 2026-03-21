@@ -240,7 +240,7 @@ CREATE TABLE IF NOT EXISTS public.software_keys (
   metadata jsonb DEFAULT '{}'::jsonb
 );
 
--- Verification logic for keys (Updated for auto-detection and unlimited downloads)
+-- Verification logic for keys (Updated for Casino Mystery Keys)
 CREATE OR REPLACE FUNCTION public.verify_software_key(p_key text)
 RETURNS TABLE (loader_url text, category_name text, success boolean, message text) AS $$
 DECLARE
@@ -248,14 +248,21 @@ DECLARE
   v_key_id uuid;
   v_category_id uuid;
   v_category_name text;
+  v_metadata jsonb;
 BEGIN
   -- Search for key across all categories
-  SELECT id, category_id INTO v_key_id, v_category_id
+  SELECT id, category_id, metadata INTO v_key_id, v_category_id, v_metadata
   FROM public.software_keys
   WHERE key = p_key AND is_active = true;
 
   IF v_key_id IS NULL THEN
     RETURN QUERY SELECT NULL::text, NULL::text, false, 'Invalid or disabled key'::text;
+    RETURN;
+  END IF;
+
+  -- CASINO KEY logic
+  IF v_category_id IS NULL AND (v_metadata->>'is_casino')::boolean = true THEN
+    RETURN QUERY SELECT NULL::text, 'SELECT_PRODUCT'::text, true, 'casino_key'::text;
     RETURN;
   END IF;
 
@@ -275,6 +282,39 @@ BEGIN
   UPDATE public.software_keys SET current_uses = current_uses + 1 WHERE id = v_key_id;
   
   RETURN QUERY SELECT v_file_url, v_category_name, true, 'Success'::text;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- New function to redeem a casino mystery key
+CREATE OR REPLACE FUNCTION public.redeem_casino_key(p_key text, p_category_id uuid)
+RETURNS TABLE (loader_url text, category_name text, success boolean, message text) AS $$
+DECLARE
+  v_key_id uuid;
+  v_file_url text;
+  v_cat_name text;
+BEGIN
+  -- Verify the key is a valid casino key
+  SELECT id INTO v_key_id FROM public.software_keys
+  WHERE key = p_key AND category_id IS NULL AND (metadata->>'is_casino')::boolean = true AND is_active = true;
+
+  IF v_key_id IS NULL THEN
+    RETURN QUERY SELECT NULL::text, NULL::text, false, 'Invalid casino key'::text;
+    RETURN;
+  END IF;
+
+  -- Bind the key to the selected category
+  UPDATE public.software_keys SET category_id = p_category_id WHERE id = v_key_id;
+
+  -- Get loader info
+  SELECT name INTO v_cat_name FROM public.software_categories WHERE id = p_category_id;
+  SELECT url INTO v_file_url FROM public.software_files WHERE category_id = p_category_id AND is_loader = true LIMIT 1;
+
+  IF v_file_url IS NULL THEN
+    RETURN QUERY SELECT NULL::text, v_cat_name, false, 'No loader for selected product'::text;
+    RETURN;
+  END IF;
+
+  RETURN QUERY SELECT v_file_url, v_cat_name, true, 'Success'::text;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -432,44 +472,29 @@ BEGIN
 
   -- 4. Tirage au sort
   v_rand := random() * 100;
-  
-  IF v_rand <= 1 THEN
-    v_reward_id := 'lifetime';
-    v_reward_label := 'LIFETIME ACCESS';
-  ELSIF v_rand <= 6 THEN
-    v_reward_id := '30day';
-    v_reward_label := '30-Day Premium';
-  ELSIF v_rand <= 40 THEN
-    v_reward_id := '7day';
-    v_reward_label := '7-Day Extension';
-  ELSE
-    v_reward_id := '1day';
-    v_reward_label := '1-Day Access';
-  END IF;
+  IF v_rand <= 1 THEN v_reward_id := 'lifetime'; v_reward_label := 'LIFETIME ACCESS';
+  ELSIF v_rand <= 6 THEN v_reward_id := '30day'; v_reward_label := '30-Day Premium';
+  ELSIF v_rand <= 40 THEN v_reward_id := '7day'; v_reward_label := '7-Day Extension';
+  ELSE v_reward_id := '1day'; v_reward_label := '1-Day Access'; END IF;
 
-  -- 5. Génération d'une clé fictive unique (ou récupération depuis software_keys)
-  -- Pour simplifier, on génère un code cadeau unique
+  -- 5. Génération et Insertion d'une clé MYSTÈRE (sans category_id fixe)
   v_key := 'SAGI-' || upper(substring(gen_random_uuid()::text, 1, 8));
+  
+  -- On insère la clé avec le flag is_casino, elle ne sera liée qu'au moment du téléchargement
+  INSERT INTO public.software_keys (key, category_id, max_uses, created_by, metadata)
+  VALUES (v_key, NULL, 1, auth.uid(), jsonb_build_object(
+    'reward_id', v_reward_id, 
+    'reward_label', v_reward_label,
+    'is_casino', true
+  ));
 
   -- 6. Mise à jour de la date de spin
   UPDATE public.profiles SET last_casino_spin = now() WHERE id = auth.uid();
 
-  -- 7. Insertion dans l'Inbox (Notification directe)
+  -- 7. Insertion dans l'Inbox
   INSERT INTO public.inbox_messages (user_id, title, content, type, is_revealed, reveal_content)
-  VALUES (
-    auth.uid(),
-    '🎰 CASINO JACKPOT!',
-    'Félicitations ! Tu as gagné un accès **' || v_reward_label || '** ! Utilise le code ci-dessous pour activer ton produit.',
-    'key',
-    false,
-    v_key
-  );
+  VALUES (auth.uid(), '🎰 CASINO JACKPOT!', 'Félicitations ! Tu as gagné un accès **' || v_reward_label || '** ! Ton code : ' || v_key, 'key', false, v_key);
 
-  RETURN json_build_object(
-    'success', true,
-    'reward_id', v_reward_id,
-    'reward_label', v_reward_label,
-    'key', v_key
-  );
+  RETURN json_build_object('success', true, 'reward_id', v_reward_id, 'reward_label', v_reward_label, 'key', v_key);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

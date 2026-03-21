@@ -17,7 +17,8 @@ import {
   Plus,
   ShieldCheck,
   Zap,
-  Globe
+  Globe,
+  Sparkles
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
@@ -72,6 +73,7 @@ export default function SoftwareManager() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [userInputKey, setUserInputKey] = useState('');
+  const [isCasinoKey, setIsCasinoKey] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [activeTab, setActiveTab] = useState<'software' | 'status'>('software');
 
@@ -301,6 +303,7 @@ export default function SoftwareManager() {
     
     setVerifying(true);
     setError(null);
+    setIsCasinoKey(null);
     
     try {
       const { data, error } = await supabase.rpc('verify_software_key', {
@@ -310,11 +313,39 @@ export default function SoftwareManager() {
       if (error) throw error;
       
       const result = data[0];
-      if (result.success && result.loader_url) {
-        window.open(result.loader_url, '_blank');
-        setUserInputKey('');
+      if (result.success) {
+        if (result.message === 'casino_key') {
+          setIsCasinoKey(userInputKey);
+        } else if (result.loader_url) {
+          window.open(result.loader_url, '_blank');
+          setUserInputKey('');
+        }
       } else {
         setError(result.message || 'Verification failed');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const redeemAndDownload = async (catId: string) => {
+    if (!isCasinoKey) return;
+    setVerifying(true);
+    try {
+      const { data, error } = await supabase.rpc('redeem_casino_key', {
+        p_key: isCasinoKey,
+        p_category_id: catId
+      });
+      if (error) throw error;
+      const result = data[0];
+      if (result.success && result.loader_url) {
+        window.open(result.loader_url, '_blank');
+        setIsCasinoKey(null);
+        setUserInputKey('');
+      } else {
+        setError(result.message || 'Redemption failed');
       }
     } catch (err: any) {
       setError(err.message);
@@ -431,7 +462,7 @@ export default function SoftwareManager() {
           )}
 
           {/* Global Download Box */}
-          {!isManager && (
+          {!isManager && !isCasinoKey && (
             <div className="bg-white/[0.01] border border-white/5 rounded-[2.5rem] p-10 flex flex-col items-center gap-6 text-center backdrop-blur-3xl relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-b from-[var(--accent)]/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               
@@ -467,11 +498,46 @@ export default function SoftwareManager() {
                   Download
                 </button>
               </div>
-
             </div>
           )}
 
-          {/* Categories consolidated to Status tab */}
+          {/* CASINO KEY SELECTION UI */}
+          {isCasinoKey && (
+            <div className="bg-white/[0.01] border border-[var(--accent)]/20 rounded-[2.5rem] p-10 flex flex-col items-center gap-8 text-center backdrop-blur-3xl relative overflow-hidden animate-in zoom-in-95 duration-500">
+               <div className="absolute top-0 right-0 h-40 w-40 bg-[var(--accent)]/10 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2 animate-pulse" />
+               
+               <div className="flex flex-col items-center gap-3">
+                  <div className="h-16 w-16 rounded-full bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)] shadow-[0_0_20px_rgba(var(--accent-rgb),0.2)]">
+                    <Sparkles size={32} />
+                  </div>
+                  <h3 className="text-2xl font-black text-white uppercase tracking-[0.3em]">Mystery Key Detected</h3>
+                  <p className="text-[10px] text-white/30 font-black uppercase tracking-[0.2em]">Select which product you want to activate with this Casino reward:</p>
+               </div>
+
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
+                  {categories.map(cat => (
+                    <button
+                      key={`redeem-choice-${cat.id}`}
+                      onClick={() => redeemAndDownload(cat.id)}
+                      disabled={verifying}
+                      className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-[var(--accent)]/40 hover:bg-[var(--accent)]/[0.02] transition-all group flex flex-col items-center gap-4 active:scale-95"
+                    >
+                       <div className="h-12 w-12 rounded-xl bg-black/40 border border-white/5 p-2 overflow-hidden group-hover:border-[var(--accent)]/20 transition-colors">
+                          {cat.logo_url ? <img src={cat.logo_url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100" /> : <Package className="text-white/10" />}
+                       </div>
+                       <span className="text-xs font-black text-white/60 group-hover:text-white uppercase tracking-widest">{cat.name}</span>
+                    </button>
+                  ))}
+               </div>
+
+               <button 
+                 onClick={() => setIsCasinoKey(null)}
+                 className="text-[9px] text-white/10 hover:text-white/30 uppercase font-black tracking-widest transition-colors"
+               >
+                 Cancel selection
+               </button>
+            </div>
+          )}
         </div>
       )}
 
