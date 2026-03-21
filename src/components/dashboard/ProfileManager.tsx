@@ -249,6 +249,82 @@ export default function ProfileManager() {
         </div>
       </div>
 
+      {/* HWID MANAGEMENT SECTION */}
+      <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.05] relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+          <ShieldCheck size={120} className="text-blue-500" />
+        </div>
+        
+        <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+          <div className="space-y-3 flex-1 text-center md:text-left">
+            <h2 className="text-xl font-black text-white uppercase tracking-widest flex items-center justify-center md:justify-start gap-3">
+              <ShieldCheck className="text-blue-500" size={24} fill="currentColor" />
+              Hardware Identity (HWID)
+            </h2>
+            <p className="text-xs text-white/40 max-w-lg leading-relaxed font-bold uppercase tracking-wider">
+              Your software access is locked to your hardware. If you change components or PC, you must request a reset.
+              <span className="block mt-2 text-blue-500/60 transition-colors group-hover:text-blue-400">
+                1 Reset allowed every 7 days.
+              </span>
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-4 w-full md:w-auto min-w-[320px]">
+            <div className="p-5 rounded-2xl bg-black/40 border border-white/5 space-y-4 shadow-2xl backdrop-blur-3xl overflow-hidden relative">
+              <div className="absolute inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/10 to-transparent top-0" />
+              
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-white/20 font-black uppercase tracking-widest">Linked HWID</span>
+                <span className="font-mono text-[11px] text-white font-bold tracking-widest">
+                  {profile?.hwid ? `${profile.hwid.substring(0, 8)}...${profile.hwid.substring(profile.hwid.length - 4)}` : 'NOT LINKED'}
+                </span>
+              </div>
+              
+              <div className="h-[1px] bg-white/5" />
+              
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-white/20 font-black uppercase tracking-widest">Last Reset</span>
+                <span className="text-[10px] text-white/60 font-black uppercase tracking-widest">
+                  {profile?.last_hwid_reset ? new Date(profile.last_hwid_reset).toLocaleDateString() : 'NEVER'}
+                </span>
+              </div>
+
+              {profile?.hwid_reset_status === 'pending' ? (
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest justify-center">
+                   <Loader2 size={14} className="animate-spin" />
+                   Reset Request Pending
+                </div>
+              ) : (
+                <button
+                  disabled={loading || (profile?.last_hwid_reset && new Date().getTime() - new Date(profile.last_hwid_reset).getTime() < 7 * 24 * 60 * 60 * 1000)}
+                  onClick={async () => {
+                    setLoading(true);
+                    try {
+                      const { error } = await supabase
+                        .from('profiles')
+                        .update({ hwid_reset_status: 'pending' })
+                        .eq('id', profile.id);
+                      if (error) throw error;
+                      setProfile({ ...profile, hwid_reset_status: 'pending' });
+                      setSuccess('HWID Reset request sent to administrators!');
+                    } catch (err: any) {
+                      setSuccess(null);
+                      setError(err.message);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  className="w-full h-11 rounded-xl bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-400 transition-all flex items-center justify-center gap-3 disabled:opacity-30 disabled:grayscale shadow-lg active:scale-95"
+                >
+                  <ShieldCheck size={16} />
+                  Request HWID Reset
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* REFERRAL PROGRAM SECTION */}
       <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.05] relative overflow-hidden group">
         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">

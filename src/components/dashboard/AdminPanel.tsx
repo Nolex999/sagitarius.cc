@@ -23,7 +23,7 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
-  const [activeTab, setActiveTab] = useState<'messaging' | 'invites' | 'users'>('messaging');
+  const [activeTab, setActiveTab] = useState<'messaging' | 'invites' | 'users' | 'hwid'>('messaging');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -252,6 +252,15 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
         >
           <Users size={14} />
           Users
+        </button>
+        <button
+          onClick={() => setActiveTab('hwid')}
+          className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2.5 ${
+            activeTab === 'hwid' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
+          }`}
+        >
+          <ShieldCheck size={14} />
+          HWID
         </button>
       </div>
 
@@ -507,6 +516,99 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+      {activeTab === 'hwid' && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <div className="flex items-center justify-between px-2">
+            <h2 className="text-lg font-black text-white flex items-center gap-3 uppercase tracking-widest">
+              <ShieldCheck className="text-blue-500" size={20} />
+              HWID Reset Requests
+            </h2>
+            <span className="px-3 py-1 rounded-md bg-blue-500/5 border border-blue-500/10 text-[9px] font-black text-blue-400 uppercase tracking-[0.2em]">
+              {profiles.filter(p => p.hwid_reset_status === 'pending').length} Pending
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3">
+             {profiles
+               .filter(p => p.hwid_reset_status === 'pending')
+               .map(profile => (
+                 <div key={`hwid-req-${profile.id}`} className="p-6 rounded-[2rem] bg-white/[0.01] border border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 group relative overflow-hidden">
+                    <div className="flex items-center gap-5 w-full md:w-auto relative z-10">
+                       <div className="h-12 w-12 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center">
+                          {profile.avatar_url ? (
+                            <img src={profile.avatar_url} className="w-full h-full object-cover" />
+                          ) : (
+                            <Users className="text-white/10" size={20} />
+                          )}
+                       </div>
+                       <div>
+                          <div className="flex items-center gap-2 mb-1">
+                             <span className="text-sm font-black text-white uppercase tracking-widest">{profile.username || 'Anonymous'}</span>
+                             <span className="text-[9px] text-white/20 font-mono">{profile.email}</span>
+                          </div>
+                          <p className="text-[10px] text-white/30 font-black uppercase tracking-widest">
+                             Current HWID: <span className="font-mono text-white/60">{profile.hwid ? profile.hwid.substring(0, 10) + '...' : 'NONE'}</span>
+                          </p>
+                       </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 w-full md:w-auto relative z-10">
+                       <button
+                         onClick={async () => {
+                            setLoading(true);
+                            try {
+                               const { error } = await supabase
+                                 .from('profiles')
+                                 .update({ hwid: null, hwid_reset_status: null, last_hwid_reset: new Date().toISOString() })
+                                 .eq('id', profile.id);
+                               if (error) throw error;
+                               setProfiles(profiles.map(p => p.id === profile.id ? { ...p, hwid: null, hwid_reset_status: null, last_hwid_reset: new Date().toISOString() } : p));
+                               setSuccess(`HWID Reset approved for ${profile.username}`);
+                            } catch (err: any) {
+                               setError(err.message);
+                            } finally {
+                               setLoading(false);
+                            }
+                         }}
+                         className="flex-1 md:flex-none h-10 px-6 rounded-xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 transition-all flex items-center gap-2 shadow-lg"
+                       >
+                          <CheckCircle2 size={14} /> Approve
+                       </button>
+                       <button
+                         onClick={async () => {
+                            setLoading(true);
+                            try {
+                               const { error } = await supabase
+                                 .from('profiles')
+                                 .update({ hwid_reset_status: null })
+                                 .eq('id', profile.id);
+                               if (error) throw error;
+                               setProfiles(profiles.map(p => p.id === profile.id ? { ...p, hwid_reset_status: null } : p));
+                               setSuccess(`HWID Reset rejected for ${profile.username}`);
+                            } catch (err: any) {
+                               setError(err.message);
+                            } finally {
+                               setLoading(false);
+                            }
+                         }}
+                         className="flex-1 md:flex-none h-10 px-6 rounded-xl bg-white/[0.02] border border-white/5 text-white/30 text-[10px] font-black uppercase tracking-widest hover:text-red-400 hover:bg-red-500/5 transition-all flex items-center gap-2"
+                       >
+                          <AlertCircle size={14} /> Reject
+                       </button>
+                    </div>
+                 </div>
+               ))}
+
+             {profiles.filter(p => p.hwid_reset_status === 'pending').length === 0 && (
+               <div className="text-center py-20 bg-white/[0.01] rounded-[2rem] border border-white/[0.04] border-dashed">
+                 <ShieldCheck size={48} className="mx-auto mb-4 text-white/5" />
+                 <h4 className="text-white/40 font-black uppercase tracking-widest text-xs">No pending requests</h4>
+                 <p className="text-white/10 text-[10px] mt-2 font-mono uppercase">User HWID reset requests will appear here</p>
+               </div>
+             )}
           </div>
         </div>
       )}

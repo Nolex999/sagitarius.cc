@@ -1,10 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { Resend } from 'resend';
+import { getOrderEmailTemplate } from '@/lib/email-templates';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const SELLAUTH_API_KEY = process.env.SELLAUTH_API_KEY;
 const SELLAUTH_SHOP_ID = process.env.SELLAUTH_SHOP_ID;
 const BILLGANG_API_KEY = process.env.BILLGANG_API_KEY;
 const BILLGANG_SHOP_ID = '254708457'; // Extracted from API key: eyJpZCI6IjI1NDcwODQ1NyIs...
+
+async function sendOrderEmail(email: string, orderId: string, productName: string, key: string) {
+  try {
+    await resend.emails.send({
+      from: 'Sagitarius <noreply@sagitarius.cc>',
+      to: email,
+      subject: `Your Key for ${productName} - Order #${orderId}`,
+      html: getOrderEmailTemplate(orderId, productName, key),
+    });
+    console.log(`Email sent to ${email} for order ${orderId}`);
+  } catch (err) {
+    console.error('Email delivery failed:', err);
+  }
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -67,7 +85,11 @@ export async function GET(req: NextRequest) {
                 metadata: { sellauth_invoice_id: inv.id }
               });
 
-            if (!insertError) newlyAdded++;
+            if (!insertError) {
+              newlyAdded++;
+              // Send Email in background
+              if (user.email) sendOrderEmail(user.email, inv.id, inv.product_name || 'Software', keyContent);
+            }
           }
         }
       } catch (err) {
@@ -145,7 +167,11 @@ export async function GET(req: NextRequest) {
                 metadata: { billgang_order_id: order.id }
               });
 
-            if (!insertError) newlyAdded++;
+            if (!insertError) {
+              newlyAdded++;
+              // Send Email in background
+              if (user.email) sendOrderEmail(user.email, order.id, order.productName || 'Sagitarius Software', keyContent);
+            }
           }
         } else {
           const errText = await response.text();
