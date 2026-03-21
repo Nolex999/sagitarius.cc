@@ -115,6 +115,7 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
       }, 7000);
 
     } catch (err: any) {
+      console.error('Casino Spin Error:', err);
       setError(err.message || 'Error spinning the wheel');
     } finally {
       setLoading(false);
@@ -143,7 +144,7 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
         <div className="relative h-44 flex items-center overflow-hidden">
           <div 
             ref={scrollRef}
-            className={`flex transition-transform duration-[7000ms] cubic-bezier(0.1, 0.7, 1.0, 0.1) ${spinning ? '' : 'transform-none'}`}
+            className={`flex transition-transform duration-[7000ms] ${spinning ? '' : 'transform-none'}`}
             style={{ 
               transform: spinning ? `translateX(-${scrollOffset}px)` : 'translateX(0)',
               transitionTimingFunction: 'cubic-bezier(0.1, 0.45, 0.1, 0.99)'
@@ -216,12 +217,20 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
       </div>
 
       {/* ALERTS */}
-      {success && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 px-8 py-4 rounded-2xl bg-[var(--accent)] text-black font-black text-xs uppercase tracking-[0.2em] shadow-2xl animate-in slide-in-from-bottom-4 flex items-center gap-3 z-[200]">
-          <CheckCircle2 size={18} />
-          {success}
-        </div>
-      )}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-[200]">
+        {error && (
+          <div className="px-8 py-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 font-black text-xs uppercase tracking-[0.2em] shadow-2xl animate-in slide-in-from-bottom-4 flex items-center gap-3">
+            <AlertCircle size={18} />
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="px-8 py-4 rounded-2xl bg-[var(--accent)] text-black font-black text-xs uppercase tracking-[0.2em] shadow-2xl animate-in slide-in-from-bottom-4 flex items-center gap-3">
+            <CheckCircle2 size={18} />
+            {success}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

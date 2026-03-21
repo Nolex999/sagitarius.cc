@@ -426,7 +426,7 @@ BEGIN
   END IF;
 
   -- 3. Vérification Cooldown (7 jours) - Skip pour super_vip
-  IF v_user_role != 'super_vip' AND v_last_spin IS NOT NULL AND now() - v_last_spin < interval '7 jours' THEN
+  IF v_user_role != 'super_vip' AND v_last_spin IS NOT NULL AND now() - v_last_spin < interval '7 days' THEN
     RAISE EXCEPTION 'Tu dois attendre 1 semaine entre chaque spin';
   END IF;
 
