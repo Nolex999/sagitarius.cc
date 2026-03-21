@@ -61,6 +61,7 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS created_at timestamptz DEFA
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS hwid text;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_hwid_reset timestamptz;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS hwid_reset_status text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_casino_spin timestamptz;
 
 -- Mise à jour de la contrainte ROLE
 ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_role_check;

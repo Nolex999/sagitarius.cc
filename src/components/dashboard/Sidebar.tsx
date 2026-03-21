@@ -44,6 +44,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard/s4', label: 'Admin', icon: Shield, requiredRole: ['admin', 'owner'] },
   { href: '/dashboard/s5', label: 'Settings', icon: Settings, requiredRole: ['owner'] },
   { href: '/dashboard/policies', label: 'Policies', icon: ShieldCheck },
+  { href: '/dashboard/casino', label: 'Casino', icon: Diamond, requiredRole: ['vip', 'admin', 'owner'] },
   { href: '/dashboard/support', label: 'Support', icon: MessageCircle },
 ];
 
@@ -99,17 +100,17 @@ function RoleBadge({ role }: { role: UserRole }) {
 export default function Sidebar({ user }: { user: AuthUser }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [dbRole, setDbRole] = useState<string | null>(null);
+  const [profileData, setProfileData] = useState<{ role: string | null, avatar_url: string | null }>({ role: null, avatar_url: null });
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    async function fetchRole() {
+    async function fetchProfile() {
       const supabase = createClient();
-      const { data } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-      if (data) setDbRole(data.role);
+      const { data } = await supabase.from('profiles').select('role, avatar_url').eq('id', user.id).single();
+      if (data) setProfileData({ role: data.role, avatar_url: data.avatar_url });
     }
-    fetchRole();
+    fetchProfile();
   }, [user.id]);
 
   useEffect(() => {
@@ -147,7 +148,7 @@ export default function Sidebar({ user }: { user: AuthUser }) {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  const role = getUserRole(user?.email, dbRole || undefined);
+  const role = getUserRole(user?.email, profileData.role || undefined);
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -202,9 +203,13 @@ export default function Sidebar({ user }: { user: AuthUser }) {
 
           {/* RIGHT SECTION (Profile & Logout) */}
           <div className="flex items-center gap-2 sm:gap-4">
-            <Link href="/dashboard/profile" className="flex items-center gap-3 rounded-xl p-1 pr-3 border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-all group">
-              <div className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center rounded-lg bg-white/10 font-mono text-sm font-black text-white group-hover:bg-[var(--accent)]/20 group-hover:text-[var(--accent)] transition-colors">
-                {user?.email?.[0].toUpperCase()}
+            <Link href="/dashboard/profile" className="flex items-center gap-3 rounded-xl p-1 pr-3 border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-all group overflow-hidden">
+              <div className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center rounded-lg bg-white/10 font-mono text-sm font-black text-white group-hover:bg-[var(--accent)]/20 group-hover:text-[var(--accent)] transition-colors overflow-hidden">
+                {profileData.avatar_url ? (
+                  <img src={profileData.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+                ) : (
+                  user?.email?.[0].toUpperCase()
+                )}
               </div>
               <div className="hidden sm:block">
                 <RoleBadge role={role} />
@@ -256,8 +261,12 @@ export default function Sidebar({ user }: { user: AuthUser }) {
 
           <div className="mt-auto pt-6 border-t border-white/5 flex flex-col gap-4">
              <div className="flex items-center gap-3 px-2">
-               <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 font-mono text-white text-lg font-black">
-                 {user?.email?.[0].toUpperCase()}
+               <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 font-mono text-white text-lg font-black overflow-hidden border border-white/5">
+                 {profileData.avatar_url ? (
+                   <img src={profileData.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+                 ) : (
+                   user?.email?.[0].toUpperCase()
+                 )}
                </div>
                <div className="flex flex-col">
                  <span className="text-[10px] text-white font-black uppercase tracking-wider truncate max-w-[150px]">{user?.email}</span>
