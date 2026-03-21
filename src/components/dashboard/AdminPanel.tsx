@@ -14,7 +14,8 @@ import {
   CheckCircle2,
   Calendar,
   Hash,
-  Diamond
+  Diamond,
+  Crown
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -482,30 +483,33 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
                     <div className="flex items-center gap-2">
                        <span className="text-[13px] text-white/90 font-bold truncate">{profile.username || 'Anonymous'}</span>
                         <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border flex items-center gap-1 ${
-                         profile.role === 'owner' ? 'bg-white text-black border-white shadow-[0_0_10px_rgba(255,255,255,0.2)]' :
-                         profile.role === 'admin' ? 'bg-gradient-to-r from-[var(--accent)] to-[var(--accent-gold)] text-black border-[var(--accent)]' :
-                         profile.role === 'vip' ? 'bg-[#ffd700]/10 text-[#ffd700] border-[#ffd700]/20 shadow-[0_0_10px_rgba(255,215,0,0.1)]' :
-                         'bg-white/5 text-white/30 border-white/5'
-                       }`}>
-                         {profile.role === 'vip' && <Diamond size={8} fill="currentColor" className="animate-pulse" />}
-                         {profile.role}
-                       </span>
-                    </div>
-                    <div className="text-[9px] text-white/15 truncate font-mono mt-0.5">{profile.email}</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <select 
-                    value={profile.role}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateUserRole(profile.id, e.target.value)}
-                    className="flex-1 sm:flex-none h-8 px-3 rounded-lg bg-white/[0.02] border border-white/5 text-white/40 text-[9px] font-black uppercase tracking-widest outline-none focus:border-[var(--accent)]/20 transition-all"
-                  >
-                    <option value="member">Member</option>
-                    <option value="vip">VIP</option>
-                    <option value="admin">Admin</option>
-                    <option value="owner" disabled>Owner</option>
-                  </select>
+                          profile.role === 'owner' ? 'bg-white text-black border-white shadow-[0_0_10px_rgba(255,255,255,0.2)]' :
+                          profile.role === 'admin' ? 'bg-gradient-to-r from-[var(--accent)] to-[var(--accent-gold)] text-black border-[var(--accent)]' :
+                          profile.role === 'super_vip' ? 'bg-gradient-to-r from-blue-600/20 via-[var(--accent)]/30 to-blue-600/20 text-white border-[var(--accent)]/40 animate-pulse' :
+                          profile.role === 'vip' ? 'bg-[#ffd700]/10 text-[#ffd700] border-[#ffd700]/20 shadow-[0_0_10px_rgba(255,215,0,0.1)]' :
+                          'bg-white/5 text-white/30 border-white/5'
+                        }`}>
+                          {profile.role === 'super_vip' && <Crown size={8} className="text-[var(--accent)]" />}
+                          {profile.role === 'vip' && <Diamond size={8} fill="currentColor" className="animate-pulse" />}
+                          {profile.role}
+                        </span>
+                     </div>
+                     <div className="text-[9px] text-white/15 truncate font-mono mt-0.5">{profile.email}</div>
+                   </div>
+                 </div>
+ 
+                 <div className="flex items-center gap-2 w-full sm:w-auto">
+                   <select 
+                     value={profile.role}
+                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateUserRole(profile.id, e.target.value)}
+                     className="flex-1 sm:flex-none h-8 px-3 rounded-lg bg-white/[0.02] border border-white/5 text-white/40 text-[9px] font-black uppercase tracking-widest outline-none focus:border-[var(--accent)]/20 transition-all"
+                   >
+                     <option value="member">Member</option>
+                     <option value="vip">VIP</option>
+                     <option value="super_vip">SUPER VIP</option>
+                     <option value="admin">Admin</option>
+                     <option value="owner" disabled>Owner</option>
+                   </select>
                   <button
                     onClick={() => giftInvite(profile.id, profile.email)}
                     disabled={loading}

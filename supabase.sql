@@ -421,7 +421,7 @@ BEGIN
   FROM public.profiles WHERE id = auth.uid();
 
   -- 2. Vérification Rôle
-  IF v_user_role NOT IN ('vip', 'admin', 'owner') THEN
+  IF v_user_role NOT IN ('vip', 'super_vip', 'admin', 'owner') THEN
     RAISE EXCEPTION 'Ce casino est réservé aux membres VIP uniquement';
   END IF;
 
