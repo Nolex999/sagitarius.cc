@@ -62,7 +62,7 @@ export default function InteractiveBackground() {
         if (!ctx) return;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(249, 115, 22, 0.4)'; // Archer Orange
+        ctx.fillStyle = 'rgba(197, 160, 89, 0.4)'; // Sagitarius Gold
         ctx.fill();
       }
     }
@@ -78,7 +78,7 @@ export default function InteractiveBackground() {
     };
 
     const draw = () => {
-      ctx.fillStyle = '#020202';
+      ctx.fillStyle = '#050403';
       ctx.fillRect(0, 0, width, height);
 
       // Calculate parallax offsets (very subtle depth)
@@ -96,7 +96,7 @@ export default function InteractiveBackground() {
         // Draw particle
         ctx.beginPath();
         ctx.arc(rx1, ry1, p1.size, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(249, 115, 22, 0.4)';
+        ctx.fillStyle = 'rgba(197, 160, 89, 0.4)';
         ctx.fill();
 
         for (let j = i + 1; j < particles.length; j++) {
@@ -110,7 +110,7 @@ export default function InteractiveBackground() {
 
           if (dist < 100) {
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(249, 115, 22, ${0.1 * (1 - dist / 100)})`;
+            ctx.strokeStyle = `rgba(197, 160, 89, ${0.1 * (1 - dist / 100)})`;
             ctx.lineWidth = 1;
             ctx.moveTo(rx1, ry1);
             ctx.lineTo(rx2, ry2);
@@ -125,7 +125,7 @@ export default function InteractiveBackground() {
 
           if (dist < 100) {
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(249, 115, 22, ${0.15 * (1 - dist / 100)})`;
+            ctx.strokeStyle = `rgba(197, 160, 89, ${0.15 * (1 - dist / 100)})`;
             ctx.lineWidth = 1;
             ctx.moveTo(rx1, ry1);
             ctx.lineTo(mouse.x, mouse.y);
@@ -156,14 +156,14 @@ export default function InteractiveBackground() {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[-1] overflow-hidden bg-[#020202]">
+    <div className="fixed inset-0 z-[-1] overflow-hidden bg-[#050403]">
       <canvas ref={canvasRef} className="absolute inset-0 block" />
       
       {/* Subtle Bottom Glow for context */}
       <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-[var(--accent)]/5 to-transparent pointer-events-none" />
       
       {/* Absolute Black Overlay for Top Header Area to keep it clean */}
-      <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-[#020202] to-transparent pointer-events-none" />
+      <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-[#050403] to-transparent pointer-events-none" />
       
       {/* Fine Micro-Grain */}
       <div className="absolute inset-0 opacity-[0.015] pointer-events-none" id="noise-overlay" />

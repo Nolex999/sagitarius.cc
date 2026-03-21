@@ -68,8 +68,8 @@ export default function ClaimPage() {
           <Image
             src="/logo.svg"
             alt="Logo"
-            width={120}
-            height={120}
+            width={180}
+            height={180}
             className="mx-auto"
             priority
           />
@@ -84,7 +84,7 @@ export default function ClaimPage() {
         <div className="relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-[var(--accent)] to-[var(--accent-gold)] rounded-[2.5rem] blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
           
-          <div className="relative flex flex-col items-center text-center p-10 rounded-[2rem] bg-black/40 border border-white/10 backdrop-blur-xl">
+          <div className="relative flex flex-col items-center text-center p-10 rounded-[2rem] bg-[var(--bg-base)]/40 border border-white/10 backdrop-blur-xl">
             {error ? (
               <div className="space-y-6">
                 <div className="h-16 w-16 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto text-red-500">

@@ -11,8 +11,8 @@ export default function RecoveryPage() {
                     <Image
                         src="/logo.svg"
                         alt="Logo"
-                        width={120}
-                        height={120}
+                        width={180}
+                        height={180}
                         className="mx-auto"
                         priority
                     />

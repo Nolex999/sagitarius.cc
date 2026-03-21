@@ -318,13 +318,13 @@ export default function S3Page() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#020202]">
+    <div className="flex flex-col h-full bg-[var(--bg-base)]">
       {/* Top Navigation Bar */}
-      <div className="flex items-center justify-between px-6 pt-[15px] pb-4 border-b border-white/[0.04] bg-[#050505]/80 backdrop-blur-xl z-30">
+      <div className="flex items-center justify-between px-6 pt-[15px] pb-4 border-b border-white/[0.04] bg-[var(--bg-surface)]/80 backdrop-blur-xl z-30">
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-3">
              <div className="w-8 h-8 rounded-lg bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center">
-                <Image src="/logo.svg" alt="Logo" width={18} height={18} className="" />
+                <Image src="/logo.svg" alt="Logo" width={28} height={28} className="" />
              </div>
              <span className="font-mono text-[10px] font-black uppercase tracking-[0.4em] text-white">Sagitarius</span>
           </div>
@@ -401,14 +401,14 @@ export default function S3Page() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Editor Panel */}
-        <div className="w-[400px] shrink-0 overflow-y-auto border-r border-white/[0.04] bg-[#050505]/50">
+        <div className="w-[400px] shrink-0 overflow-y-auto border-r border-white/[0.04] bg-[var(--bg-surface)]/50">
           <BioEditor config={config} onChange={handleConfigChange} activeTab={activeTab as any} />
         </div>
         
         {/* Preview Panel */}
         <div className="flex-1 flex flex-col overflow-hidden bg-[#0a0a0a]">
           {/* Sub-bar for Preview Controls */}
-          <div className="flex items-center justify-between px-8 py-4 bg-[#050505]/30 border-b border-white/[0.04]">
+          <div className="flex items-center justify-between px-8 py-4 bg-[var(--bg-surface)]/30 border-b border-white/[0.04]">
             <div className="flex items-center gap-4">
                <div className="flex items-center gap-1 bg-white/[0.02] border border-white/[0.06] rounded-xl p-1">
                  <button onClick={() => setPreviewMode('desktop')} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${previewMode === 'desktop' ? 'bg-white text-black' : 'text-white/40 hover:text-white'}`}>Desktop View</button>

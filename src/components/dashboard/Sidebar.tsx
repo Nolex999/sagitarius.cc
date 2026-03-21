@@ -113,7 +113,7 @@ export default function Sidebar({ user }: { user: AuthUser }) {
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
             <Link href="/dashboard/software" className="flex items-center shrink-0 group">
-              <Image src="/logo.svg" alt="Logo" width={32} height={32} className="select-none transition-transform group-hover:scale-110" />
+              <Image src="/logo.svg" alt="Logo" width={44} height={44} className="select-none transition-transform group-hover:scale-110" />
             </Link>
           </div>
 
@@ -161,9 +161,9 @@ export default function Sidebar({ user }: { user: AuthUser }) {
           className={`absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity duration-500 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0'}`}
           onClick={() => setIsMobileMenuOpen(false)}
         />
-        <nav className={`absolute left-0 top-0 bottom-0 w-[280px] bg-[#050505] border-r border-white/5 p-6 flex flex-col gap-2 transition-transform duration-500 shadow-2xl ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <nav className={`absolute left-0 top-0 bottom-0 w-[280px] bg-[var(--bg-surface)] border-r border-white/5 p-6 flex flex-col gap-2 transition-transform duration-500 shadow-2xl ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="flex items-center gap-3 mb-8 px-2">
-            <Image src="/logo.svg" alt="Logo" width={28} height={28} className="" />
+            <Image src="/logo.svg" alt="Logo" width={36} height={36} className="" />
             <span className="font-mono text-[10px] font-black uppercase tracking-[0.4em] text-white">SAGITARIUS</span>
           </div>
           
