@@ -151,7 +151,7 @@ export default function ProfileManager() {
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'owner': return <Crown className="text-white" size={24} />;
-      case 'admin': return <ShieldCheck className="text-orange-500" size={24} />;
+      case 'admin': return <ShieldCheck className="text-[var(--accent)]" size={24} />;
       default: return <User className="text-white/40" size={24} />;
     }
   };
@@ -159,7 +159,7 @@ export default function ProfileManager() {
   if (loading && !profile) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
-        <Loader2 className="animate-spin text-orange-500" size={32} />
+        <Loader2 className="animate-spin text-[var(--accent)]" size={32} />
         <p className="text-white/40 text-sm animate-pulse">Loading your profile...</p>
       </div>
     );
@@ -169,12 +169,12 @@ export default function ProfileManager() {
     <div className="max-w-5xl mx-auto space-y-8 pb-20">
       {/* HEADER SECTION */}
       <div className="relative overflow-hidden p-8 md:p-12 rounded-[2.5rem] bg-white/[0.02] border border-white/[0.05] shadow-2xl">
-        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[500px] h-[500px] bg-orange-500/5 blur-[120px] rounded-full" />
+        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[500px] h-[500px] bg-[var(--accent)]/5 blur-[120px] rounded-full" />
         <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-[300px] h-[300px] bg-blue-500/5 blur-[100px] rounded-full" />
         
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
           <div className="relative group cursor-pointer" onClick={() => document.getElementById('avatar-upload')?.click()}>
-            <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-orange-500/20 to-orange-500/5 border-2 border-orange-500/20 flex items-center justify-center text-3xl font-black text-white shadow-2xl transition-transform group-hover:scale-105 overflow-hidden">
+            <div className="h-28 w-28 rounded-[2rem] bg-gradient-to-br from-[var(--accent)]/20 to-[var(--accent)]/5 border-2 border-[var(--accent)]/20 flex items-center justify-center text-3xl font-black text-white shadow-2xl transition-transform group-hover:scale-105 overflow-hidden">
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="Profile" className="h-full w-full object-cover" />
               ) : (
@@ -182,7 +182,7 @@ export default function ProfileManager() {
               )}
               {uploading && (
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                  <Loader2 className="animate-spin text-orange-500" size={24} />
+                  <Loader2 className="animate-spin text-[var(--accent)]" size={24} />
                 </div>
               )}
             </div>
@@ -207,11 +207,11 @@ export default function ProfileManager() {
                     type="text"
                     value={newUsername}
                     onChange={(e) => setNewUsername(e.target.value)}
-                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white font-black focus:outline-none focus:border-orange-500/50"
+                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white font-black focus:outline-none focus:border-[var(--accent)]/50"
                     placeholder="New username..."
                     autoFocus
                   />
-                  <button onClick={handleUpdateUsername} className="p-2 rounded-xl bg-orange-500 text-black hover:bg-orange-400 transition-colors">
+                  <button onClick={handleUpdateUsername} className="p-2 rounded-xl bg-[var(--accent)] text-black hover:bg-[var(--accent-gold)] transition-colors">
                     <CheckCircle2 size={20} />
                   </button>
                   <button onClick={() => setIsEditingUsername(false)} className="p-2 rounded-xl bg-white/5 text-white/40 hover:text-white transition-colors">
@@ -228,7 +228,7 @@ export default function ProfileManager() {
               )}
               <span className={`text-[10px] font-black uppercase px-4 py-1.5 rounded-full border tracking-[0.2em] shadow-lg ${
                 profile?.role === 'owner' ? 'bg-black border-white/20 text-white' :
-                profile?.role === 'admin' ? 'bg-orange-500/10 border-orange-500/20 text-orange-500' :
+                profile?.role === 'admin' ? 'bg-[var(--accent)]/10 border-[var(--accent)]/20 text-[var(--accent)]' :
                 'bg-white/5 border-white/10 text-white/40'
               }`}>
                 {profile?.role}
@@ -237,7 +237,7 @@ export default function ProfileManager() {
             <p className="text-white/40 font-mono text-sm tracking-wider">{user?.email}</p>
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-4">
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-[10px] text-white/40 font-bold uppercase tracking-[0.1em]">
-                <Calendar size={14} className="text-orange-500/50" />
+                <Calendar size={14} className="text-[var(--accent)]/50" />
                 Joined {profile?.created_at && !isNaN(new Date(profile.created_at).getTime()) ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
               </div>
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-[10px] text-white/40 font-bold uppercase tracking-[0.1em]">
@@ -253,10 +253,10 @@ export default function ProfileManager() {
         {/* INVITES AREA */}
         <div className="flex items-center justify-between px-2">
           <h2 className="text-lg font-black text-white flex items-center gap-3 uppercase tracking-widest">
-            <Ticket className="text-orange-500/50" size={20} />
+            <Ticket className="text-[var(--accent)]/50" size={20} />
             Invitations
           </h2>
-          <span className="px-3 py-1 rounded-md bg-orange-500/5 border border-orange-500/10 text-[9px] font-black text-orange-500/60 uppercase tracking-[0.2em]">
+          <span className="px-3 py-1 rounded-md bg-[var(--accent)]/5 border border-[var(--accent)]/10 text-[9px] font-black text-[var(--accent)]/60 uppercase tracking-[0.2em]">
             {invites.length} Available
           </span>
         </div>
@@ -265,7 +265,7 @@ export default function ProfileManager() {
           {invites.map((inv) => (
             <div key={inv.id} className="p-4 rounded-2xl bg-white/[0.01] border border-white/5 hover:border-white/10 transition-all flex flex-col sm:flex-row items-center justify-between gap-4 group relative overflow-hidden">
               <div className="flex items-center gap-4 relative z-10 w-full sm:w-auto">
-                <div className="h-10 w-10 rounded-xl bg-orange-500/[0.03] border border-orange-500/10 flex items-center justify-center text-orange-500/40 shrink-0">
+                <div className="h-10 w-10 rounded-xl bg-[var(--accent)]/[0.03] border border-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]/40 shrink-0">
                   <Hash size={18} />
                 </div>
                 <div>
@@ -286,7 +286,7 @@ export default function ProfileManager() {
               <div className="flex items-center gap-2 relative z-10 w-full sm:w-auto shrink-0">
                 <button
                   onClick={() => copyToClipboard(`https://sagitarius.cc/claim/${inv.code}`, 'Claim link copied!')}
-                  className="flex-1 sm:flex-none h-8 px-4 rounded-lg bg-orange-500/5 border border-orange-500/10 text-orange-500/60 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-orange-500 hover:text-black transition-all"
+                  className="flex-1 sm:flex-none h-8 px-4 rounded-lg bg-[var(--accent)]/5 border border-[var(--accent)]/10 text-[var(--accent)]/60 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-[var(--accent)] hover:text-black transition-all"
                 >
                   Link
                 </button>

@@ -16,11 +16,11 @@ export default function EntryCard({
   telephone 
 }: EntryCardProps) {
   return (
-    <div className="group relative mx-1 my-1.5 border border-white/[0.03] bg-white/[0.02] px-4 py-4 backdrop-blur-sm transition-all hover:bg-white/[0.05] hover:border-white/[0.08] rounded-[var(--radius-lg)]">
+    <div className="group relative mx-1 my-1.5 border border-[var(--accent)]/[0.05] bg-[var(--accent)]/[0.02] px-4 py-4 backdrop-blur-sm transition-all hover:bg-[var(--accent)]/[0.06] hover:border-[var(--accent)]/[0.12] rounded-[var(--radius-lg)]">
       <div className="flex items-center justify-between mb-1.5">
         <p className="text-[13px] font-semibold text-[var(--text-primary)] tracking-tight">{name}</p>
         {telephone && (
-          <span className="font-mono text-[9px] font-bold uppercase tracking-wider text-[var(--text-secondary)] bg-white/5 px-2 py-0.5 rounded-full">{telephone}</span>
+          <span className="font-mono text-[9px] font-bold uppercase tracking-wider text-[var(--accent)] bg-[var(--accent)]/10 px-2 py-0.5 rounded-full">{telephone}</span>
         )}
       </div>
       {(category || info || email || habitation) && (

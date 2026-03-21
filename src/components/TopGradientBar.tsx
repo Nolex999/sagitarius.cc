@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 
 // Route-based gradient colors
 const routeGradients: Record<string, string[]> = {
-  '/dashboard': ['#f97316', '#fbbf24', '#ea580c'],
+  '/dashboard': ['#C5A059', '#D4AF37', '#8B6D31'],
   '/auth': ['#ffffff', '#a1a1a1', '#ffffff'],
   '/bio': ['#22c55e', '#06b6d4', '#14b8a6'],
 };
@@ -14,7 +14,7 @@ function getGradientForRoute(pathname: string): string[] {
   for (const [route, colors] of Object.entries(routeGradients)) {
     if (pathname.startsWith(route)) return colors;
   }
-  return ['#f97316', '#fbbf24', '#ea580c']; // Default orange
+  return ['#C5A059', '#D4AF37', '#8B6D31']; // Default gold
 }
 
 export default function TopGradientBar() {

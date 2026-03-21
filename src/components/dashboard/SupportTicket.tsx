@@ -36,7 +36,7 @@ export default function SupportTicket() {
       const payload = {
         embeds: [{
           title: `New Support Ticket: ${subject}`,
-          color: 0xF97316, // Orange
+          color: 0xC5A059, // Gold
           fields: [
             { name: "User Email", value: user.email || "Unknown", inline: true },
             { name: "User ID", value: user.id, inline: true },
@@ -89,7 +89,7 @@ export default function SupportTicket() {
   return (
     <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="text-center space-y-2">
-        <div className="h-16 w-16 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mx-auto text-orange-500 mb-4">
+        <div className="h-16 w-16 rounded-2xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center mx-auto text-[var(--accent)] mb-4">
           <LifeBuoy size={32} />
         </div>
         <h1 className="text-3xl font-black text-white tracking-tight uppercase italic">Support Center</h1>
@@ -97,7 +97,7 @@ export default function SupportTicket() {
       </div>
 
       <form onSubmit={handleSubmit} className="p-8 rounded-[2.5rem] bg-white/[0.02] border border-white/10 backdrop-blur-xl relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/20 to-yellow-500/20 rounded-[2.5rem] blur opacity-0 group-hover:opacity-100 transition duration-1000" />
+        <div className="absolute -inset-1 bg-gradient-to-r from-[var(--accent)]/20 to-[var(--accent-gold)]/20 rounded-[2.5rem] blur opacity-0 group-hover:opacity-100 transition duration-1000" />
         
         <div className="relative space-y-6">
           {error && (
@@ -111,14 +111,14 @@ export default function SupportTicket() {
             <div className="space-y-1.5">
               <label className="text-[10px] text-white/30 font-bold uppercase tracking-widest ml-1">Subject</label>
               <div className="relative group/input">
-                <MessageSquare className="absolute left-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within/input:text-orange-500 transition-colors" size={18} />
+                <MessageSquare className="absolute left-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within/input:text-[var(--accent)] transition-colors" size={18} />
                 <input
                   type="text"
                   placeholder="What can we help you with?"
                   required
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-12 pr-4 h-14 text-sm text-white focus:border-orange-500/50 outline-none transition-all placeholder:text-white/10"
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-12 pr-4 h-14 text-sm text-white focus:border-[var(--accent)]/50 outline-none transition-all placeholder:text-white/10"
                 />
               </div>
             </div>
@@ -131,7 +131,7 @@ export default function SupportTicket() {
                 rows={6}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-5 text-sm text-white focus:border-orange-500/50 outline-none transition-all placeholder:text-white/10 resize-none"
+                className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-5 text-sm text-white focus:border-[var(--accent)]/50 outline-none transition-all placeholder:text-white/10 resize-none"
               />
             </div>
           </div>
@@ -139,7 +139,7 @@ export default function SupportTicket() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-14 rounded-2xl bg-orange-500 text-black text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-orange-500/10 hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+            className="w-full h-14 rounded-2xl bg-[var(--accent)] text-black text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-[var(--accent)]/10 hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
           >
             {loading ? <Loader2 className="animate-spin" size={18} /> : <Send size={16} />}
             Submit Ticket

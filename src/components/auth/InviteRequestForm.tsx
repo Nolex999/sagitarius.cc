@@ -24,7 +24,7 @@ export default function InviteRequestForm() {
 
       const embed = {
         title: '📩 New Invite Request',
-        color: 0xa855f7, // Purple
+        color: 0xC5A059, // Gold
         fields: [
           { name: '📧 Email', value: email, inline: true },
           { name: '📝 Message', value: message || '_No message_', inline: false },
@@ -122,7 +122,7 @@ export default function InviteRequestForm() {
         <button
           type="submit"
           disabled={status === 'loading' || !email.trim()}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-[13px] font-semibold transition-all disabled:opacity-50 bg-gradient-to-r from-orange-600/80 to-yellow-600/80 text-white hover:from-orange-500/80 hover:to-yellow-500/80 border border-orange-400/20"
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-[13px] font-semibold transition-all disabled:opacity-50 bg-gradient-to-r from-[var(--accent)] to-[var(--accent-gold)] text-[var(--bg-base)] hover:opacity-90 border border-[var(--accent)]/20"
         >
           {status === 'loading' ? (
             <>

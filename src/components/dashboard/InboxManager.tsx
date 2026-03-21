@@ -116,7 +116,7 @@ export default function InboxManager() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
-        <Loader2 className="animate-spin text-orange-500" size={32} />
+        <Loader2 className="animate-spin text-[var(--accent)]" size={32} />
         <p className="text-white/40 text-sm animate-pulse">Checking your inbox...</p>
       </div>
     );
@@ -127,7 +127,7 @@ export default function InboxManager() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-            <Inbox size={28} className="text-orange-500" />
+            <Inbox size={28} className="text-[var(--accent)]" />
             Inbox
           </h1>
           <p className="text-sm text-white/40 mt-1">
@@ -138,7 +138,7 @@ export default function InboxManager() {
         {isAdmin && (
           <button
             onClick={() => setShowAdminPanel(!showAdminPanel)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold uppercase tracking-widest hover:bg-orange-500/20 transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-[var(--accent)] text-xs font-bold uppercase tracking-widest hover:bg-[var(--accent)]/20 transition-all"
           >
             <ShieldCheck size={16} />
             {showAdminPanel ? 'Close Admin' : 'Admin Panel'}
@@ -150,7 +150,7 @@ export default function InboxManager() {
         <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/10 mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <ShieldCheck className="text-orange-500" />
+              <ShieldCheck className="text-[var(--accent)]" />
               Admin Actions
             </h2>
           </div>
@@ -173,14 +173,14 @@ export default function InboxManager() {
             key={msg.id} 
             className={`rounded-2xl border transition-all overflow-hidden ${
               msg.is_read 
-                ? 'bg-white/[0.01] border-white/[0.04]' 
-                : 'bg-white/[0.03] border-orange-500/20 shadow-[0_0_20px_rgba(249,115,22,0.05)]'
+                ? 'bg-[var(--accent)]/[0.01] border-[var(--accent)]/[0.04]' 
+                : 'bg-[var(--accent)]/[0.03] border-[var(--accent)]/20 shadow-[0_0_20px_rgba(197,160,89,0.05)]'
             }`}
           >
             <div className="p-5 flex items-start gap-4">
               <div className={`p-2.5 rounded-xl flex-shrink-0 ${
                 msg.type === 'key' 
-                  ? 'bg-orange-500/10 text-orange-400' 
+                  ? 'bg-[var(--accent)]/10 text-[var(--accent)]' 
                   : 'bg-blue-500/10 text-blue-400'
               }`}>
                 {msg.type === 'key' ? <Key size={20} /> : <Bell size={20} />}
@@ -191,7 +191,7 @@ export default function InboxManager() {
                   <h3 className="text-sm font-bold text-white truncate pr-4">
                     {msg.title}
                     {!msg.is_read && (
-                      <span className="ml-3 px-1.5 py-0.5 rounded-md bg-orange-500 text-black text-[8px] font-black uppercase tracking-tighter">New</span>
+                      <span className="ml-3 px-1.5 py-0.5 rounded-md bg-[var(--accent)] text-black text-[8px] font-black uppercase tracking-tighter">New</span>
                     )}
                   </h3>
                   <div className="flex items-center gap-4">

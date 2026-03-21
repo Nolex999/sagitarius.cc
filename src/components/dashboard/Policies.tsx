@@ -32,7 +32,7 @@ export default function Policies() {
       {/* Header */}
       <div className="text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/60 text-[10px] uppercase font-bold tracking-widest">
-          <Shield size={12} className="text-orange-500" />
+          <Shield size={12} className="text-[var(--accent)]" />
           Legal center
         </div>
         <h1 className="text-3xl font-black text-white tracking-tight">Legal & Policies</h1>
@@ -49,7 +49,7 @@ export default function Policies() {
             className="group p-8 rounded-[2rem] bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] hover:border-white/10 transition-all duration-500"
           >
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 group-hover:scale-110 transition-transform duration-500">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-[var(--accent)] group-hover:scale-110 transition-transform duration-500">
                 <section.icon size={22} />
               </div>
               <h2 className="text-lg font-bold text-white tracking-tight">{section.title}</h2>
@@ -62,8 +62,8 @@ export default function Policies() {
       </div>
 
       {/* Bottom Note */}
-      <div className="p-8 rounded-[2rem] bg-orange-500/5 border border-orange-500/10 text-center">
-        <p className="text-[11px] text-orange-400/80 uppercase tracking-[0.2em] font-bold">
+      <div className="p-8 rounded-[2rem] bg-[var(--accent)]/5 border border-[var(--accent)]/10 text-center">
+        <p className="text-[11px] text-[var(--accent)]/80 uppercase tracking-[0.2em] font-bold">
           Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
         </p>
         <p className="text-xs text-white/30 mt-3 leading-relaxed max-w-md mx-auto">

@@ -53,7 +53,7 @@ export default function ClaimPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--bg-base)] gap-4">
-        <Loader2 className="animate-spin text-orange-500" size={40} />
+        <Loader2 className="animate-spin text-[var(--accent)]" size={40} />
         <p className="text-white/20 font-mono text-[10px] uppercase tracking-[0.3em] animate-pulse">
           Validating Invitation...
         </p>
@@ -82,7 +82,7 @@ export default function ClaimPage() {
         </div>
 
         <div className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-orange-600 to-yellow-600 rounded-[2.5rem] blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+          <div className="absolute -inset-1 bg-gradient-to-r from-[var(--accent)] to-[var(--accent-gold)] rounded-[2.5rem] blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
           
           <div className="relative flex flex-col items-center text-center p-10 rounded-[2rem] bg-black/40 border border-white/10 backdrop-blur-xl">
             {error ? (
@@ -103,7 +103,7 @@ export default function ClaimPage() {
               </div>
             ) : (
               <div className="space-y-8 w-full">
-                <div className="h-20 w-20 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto text-orange-400 group-hover:scale-110 transition-transform duration-500">
+                <div className="h-20 w-20 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center mx-auto text-[var(--accent)] group-hover:scale-110 transition-transform duration-500">
                   <Ticket size={40} strokeWidth={1.5} />
                 </div>
 

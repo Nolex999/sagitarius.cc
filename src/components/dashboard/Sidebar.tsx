@@ -64,7 +64,7 @@ function RoleBadge({ role }: { role: UserRole }) {
     </span>
   );
   if (role === 'admin') return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold border bg-gradient-to-r from-orange-400 to-yellow-600 text-black border-orange-400/20 shadow-[0_0_10px_rgba(255,215,0,0.15)]">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold border bg-gradient-to-r from-[var(--accent)] to-[var(--accent-gold)] text-black border-[var(--accent)]/20 shadow-[0_0_10px_rgba(197,160,89,0.15)]">
       <Shield size={8} strokeWidth={2.5} /> Admin
     </span>
   );
@@ -127,7 +127,7 @@ export default function Sidebar({ user }: { user: AuthUser }) {
                   href={href}
                   className={`flex items-center gap-2.5 h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
                     isActive 
-                      ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20 shadow-[0_0_15px_rgba(249,115,22,0.1)]' 
+                      ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20 shadow-[0_0_15px_rgba(197,160,89,0.1)]' 
                       : 'text-white/40 hover:text-white hover:bg-white/5'
                   }`}
                 >
@@ -141,7 +141,7 @@ export default function Sidebar({ user }: { user: AuthUser }) {
           {/* RIGHT SECTION (Profile & Logout) */}
           <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/dashboard/profile" className="flex items-center gap-3 rounded-xl p-1 pr-3 border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-all group">
-              <div className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center rounded-lg bg-white/10 font-mono text-sm font-black text-white group-hover:bg-orange-500/20 group-hover:text-orange-500 transition-colors">
+              <div className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center rounded-lg bg-white/10 font-mono text-sm font-black text-white group-hover:bg-[var(--accent)]/20 group-hover:text-[var(--accent)] transition-colors">
                 {user?.email?.[0].toUpperCase()}
               </div>
               <div className="hidden sm:block">
@@ -176,7 +176,7 @@ export default function Sidebar({ user }: { user: AuthUser }) {
                   href={href}
                   className={`flex items-center gap-4 h-12 px-4 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${
                     isActive 
-                      ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' 
+                      ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20' 
                       : 'text-white/40 hover:text-white hover:bg-white/5'
                   }`}
                 >

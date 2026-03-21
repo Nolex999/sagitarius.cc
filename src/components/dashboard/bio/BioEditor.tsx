@@ -142,11 +142,11 @@ function ToggleSwitch({ value, onChange }: { value: boolean; onChange: (v: boole
     <button
       onClick={() => onChange(!value)}
       className={`relative w-10 h-5 rounded-full transition-all duration-300 ${
-        value ? 'bg-orange-500/50 border-orange-400/30' : 'bg-white/[0.06] border-white/[0.08]'
+        value ? 'bg-[var(--accent)]/50 border-[var(--accent-gold)]/30' : 'bg-white/[0.06] border-white/[0.08]'
       } border`}
     >
       <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-all duration-300 ${
-        value ? 'left-[calc(100%-18px)] bg-orange-400 shadow-[0_0_8px_rgba(249,115,22,0.5)]' : 'left-0.5 bg-white/30'
+        value ? 'left-[calc(100%-18px)] bg-[var(--accent)] shadow-[0_0_8px_rgba(197,160,89,0.5)]' : 'left-0.5 bg-white/30'
       }`} />
     </button>
   );
@@ -161,7 +161,7 @@ function OptionGrid({ value, onChange, options, cols = 2 }: { value: string; onC
           onClick={() => onChange(opt.value)}
           className={`flex items-center gap-2 h-9 px-3 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all ${
             value === opt.value
-              ? 'bg-orange-500/15 border border-orange-400/30 text-orange-300 shadow-[0_0_12px_rgba(249,115,22,0.1)]'
+              ? 'bg-[var(--accent)]/15 border border-[var(--accent-gold)]/30 text-[var(--accent-gold)] shadow-[0_0_12px_rgba(197,160,89,0.1)]'
               : 'bg-white/[0.02] border border-white/[0.06] text-[var(--text-secondary)] hover:bg-white/[0.04] hover:text-white'
           }`}
         >
@@ -349,7 +349,7 @@ export default function BioEditor({
                   key={emoji}
                   onClick={() => updateStatus('emoji', emoji)}
                   className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all ${
-                    config.statusIndicator.emoji === emoji ? 'bg-orange-500/20 border border-orange-400/30 scale-110' : 'bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04]'
+                    config.statusIndicator.emoji === emoji ? 'bg-[var(--accent)]/20 border border-[var(--accent-gold)]/30 scale-110' : 'bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04]'
                   }`}
                 >
                   {emoji}
@@ -386,7 +386,7 @@ export default function BioEditor({
               }}
               className={`px-2.5 py-1 rounded-md text-[9px] uppercase tracking-wider font-bold transition-all ${
                 isActive
-                  ? 'bg-orange-500/20 border border-orange-400/30 text-orange-300'
+                  ? 'bg-[var(--accent)]/20 border border-[var(--accent-gold)]/30 text-[var(--accent-gold)]'
                   : 'bg-white/[0.02] border border-white/[0.06] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
             >
@@ -411,7 +411,7 @@ export default function BioEditor({
                 setCustomBadge('');
               }
             }}
-            className="shrink-0 h-9 w-9 flex items-center justify-center rounded-lg bg-orange-500/15 border border-orange-400/20 text-orange-400 hover:bg-orange-500/25 transition-all"
+            className="shrink-0 h-9 w-9 flex items-center justify-center rounded-lg bg-[var(--accent)]/15 border border-[var(--accent-gold)]/20 text-[var(--accent)] hover:bg-[var(--accent)]/25 transition-all"
           >
             <Plus size={14} />
           </button>
@@ -1140,7 +1140,7 @@ export default function BioEditor({
                   href={config.music.url} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-orange-400 hover:underline transition-colors flex items-center gap-1"
+                  className="text-[var(--accent)] hover:underline transition-colors flex items-center gap-1"
                 >
                   Tester le lien <ExternalLink size={10} />
                 </a>
@@ -1383,12 +1383,12 @@ export default function BioEditor({
         <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">
           Add custom CSS to customize your page even more. All your CSS will be injected dynamically.
           <br/>
-          <span className="text-orange-400">Important:</span> Prefix your selectors with <code className="text-white bg-white/10 px-1 py-0.5 rounded">.bio-page</code> to avoid global conflicts.
+          <span className="text-[var(--accent)]">Important:</span> Prefix your selectors with <code className="text-white bg-white/10 px-1 py-0.5 rounded">.bio-page</code> to avoid global conflicts.
         </p>
         
         <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.05] mb-4">
           <p className="text-[9px] text-white/50 font-mono mb-2">Example:</p>
-          <pre className="text-[10px] text-orange-300/70 font-mono leading-relaxed">
+          <pre className="text-[10px] text-[var(--accent-gold)]/70 font-mono leading-relaxed">
 {`.bio-page .username { 
   color: #ff00ff; 
   text-shadow: 0 0 10px #ff00ff;
@@ -1418,7 +1418,7 @@ export default function BioEditor({
             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
               cssStatus === 'success' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
               cssStatus === 'error' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-              'bg-orange-600 text-white hover:bg-orange-500'
+              'bg-[var(--accent)] text-black hover:bg-[var(--accent-gold)]'
             }`}
           >
             Apply CSS
@@ -1445,10 +1445,10 @@ export default function BioEditor({
     <div className="flex flex-col h-full bg-[var(--bg-base)]">
       {/* Tab Content Header */}
       <div className="px-6 py-6 border-b border-white/[0.04]">
-        <h2 className="text-[11px] font-black text-orange-400 uppercase tracking-[0.2em]">
+        <h2 className="text-[11px] font-black text-[var(--accent)] uppercase tracking-[0.2em]">
           {activeTab} Settings
         </h2>
-        <div className="h-0.5 w-8 bg-orange-500/50 mt-1 rounded-full" />
+        <div className="h-0.5 w-8 bg-[var(--accent)]/50 mt-1 rounded-full" />
       </div>
 
       {/* Tab Content Body */}

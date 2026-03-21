@@ -63,7 +63,7 @@ export default function AdvancedColorPicker({ value, onChange, label }: Advanced
             <button onClick={() => setMode('hsl')} className={`flex-1 text-[9px] uppercase font-bold py-1 rounded ${mode === 'hsl' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70'}`}>HSL</button>
           </div>
 
-          <div className="flex bg-black/40 border border-white/10 rounded-lg overflow-hidden focus-within:border-orange-500/50 transition-colors">
+          <div className="flex bg-black/40 border border-white/10 rounded-lg overflow-hidden focus-within:border-[var(--accent)]/50 transition-colors">
             <div className="px-2 py-1.5 bg-white/5 flex items-center justify-center border-r border-white/5 text-[10px] text-white/40 font-bold">
               {mode.toUpperCase()}
             </div>

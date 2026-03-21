@@ -222,12 +222,12 @@ export default function GetKeyManager() {
         strategy="afterInteractive"
       />
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[10px] uppercase font-bold tracking-widest">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-[var(--accent)] text-[10px] uppercase font-bold tracking-widest">
           <Zap size={12} fill="currentColor" />
           Premium Access
         </div>
         <h1 className="text-4xl font-extrabold text-white tracking-tight sm:text-5xl">
-          Get Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-500">Access Key</span>
+          Get Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] to-[var(--accent-gold)]">Access Key</span>
         </h1>
         <p className="text-lg text-white/40 max-w-2xl mx-auto leading-relaxed">
           Unlock instant access to Sagitarius private software. Secure, anonymous, and high-performance.
@@ -243,7 +243,7 @@ export default function GetKeyManager() {
             Verify My Purchase
           </button>
           {verifyResult && (
-            <p className="mt-3 text-[10px] text-orange-400 font-bold uppercase tracking-widest animate-pulse">
+            <p className="mt-3 text-[10px] text-[var(--accent)] font-bold uppercase tracking-widest animate-pulse">
               {verifyResult}
             </p>
           )}
@@ -255,12 +255,12 @@ export default function GetKeyManager() {
           <div
             key={plan.id}
             className={`relative flex flex-col rounded-[2.5rem] border transition-all duration-500 p-8 group ${plan.highlight
-                ? 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border-orange-500/30 shadow-[0_20px_50px_rgba(249,115,22,0.1)]'
+                ? 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border-[var(--accent)]/30 shadow-[0_20px_50px_rgba(197,160,89,0.1)]'
                 : 'bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12]'
               }`}
           >
             {plan.highlight && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-orange-500 text-white text-[10px] font-bold uppercase tracking-widest shadow-lg">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-[var(--accent)] text-black text-[10px] font-bold uppercase tracking-widest shadow-lg">
                 Best Value
               </div>
             )}
@@ -328,7 +328,7 @@ export default function GetKeyManager() {
             <div className="flex items-center gap-4">
               <Link 
                 href="/dashboard/support"
-                className="text-[10px] font-bold text-orange-400 hover:text-orange-300 uppercase tracking-widest transition-all"
+                className="text-[10px] font-bold text-[var(--accent)] hover:text-[var(--accent-gold)] uppercase tracking-widest transition-all"
               >
                 Support Center
               </Link>
@@ -343,7 +343,7 @@ export default function GetKeyManager() {
           </div>
         </div>
         <div className="p-8 rounded-[2rem] bg-white/[0.01] border border-white/[0.04] flex items-start gap-6">
-          <div className="h-14 w-14 rounded-2xl bg-orange-500/10 flex items-center justify-center flex-shrink-0 text-orange-400">
+          <div className="h-14 w-14 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center flex-shrink-0 text-[var(--accent)]">
             <Globe size={28} />
           </div>
           <div>
@@ -379,7 +379,7 @@ export default function GetKeyManager() {
                 data-billgang-product-path={selectedPlan.billgang.faceit.path}
                 data-billgang-domain={BILLGANG_DOMAIN}
                 data-billgang-custom-fields={JSON.stringify({ user_id: user?.id })}
-                className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-orange-500/30 transition-all duration-500 h-[220px]"
+                className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-[var(--accent)]/30 transition-all duration-500 h-[220px]"
               >
                 <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110 pointer-events-none">
                   <Image
@@ -432,7 +432,7 @@ export default function GetKeyManager() {
       {loading && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-4">
-            <Loader2 size={40} className="text-orange-500 animate-spin" />
+            <Loader2 size={40} className="text-[var(--accent)] animate-spin" />
             <p className="text-sm font-black text-white uppercase tracking-widest">Initializing Secure Checkout...</p>
           </div>
         </div>

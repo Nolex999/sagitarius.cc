@@ -15,9 +15,10 @@ export default {
         'text-primary': '#f5f5f5',
         'text-secondary': '#888888',
         'text-muted': '#444444',
-        accent: '#ffffff',
-        'accent-dim': 'rgba(255,255,255,0.06)',
-        'border-col': '#1f1f1f',
+        accent: '#C5A059',
+        'accent-dim': 'rgba(197, 160, 89, 0.06)',
+        'accent-gold': '#D4AF37',
+        'border-col': '#1a1814',
       },
       fontFamily: {
         mono: ['ui-monospace', 'monospace'],

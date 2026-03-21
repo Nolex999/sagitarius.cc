@@ -228,7 +228,7 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
         <button
           onClick={() => setActiveTab('messaging')}
           className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2.5 ${
-            activeTab === 'messaging' ? 'bg-orange-500 text-black shadow-lg shadow-orange-500/20' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
+            activeTab === 'messaging' ? 'bg-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
           }`}
         >
           <Send size={14} />
@@ -237,7 +237,7 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
         <button
           onClick={() => setActiveTab('invites')}
           className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2.5 ${
-            activeTab === 'invites' ? 'bg-orange-500 text-black shadow-lg shadow-orange-500/20' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
+            activeTab === 'invites' ? 'bg-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
           }`}
         >
           <Ticket size={14} />
@@ -246,7 +246,7 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
         <button
           onClick={() => setActiveTab('users')}
           className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2.5 ${
-            activeTab === 'users' ? 'bg-orange-500 text-black shadow-lg shadow-orange-500/20' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
+            activeTab === 'users' ? 'bg-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
           }`}
         >
           <Users size={14} />
@@ -275,11 +275,11 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
               onClick={() => setMsgType('broadcast')}
               className={`p-5 rounded-xl border transition-all flex flex-col items-center gap-3 group relative overflow-hidden ${
                 msgType === 'broadcast' 
-                  ? 'bg-orange-500/[0.03] border-orange-500/20 text-orange-400' 
+                  ? 'bg-[var(--accent)]/[0.03] border-[var(--accent)]/20 text-[var(--accent)]' 
                   : 'bg-white/[0.01] border-white/5 text-white/20 hover:border-white/10 hover:text-white/40'
               }`}
             >
-              <Users size={20} className={msgType === 'broadcast' ? 'scale-110 shadow-orange-500/50' : ''} />
+              <Users size={20} className={msgType === 'broadcast' ? 'scale-110 shadow-[var(--accent)]/50' : ''} />
               <div className="text-center">
                 <span className="block text-[9px] font-black uppercase tracking-[0.3em]">Broadcast</span>
               </div>
@@ -315,14 +315,15 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
               </div>
             )}
             <div className="relative group">
-              <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-orange-500 transition-colors" size={14} />
+              <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-[var(--accent)] transition-colors" size={14} />
+              <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-[var(--accent)] transition-colors" size={14} />
               <input
                 type="text"
                 placeholder="Message Title..."
                 required
                 value={msgTitle}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMsgTitle(e.target.value)}
-                className="w-full bg-white/[0.01] border border-white/5 rounded-xl pl-12 pr-4 h-11 text-[11px] text-white focus:border-orange-500/30 outline-none transition-all placeholder:text-white/10"
+                className="w-full bg-white/[0.01] border border-white/5 rounded-xl pl-12 pr-4 h-11 text-[11px] text-white focus:border-[var(--accent)]/30 outline-none transition-all placeholder:text-white/10"
               />
             </div>
             <textarea
@@ -331,14 +332,14 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
               rows={3}
               value={msgContent}
               onChange={(e) => setMsgContent(e.target.value)}
-              className="w-full bg-white/[0.01] border border-white/5 rounded-xl p-4 text-[11px] text-white focus:border-orange-500/30 outline-none transition-all resize-none min-h-[100px] placeholder:text-white/10"
+              className="w-full bg-white/[0.01] border border-white/5 rounded-xl p-4 text-[11px] text-white focus:border-[var(--accent)]/30 outline-none transition-all resize-none min-h-[100px] placeholder:text-white/10"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-12 rounded-xl bg-orange-500 text-black text-[10px] font-black uppercase tracking-[0.3em] hover:bg-orange-400 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
+            className="w-full h-12 rounded-xl bg-[var(--accent)] text-black text-[10px] font-black uppercase tracking-[0.3em] hover:bg-[var(--accent-gold)] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
           >
             {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
             {msgType === 'broadcast' ? 'Broadcast' : 'Send Direct Message'}
@@ -351,17 +352,17 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
           <form onSubmit={handleCreateInvite} className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col gap-3">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1 relative group">
-                <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-orange-500 transition-colors" size={16} />
+                <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[var(--accent)] transition-colors" size={16} />
                 <input
                   type="text"
                   placeholder="Custom Code (optional)"
                   value={newCode}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewCode(e.target.value)}
-                  className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 h-10 text-xs text-white focus:border-orange-500/50 outline-none transition-all uppercase font-mono tracking-widest"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 h-10 text-xs text-white focus:border-[var(--accent)]/50 outline-none transition-all uppercase font-mono tracking-widest"
                 />
               </div>
-              <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl px-4 h-10 group focus-within:border-orange-500/50 transition-all">
-                <Plus size={16} className="text-white/20 group-focus-within:text-orange-500 transition-colors" />
+              <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl px-4 h-10 group focus-within:border-[var(--accent)]/50 transition-all">
+                <Plus size={16} className="text-white/20 group-focus-within:text-[var(--accent)] transition-colors" />
                 <input
                   type="number"
                   min="0"
@@ -388,7 +389,7 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
               <div key={inv.id} className="p-3.5 rounded-2xl bg-white/[0.01] border border-white/5 hover:border-white/10 transition-all flex flex-col sm:flex-row items-center justify-between gap-4 group relative">
                 <div className="flex items-center gap-4 w-full sm:w-auto">
                   <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 border ${
-                    inv.is_active ? 'bg-orange-500/[0.03] border-orange-500/10 text-orange-500/50' : 'bg-red-500/[0.03] border-red-500/10 text-red-500/50'
+                    inv.is_active ? 'bg-[var(--accent)]/[0.03] border-[var(--accent)]/10 text-[var(--accent)]/50' : 'bg-red-500/[0.03] border-red-500/10 text-red-500/50'
                   }`}>
                     <Ticket size={16} />
                   </div>
@@ -412,7 +413,7 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
                       navigator.clipboard.writeText(link);
                       setSuccess('Claim link copied!');
                     }}
-                    className="flex-1 sm:flex-none h-8 px-4 rounded-lg bg-orange-500/5 border border-orange-500/10 text-orange-500/60 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-orange-500 hover:text-black transition-all"
+                    className="flex-1 sm:flex-none h-8 px-4 rounded-lg bg-[var(--accent)]/5 border border-[var(--accent)]/10 text-[var(--accent)]/60 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-[var(--accent)] hover:text-black transition-all"
                   >
                     Link
                   </button>
@@ -441,13 +442,13 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
       {activeTab === 'users' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
            <div className="relative group max-w-md">
-            <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-orange-500 transition-colors" size={14} />
+            <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-[var(--accent)] transition-colors" size={14} />
             <input
               type="text"
               placeholder="Search users..."
               value={searchQuery}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/[0.01] border border-white/5 rounded-xl pl-12 pr-4 h-11 text-[11px] text-white focus:border-orange-500/30 outline-none transition-all placeholder:text-white/10"
+              className="w-full bg-white/[0.01] border border-white/5 rounded-xl pl-12 pr-4 h-11 text-[11px] text-white focus:border-[var(--accent)]/30 outline-none transition-all placeholder:text-white/10"
             />
           </div>
 
@@ -472,7 +473,7 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
                        <span className="text-[13px] text-white/90 font-bold truncate">{profile.username || 'Anonymous'}</span>
                        <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border ${
                          profile.role === 'owner' ? 'bg-white text-black border-white' :
-                         profile.role === 'admin' ? 'bg-orange-500/10 text-orange-400 border-orange-500/10' :
+                         profile.role === 'admin' ? 'bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/10' :
                          profile.role === 'vip' ? 'bg-blue-500/10 text-blue-400 border-blue-500/10' :
                          'bg-white/5 text-white/30 border-white/5'
                        }`}>
@@ -487,7 +488,7 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
                   <select 
                     value={profile.role}
                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateUserRole(profile.id, e.target.value)}
-                    className="flex-1 sm:flex-none h-8 px-3 rounded-lg bg-white/[0.02] border border-white/5 text-white/40 text-[9px] font-black uppercase tracking-widest outline-none focus:border-orange-500/20 transition-all"
+                    className="flex-1 sm:flex-none h-8 px-3 rounded-lg bg-white/[0.02] border border-white/5 text-white/40 text-[9px] font-black uppercase tracking-widest outline-none focus:border-[var(--accent)]/20 transition-all"
                   >
                     <option value="member">Member</option>
                     <option value="vip">VIP</option>
@@ -497,7 +498,7 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
                   <button
                     onClick={() => giftInvite(profile.id, profile.email)}
                     disabled={loading}
-                    className="flex-1 sm:flex-none h-8 px-4 rounded-lg bg-orange-500/5 border border-orange-500/10 text-orange-500/60 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-orange-500 hover:text-black transition-all"
+                    className="flex-1 sm:flex-none h-8 px-4 rounded-lg bg-[var(--accent)]/5 border border-[var(--accent)]/10 text-[var(--accent)]/60 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-[var(--accent)] hover:text-black transition-all"
                   >
                     Gift Invite
                   </button>

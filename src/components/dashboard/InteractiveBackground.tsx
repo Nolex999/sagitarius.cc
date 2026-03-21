@@ -160,7 +160,7 @@ export default function InteractiveBackground() {
       <canvas ref={canvasRef} className="absolute inset-0 block" />
       
       {/* Subtle Bottom Glow for context */}
-      <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-orange-500/5 to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-[var(--accent)]/5 to-transparent pointer-events-none" />
       
       {/* Absolute Black Overlay for Top Header Area to keep it clean */}
       <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-[#020202] to-transparent pointer-events-none" />

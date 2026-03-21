@@ -291,7 +291,7 @@ export default function S3Page() {
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <Loader2 size={24} className="animate-spin text-orange-500" />
+        <Loader2 size={24} className="animate-spin text-[var(--accent)]" />
       </div>
     );
   }
@@ -304,7 +304,7 @@ export default function S3Page() {
         </div>
         <h2 className="text-xl font-bold text-white tracking-tight">Access Restricted</h2>
         <div className="max-w-md space-y-2">
-          <p className="text-sm text-white/40">The Bio Page is only accessible to <span className="text-orange-400 font-bold">Owner</span> and <span className="text-orange-500 font-bold">Admin</span> users.</p>
+          <p className="text-sm text-white/40">The Bio Page is only accessible to <span className="text-[var(--accent-gold)] font-bold">Owner</span> and <span className="text-[var(--accent)] font-bold">Admin</span> users.</p>
           <p className="text-xs text-white/20">If you believe this is an error, please contact administrators.</p>
         </div>
         <button 
@@ -323,7 +323,7 @@ export default function S3Page() {
       <div className="flex items-center justify-between px-6 pt-[15px] pb-4 border-b border-white/[0.04] bg-[#050505]/80 backdrop-blur-xl z-30">
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-3">
-             <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+             <div className="w-8 h-8 rounded-lg bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center">
                 <Image src="/logo.svg" alt="Logo" width={18} height={18} className="brightness-125" />
              </div>
              <span className="font-mono text-[10px] font-black uppercase tracking-[0.4em] text-white">Sagitarius</span>
@@ -339,14 +339,14 @@ export default function S3Page() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`group relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-300 ${
                     isActive 
-                      ? 'bg-orange-500/20 text-orange-300 shadow-[0_0_20px_rgba(249,115,22,0.1)]' 
+                      ? 'bg-[var(--accent)]/20 text-[var(--accent-gold)] shadow-[0_0_20px_rgba(197,160,89,0.1)]' 
                       : 'text-white/30 hover:text-white hover:bg-white/5'
                   }`}
                   title={tab.label}
                 >
                   <Icon size={16} strokeWidth={isActive ? 2.5 : 1.5} />
                   {isActive && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-[2px] bg-orange-400 rounded-full" />
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-[2px] bg-[var(--accent)] rounded-full" />
                   )}
                   {/* Tooltip */}
                   <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-black border border-white/10 text-[8px] font-bold uppercase tracking-widest text-white opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-50 whitespace-nowrap shadow-2xl translate-y-2 group-hover:translate-y-0">
@@ -391,7 +391,7 @@ export default function S3Page() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-[10px] uppercase font-black tracking-widest transition-all shadow-[0_4px_20px_rgba(234,88,12,0.2)] disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-gold)] text-black text-[10px] uppercase font-black tracking-widest transition-all shadow-[0_4px_20px_rgba(197,160,89,0.2)] disabled:opacity-50"
           >
             {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
             {saving ? 'Saving...' : 'Save Changes'}
@@ -424,7 +424,7 @@ export default function S3Page() {
             </div>
             
             <div className="text-[10px] text-white/20 font-black uppercase tracking-[0.2em] flex items-center gap-2">
-               <div className="w-1.5 h-1.5 rounded-full bg-orange-500/50 animate-pulse" />
+               <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]/50 animate-pulse" />
                Live Preview
             </div>
           </div>

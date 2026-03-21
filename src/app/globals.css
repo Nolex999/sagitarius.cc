@@ -8,18 +8,18 @@
   --bg-base: #020202;
   --bg-surface: #0a0a0a;
   --bg-elevated: #111111;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-active: rgba(255, 255, 255, 0.2);
+  --border: rgba(197, 160, 89, 0.08);
+  --border-active: rgba(197, 160, 89, 0.25);
   --text-primary: #ffffff;
   --text-secondary: #a1a1a1;
   --text-muted: #525252;
-  --accent: #ffffff;
-  --accent-dim: rgba(255, 255, 255, 0.06);
+  --accent: #C5A059;
+  --accent-dim: rgba(197, 160, 89, 0.08);
   
-  /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-blur: blur(12px);
+  /* Glassmorphism - Gold Tinted */
+  --glass-bg: rgba(10, 10, 10, 0.4);
+  --glass-border: rgba(197, 160, 89, 0.12);
+  --glass-blur: blur(16px);
   --radius-xl: 1.25rem;
   --radius-lg: 0.75rem;
   --radius-md: 0.5rem;

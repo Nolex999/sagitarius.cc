@@ -100,7 +100,7 @@ export default function MediaUploader({ value, onChange, type = 'any', placehold
         <button
           onClick={() => setActiveTab('url')}
           className={`flex-1 py-1 px-2 rounded-md text-[10px] uppercase tracking-wider font-bold transition-all flex items-center justify-center gap-1.5 ${
-            activeTab === 'url' ? 'bg-orange-500/20 text-orange-300' : 'text-white/40 hover:text-white/60 hover:bg-white/5'
+            activeTab === 'url' ? 'bg-[var(--accent)]/20 text-[var(--accent-gold)]' : 'text-white/40 hover:text-white/60 hover:bg-white/5'
           }`}
         >
           <Link size={10} /> External URL
@@ -108,7 +108,7 @@ export default function MediaUploader({ value, onChange, type = 'any', placehold
         <button
           onClick={() => setActiveTab('upload')}
           className={`flex-1 py-1 px-2 rounded-md text-[10px] uppercase tracking-wider font-bold transition-all flex items-center justify-center gap-1.5 ${
-            activeTab === 'upload' ? 'bg-orange-500/20 text-orange-300' : 'text-white/40 hover:text-white/60 hover:bg-white/5'
+            activeTab === 'upload' ? 'bg-[var(--accent)]/20 text-[var(--accent-gold)]' : 'text-white/40 hover:text-white/60 hover:bg-white/5'
           }`}
         >
           <UploadCloud size={10} /> Local Upload
@@ -121,7 +121,7 @@ export default function MediaUploader({ value, onChange, type = 'any', placehold
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-orange-500/50 transition-colors"
+          className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[var(--accent)]/50 transition-colors"
         />
       ) : (
         <div 
@@ -130,7 +130,7 @@ export default function MediaUploader({ value, onChange, type = 'any', placehold
           onDragLeave={onDragLeave}
           onDrop={onDrop}
           className={`relative w-full aspect-video sm:h-24 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed transition-all cursor-pointer overflow-hidden ${
-            isDragging ? 'border-orange-500 bg-orange-500/10' : 
+            isDragging ? 'border-[var(--accent)] bg-[var(--accent)]/10' : 
             error ? 'border-red-500/50 bg-red-500/5' :
             'border-white/10 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/20'
           }`}
@@ -144,7 +144,7 @@ export default function MediaUploader({ value, onChange, type = 'any', placehold
           />
           
           {isUploading ? (
-            <div className="flex flex-col items-center gap-2 text-orange-400">
+            <div className="flex flex-col items-center gap-2 text-[var(--accent)]">
               <Loader2 size={24} className="animate-spin" />
               <span className="text-[10px] font-medium tracking-wide">Uploading...</span>
             </div>
