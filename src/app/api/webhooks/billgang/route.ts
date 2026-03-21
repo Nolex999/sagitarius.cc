@@ -126,13 +126,15 @@ export async function POST(req: NextRequest) {
     }
 
     // 6. Explicitly signal Delivery to Billgang API (Reinforcement)
-    const orderId = order.id || payload.id;
+    const orderId = order.id || payload.data?.id || payload.id;
     const billgangKey = process.env.BILLGANG_API_KEY;
+    const shopId = '254708457'; // Extracted from API key in verify route
 
     if (orderId && billgangKey) {
-      console.log(`Sending explicit delivery signal to Billgang for Order: ${orderId}`);
+      console.log(`Sending explicit delivery signal to Billgang (pg-api) for Order: ${orderId}`);
       try {
-        const deliverRes = await fetch(`https://api.billgang.com/v1/orders/${orderId}/deliver`, {
+        // Using pg-api endpoint which is used in other working parts of the app
+        const deliverRes = await fetch(`https://pg-api.billgang.com/v1/dash/shops/${shopId}/orders/${orderId}/deliver`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${billgangKey}`,
@@ -145,10 +147,11 @@ export async function POST(req: NextRequest) {
         });
 
         if (deliverRes.ok) {
-          console.log('Billgang Delivery API: Success');
+          const successData = await deliverRes.json();
+          console.log('Billgang Delivery API SUCCESS:', JSON.stringify(successData, null, 2));
         } else {
-          const errorData = await deliverRes.text();
-          console.error(`Billgang Delivery API: Failed (${deliverRes.status})`, errorData);
+          const errorText = await deliverRes.text();
+          console.error(`Billgang Delivery API FAILURE (${deliverRes.status}):`, errorText);
         }
       } catch (err) {
         console.error('Billgang Delivery API: Network Error', err);
