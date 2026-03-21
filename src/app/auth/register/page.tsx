@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export default function RegisterPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--bg-base)]">
-      <div className="animate-fade-in flex w-full max-w-[400px] flex-col items-center px-8 py-8">
+      <div className="animate-fade-in flex w-full max-w-[440px] flex-col items-center px-8 py-10 rounded-[2rem] bg-[var(--bg-surface)]/40 border border-white/10 backdrop-blur-xl shadow-2xl">
         <div className="mb-8 text-center">
           <Image
             src="/logo.svg"

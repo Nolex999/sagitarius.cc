@@ -70,7 +70,7 @@ export default function ResetPasswordForm() {
     return (
         <form onSubmit={handleSubmit} className="w-full">
             {error && (
-                <div className="mb-4 border border-[#ef4444] bg-[#ef4444]/10 px-3 py-2 text-[13px] text-[#ef4444]">
+                <div className="mb-4 border border-[#ef4444] bg-[#ef4444]/10 px-3 py-2 text-[13px] text-[#ef4444] rounded-lg">
                     {error}
                 </div>
             )}
@@ -92,7 +92,7 @@ export default function ResetPasswordForm() {
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Min. 6 characters"
                         required
-                        className="w-full border border-[var(--border)] bg-transparent py-2.5 pl-10 pr-10 text-[13px] text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--border-active)]"
+                        className="w-full border border-[var(--border)] bg-transparent py-2.5 pl-10 pr-10 text-[13px] text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--border-active)] rounded-lg"
                     />
                     <button
                         type="button"
@@ -125,7 +125,7 @@ export default function ResetPasswordForm() {
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Confirm new password"
                         required
-                        className="w-full border border-[var(--border)] bg-transparent py-2.5 pl-10 pr-10 text-[13px] text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--border-active)]"
+                        className="w-full border border-[var(--border)] bg-transparent py-2.5 pl-10 pr-10 text-[13px] text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--border-active)] rounded-lg"
                     />
                 </div>
             </div>
@@ -133,7 +133,7 @@ export default function ResetPasswordForm() {
             <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[var(--accent)] py-2.5 text-[13px] font-medium text-[var(--bg-base)] transition-opacity hover:opacity-90 disabled:opacity-60"
+                className="w-full bg-[var(--accent)] py-2.5 text-[13px] font-medium text-[var(--bg-base)] transition-opacity hover:opacity-90 disabled:opacity-60 rounded-lg"
             >
                 {loading ? (
                     <span className="inline-flex items-center gap-2">
