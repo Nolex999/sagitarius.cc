@@ -79,8 +79,9 @@ export default function CasinoPage() {
         </p>
       </div>
       
-      <Casino profile={profile} onSpinDone={() => {
-        // Refresh profile if needed or handled in Casino component
+      <Casino profile={profile} onSpinDone={async () => {
+        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+        if (data) setProfile(data);
       }} />
     </div>
   );

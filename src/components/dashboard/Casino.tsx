@@ -15,10 +15,10 @@ import {
 import { createClient } from '@/lib/supabase/client';
 
 const REWARDS = [
-  { id: 'lose', label: 'Better luck next time', color: 'text-white/20', bg: 'bg-white/5', icon: AlertCircle, weight: 80 },
-  { id: '1day', label: '1-Day Free Trial', color: 'text-blue-400', bg: 'bg-blue-400/20', icon: Gift, weight: 15 },
-  { id: '7day', label: '7-Day Extension', color: 'text-purple-400', bg: 'bg-purple-400/20', icon: Star, weight: 4 },
-  { id: '30day', label: '30-Day Premium', color: 'text-[var(--accent)]', bg: 'bg-[var(--accent)]/20', icon: Trophy, weight: 1 }
+  { id: '1day', label: '1-Day Access', color: 'text-blue-400', bg: 'bg-blue-400/20', icon: Gift, weight: 60 },
+  { id: '7day', label: '7-Day Extension', color: 'text-purple-400', bg: 'bg-purple-400/20', icon: Star, weight: 25 },
+  { id: '30day', label: '30-Day Premium', color: 'text-[var(--accent)]', bg: 'bg-[var(--accent)]/20', icon: Trophy, weight: 10 },
+  { id: 'lifetime', label: 'LIFETIME ACCESS', color: 'text-white', bg: 'bg-white/10', icon: Crown, weight: 5 }
 ];
 
 export default function Casino({ profile: initialProfile, onSpinDone }: { profile: any, onSpinDone: () => void }) {
@@ -28,6 +28,7 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [scrollOffset, setScrollOffset] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
@@ -35,7 +36,6 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
   const [sequence, setSequence] = useState<any[]>([]);
 
   useEffect(() => {
-    // Fill sequence with 100 items for the "infinite scroll" look
     const fullSequence = Array.from({ length: 100 }).map(() => {
       const rand = Math.random() * 100;
       let cumulativeWeight = 0;
@@ -75,7 +75,7 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
     setError(null);
 
     try {
-      // 1. Choose the actual result on the server/client side (randomized)
+      // 1. Choose result
       const rand = Math.random() * 100;
       let cumulativeWeight = 0;
       let wonReward = REWARDS[0];
@@ -87,24 +87,26 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
         }
       }
 
-      // Update the sequence's target item (the one that lands exactly in the middle)
-      // Index around 80-90
       const targetIndex = 80;
       const newSequence = [...sequence];
       newSequence[targetIndex] = wonReward;
       setSequence(newSequence);
 
+      // Random landing position within the card (center is 0, -70 to +70)
+      const randomLandingOffset = Math.floor(Math.random() * 140) - 70;
+      
+      const cardWidth = 176; // 160px + 16px margin
+      const offset = targetIndex * cardWidth - (scrollRef.current?.offsetWidth || 0) / 2 + cardWidth / 2 + randomLandingOffset;
+      setScrollOffset(offset);
+
       setSpinning(true);
       setResult(null);
 
-      // 2. Start animation (handled via CSS classes or transform)
-      // Duration 8 seconds
+      // 2. Start animation (7s)
       setTimeout(async () => {
-        // 3. Animation finished
         setSpinning(false);
         setResult(wonReward);
 
-        // 4. Update Database
         const now = new Date().toISOString();
         const { error: updateError } = await supabase
           .from('profiles')
@@ -113,20 +115,15 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
 
         if (updateError) throw updateError;
 
-        // 5. If won, send to inbox
-        if (wonReward.id !== 'lose') {
-            await supabase.from('inbox_messages').insert([{
-                user_id: profile.id,
-                title: 'Casino Jackpot Winner!',
-                content: `Congratulations! You won a **${wonReward.label}**. Our staff will reach out to you within 24 hours to deliver your reward!`,
-                type: 'notification',
-                metadata: { reward: wonReward.id }
-            }]);
-            setSuccess(`WOW! You won a ${wonReward.label}! Check your Inbox.`);
-        } else {
-            setSuccess('Better luck next time! Your spin has been used for this week.');
-        }
+        await supabase.from('inbox_messages').insert([{
+            user_id: profile.id,
+            title: '🎰 CASINO JACKPOT!',
+            content: `Incredible! You just won the **${wonReward.label}** in the VIP Casino. Open a support ticket to claim your reward.`,
+            type: 'notification',
+            metadata: { reward: wonReward.id }
+        }]);
 
+        setSuccess(`JACKPOT! You won: ${wonReward.label}`);
         setProfile({ ...profile, last_casino_spin: now });
         onSpinDone();
       }, 7000);
@@ -162,7 +159,7 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
             ref={scrollRef}
             className={`flex transition-transform duration-[7000ms] cubic-bezier(0.1, 0.7, 1.0, 0.1) ${spinning ? '' : 'transform-none'}`}
             style={{ 
-              transform: spinning ? `translateX(-${80 * 180 - (scrollRef.current?.offsetWidth || 0) / 2 + 180/2}px)` : 'translateX(0)',
+              transform: spinning ? `translateX(-${scrollOffset}px)` : 'translateX(0)',
               transitionTimingFunction: 'cubic-bezier(0.1, 0.45, 0.1, 0.99)'
             }}
           >
@@ -215,7 +212,7 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
           <div className="animate-in fade-in zoom-in-95 duration-500 flex flex-col items-center gap-3">
              <div className={`p-8 rounded-[3rem] ${result.bg} border-2 border-white/10 shadow-[0_0_50px_rgba(255,255,255,0.05)] text-center relative overflow-hidden group`}>
                 <div className="absolute top-0 right-0 h-20 w-20 bg-white/5 blur-[40px] rounded-full -translate-y-1/2 translate-x-1/2" />
-                <h3 className={`text-2xl font-black uppercase tracking-widest mb-2 ${result.color}`}>{result.id === 'lose' ? 'HARD LUCK' : 'JACKPOT!'}</h3>
+                <h3 className={`text-2xl font-black uppercase tracking-widest mb-2 ${result.color}`}>JACKPOT!</h3>
                 <p className="text-xs text-white uppercase font-black tracking-widest leading-relaxed">
                    You won a <span className={result.color}>{result.label}</span>
                 </p>
