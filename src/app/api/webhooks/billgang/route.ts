@@ -125,7 +125,39 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 6. Return the key to Billgang for Dynamic Delivery
+    // 6. Explicitly signal Delivery to Billgang API (Reinforcement)
+    const orderId = order.id || payload.id;
+    const billgangKey = process.env.BILLGANG_API_KEY;
+
+    if (orderId && billgangKey) {
+      console.log(`Sending explicit delivery signal to Billgang for Order: ${orderId}`);
+      try {
+        const deliverRes = await fetch(`https://api.billgang.com/v1/orders/${orderId}/deliver`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${billgangKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            content: randomKey
+          })
+        });
+
+        if (deliverRes.ok) {
+          console.log('Billgang Delivery API: Success');
+        } else {
+          const errorData = await deliverRes.text();
+          console.error(`Billgang Delivery API: Failed (${deliverRes.status})`, errorData);
+        }
+      } catch (err) {
+        console.error('Billgang Delivery API: Network Error', err);
+      }
+    } else {
+      console.warn('Missing Order ID or Billgang API Key - Skipping explicit delivery signal.');
+    }
+
+    // 7. Return the key to Billgang for Dynamic Delivery (Original Method)
     console.log('Returning key to Billgang:', randomKey);
     return NextResponse.json({ 
       delivered_goods: randomKey 
