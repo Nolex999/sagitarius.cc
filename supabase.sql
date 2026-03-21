@@ -339,6 +339,8 @@ DROP POLICY IF EXISTS "Users can update own messages" ON public.inbox_messages;
 CREATE POLICY "Users can update own messages" ON public.inbox_messages FOR UPDATE TO authenticated USING (auth.uid() = user_id);
 DROP POLICY IF EXISTS "Users can delete own messages" ON public.inbox_messages;
 CREATE POLICY "Users can delete own messages" ON public.inbox_messages FOR DELETE TO authenticated USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Anyone can insert own messages" ON public.inbox_messages;
+CREATE POLICY "Anyone can insert own messages" ON public.inbox_messages FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 -- Allow admins/owners to delete any message
 DROP POLICY IF EXISTS "Admins can delete any message" ON public.inbox_messages;
 CREATE POLICY "Admins can delete any message" ON public.inbox_messages FOR DELETE TO authenticated USING (

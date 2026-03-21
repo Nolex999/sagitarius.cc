@@ -16,9 +16,9 @@ import { createClient } from '@/lib/supabase/client';
 
 const REWARDS = [
   { id: '1day', label: '1-Day Access', color: 'text-blue-400', bg: 'bg-blue-400/20', icon: Gift, weight: 60 },
-  { id: '7day', label: '7-Day Extension', color: 'text-purple-400', bg: 'bg-purple-400/20', icon: Star, weight: 25 },
-  { id: '30day', label: '30-Day Premium', color: 'text-[var(--accent)]', bg: 'bg-[var(--accent)]/20', icon: Trophy, weight: 10 },
-  { id: 'lifetime', label: 'LIFETIME ACCESS', color: 'text-white', bg: 'bg-white/10', icon: Crown, weight: 5 }
+  { id: '7day', label: '7-Day Extension', color: 'text-purple-400', bg: 'bg-purple-400/20', icon: Star, weight: 34 },
+  { id: '30day', label: '30-Day Premium', color: 'text-[var(--accent)]', bg: 'bg-[var(--accent)]/20', icon: Trophy, weight: 5 },
+  { id: 'lifetime', label: 'LIFETIME ACCESS', color: 'text-white', bg: 'bg-white/10', icon: Crown, weight: 1 }
 ];
 
 export default function Casino({ profile: initialProfile, onSpinDone }: { profile: any, onSpinDone: () => void }) {
