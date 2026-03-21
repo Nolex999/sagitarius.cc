@@ -32,7 +32,7 @@ const pricingOptions = [
   {
     id: '7-days',
     name: 'Faceit 7 Days',
-    price: '12.00',
+    price: '0.00',
     description: 'Perfect for testing our software features.',
     features: [
       'Full Access for 7 Days',
