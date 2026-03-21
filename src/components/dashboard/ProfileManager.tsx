@@ -98,13 +98,13 @@ export default function ProfileManager() {
       const filePath = `${profile.id}-${Math.random()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('avatars')
+        .from('avatar')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
+        .from('avatar')
         .getPublicUrl(filePath);
 
       const { error: updateError } = await supabase

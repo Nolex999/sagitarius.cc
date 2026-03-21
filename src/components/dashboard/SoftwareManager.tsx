@@ -373,9 +373,6 @@ export default function SoftwareManager() {
                     </div>
                     <div>
                       <h3 className="text-xl font-black text-white uppercase tracking-widest">{cat.name}</h3>
-                      <p className="text-[10px] text-white/20 font-black uppercase tracking-widest mt-1 flex items-center gap-2">
-                        System Stability: 100%
-                      </p>
                     </div>
                   </div>
 
@@ -471,13 +468,6 @@ export default function SoftwareManager() {
                 </button>
               </div>
 
-              <div className="pt-4 flex items-center gap-6 text-[8px] text-white/10 font-black uppercase tracking-[0.4em]">
-                <span className="flex items-center gap-2">Secure</span>
-                <span className="w-1 h-1 rounded-full bg-white/5" />
-                <span className="flex items-center gap-2">Instant</span>
-                <span className="w-1 h-1 rounded-full bg-white/5" />
-                <span className="flex items-center gap-2">Global</span>
-              </div>
             </div>
           )}
 
