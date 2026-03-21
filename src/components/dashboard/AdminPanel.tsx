@@ -13,7 +13,8 @@ import {
   AlertCircle, 
   CheckCircle2,
   Calendar,
-  Hash
+  Hash,
+  Diamond
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -471,12 +472,13 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                        <span className="text-[13px] text-white/90 font-bold truncate">{profile.username || 'Anonymous'}</span>
-                       <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border ${
-                         profile.role === 'owner' ? 'bg-white text-black border-white' :
-                         profile.role === 'admin' ? 'bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/10' :
-                         profile.role === 'vip' ? 'bg-blue-500/10 text-blue-400 border-blue-500/10' :
+                        <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border flex items-center gap-1 ${
+                         profile.role === 'owner' ? 'bg-white text-black border-white shadow-[0_0_10px_rgba(255,255,255,0.2)]' :
+                         profile.role === 'admin' ? 'bg-gradient-to-r from-[var(--accent)] to-[var(--accent-gold)] text-black border-[var(--accent)]' :
+                         profile.role === 'vip' ? 'bg-[#ffd700]/10 text-[#ffd700] border-[#ffd700]/20 shadow-[0_0_10px_rgba(255,215,0,0.1)]' :
                          'bg-white/5 text-white/30 border-white/5'
                        }`}>
+                         {profile.role === 'vip' && <Diamond size={8} fill="currentColor" className="animate-pulse" />}
                          {profile.role}
                        </span>
                     </div>

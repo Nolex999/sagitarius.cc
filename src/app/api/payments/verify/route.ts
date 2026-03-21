@@ -78,8 +78,10 @@ export async function GET(req: NextRequest) {
     // --- Section 2: Billgang Verification ---
     if (BILLGANG_API_KEY && BILLGANG_SHOP_ID) {
       try {
-        // Fetch orders for this shop, filtered by email if possible or fetch all and filter
-        const response = await fetch(`https://pg-api.billgang.com/v1/dash/shops/${BILLGANG_SHOP_ID}/orders?searchString=${encodeURIComponent(user.email!)}`, {
+        console.log(`Verifying Billgang for user: ${user.email}`);
+        // Fetch recent orders for this shop
+        // We try with searchString first, but we'll also filter manually to be sure
+        const response = await fetch(`https://pg-api.billgang.com/v1/dash/shops/${BILLGANG_SHOP_ID}/orders?searchString=${encodeURIComponent(user.email!)}&limit=50`, {
           headers: {
             'Authorization': `Bearer ${BILLGANG_API_KEY}`,
             'Accept': 'application/json'
@@ -89,11 +91,27 @@ export async function GET(req: NextRequest) {
         if (response.ok) {
           const result = await response.json();
           const orders = result.data || [];
+          console.log(`Billgang found ${orders.length} potential orders.`);
           
           const completedOrders = orders.filter((order: any) => {
-            return order.status === 'COMPLETED' && order.customerEmail?.toLowerCase() === user.email?.toLowerCase();
+            const isCompleted = order.status === 'COMPLETED' || order.status === 'DELIVERED';
+            const emailMatch = (order.customerEmail?.toLowerCase() === user.email?.toLowerCase()) || 
+                               (order.customer?.email?.toLowerCase() === user.email?.toLowerCase());
+            
+            // Also check custom fields for user_id
+            let userIdMatch = false;
+            if (order.customFields) {
+               if (Array.isArray(order.customFields)) {
+                 userIdMatch = order.customFields.some((f: any) => (f.name === 'user_id' || f.label === 'user_id') && f.value === user.id);
+               } else if (typeof order.customFields === 'object') {
+                 userIdMatch = order.customFields.user_id === user.id;
+               }
+            }
+
+            return isCompleted && (emailMatch || userIdMatch);
           });
 
+          console.log(`Billgang found ${completedOrders.length} matching completed/delivered orders.`);
           totalFound += completedOrders.length;
 
           for (const order of completedOrders) {
@@ -103,21 +121,35 @@ export async function GET(req: NextRequest) {
               .contains('metadata', { billgang_order_id: order.id })
               .single();
 
-            if (existing) continue;
+            if (existing) {
+              console.log(`Order ${order.id} already in inbox.`);
+              continue;
+            }
+
+            console.log(`Adding new order ${order.id} to inbox.`);
+            
+            // Try to extract key from order if available in delivered_goods
+            const deliveredGoods = order.delivered_goods || order.deliveredFields || [];
+            const keyContent = Array.isArray(deliveredGoods) && deliveredGoods.length > 0
+              ? deliveredGoods.map((g: any) => typeof g === 'string' ? g : g.content || g.value || JSON.stringify(g)).join(', ')
+              : "Key delivered via Billgang email.";
 
             const { error: insertError } = await supabase
               .from('inbox_messages')
               .insert({
                 user_id: user.id,
                 type: 'key',
-                title: `Key Claimed: Sagitarius Software`,
+                title: `Key Claimed: ${order.productName || 'Sagitarius Software'}`,
                 content: `Successfully verified your Billgang payment for order #${order.id}.`,
-                reveal_content: "Key delivered via Billgang email and dashboard.",
+                reveal_content: keyContent,
                 metadata: { billgang_order_id: order.id }
               });
 
             if (!insertError) newlyAdded++;
           }
+        } else {
+          const errText = await response.text();
+          console.error(`Billgang API error (${response.status}):`, errText);
         }
       } catch (err) {
         console.error('Billgang verification failed:', err);

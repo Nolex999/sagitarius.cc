@@ -4,7 +4,7 @@ import { useEffect, useRef, memo, useMemo } from 'react';
 import {
   ExternalLink, Eye, Calendar, MessageCircle,
   Send, Github, Youtube, Twitch, Music, Gamepad2, Camera,
-  Video, Mail, Globe, Link2, Hash, Clock, Image as ImageIcon,
+  Video, Mail, Globe, Link2, Hash, Clock, Image as ImageIcon, Diamond
 } from 'lucide-react';
 import type { BioConfig } from '@/types/bio';
 
@@ -609,6 +609,17 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           0%, 100% { border-color: ${theme.primaryColor}40; }
           50% { border-color: ${theme.primaryColor}80; }
         }
+
+        @keyframes bio-diamond-spin {
+          from { transform: rotateY(0deg); }
+          to { transform: rotateY(360deg); }
+        }
+        
+        .bio-diamond-spin {
+          display: inline-block;
+          animation: bio-diamond-spin 3s linear infinite;
+          perspective: 1000px;
+        }
         
         .bio-avatar-glow-pulse { animation: bio-glow-pulse 3s ease-in-out infinite; }
         
@@ -1047,17 +1058,23 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
               className={`flex flex-wrap ${config.layoutPreset === 'left-aligned' ? 'justify-start' : 'justify-center'} gap-1.5 mb-4 ${getEntranceClass()}`}
               style={getEntranceDelay(4)}
             >
-              {config.badges.map((badge, i) => (
+               {config.badges.map((badge, i) => (
                 <span
                   key={i}
-                  className="px-2.5 py-0.5 text-[9px] uppercase tracking-widest font-bold"
+                  className="px-2.5 py-0.5 text-[9px] uppercase tracking-widest font-bold flex items-center gap-1.5"
                   style={{
                     borderRadius: `${theme.borderRadius / 2}px`,
-                    backgroundColor: `${theme.primaryColor}15`,
-                    border: `1px solid ${theme.primaryColor}30`,
-                    color: theme.primaryColor,
+                    backgroundColor: badge === 'VIP' ? 'rgba(255, 215, 0, 0.15)' : `${theme.primaryColor}15`,
+                    border: `1px solid ${badge === 'VIP' ? 'rgba(255, 215, 0, 0.4)' : `${theme.primaryColor}30`}`,
+                    color: badge === 'VIP' ? '#ffd700' : theme.primaryColor,
+                    boxShadow: badge === 'VIP' ? '0 0 10px rgba(255, 215, 0, 0.1)' : 'none',
                   }}
                 >
+                  {badge === 'VIP' && (
+                    <span className="bio-diamond-spin">
+                      <Diamond size={10} fill="currentColor" />
+                    </span>
+                  )}
                   {badge}
                 </span>
               ))}

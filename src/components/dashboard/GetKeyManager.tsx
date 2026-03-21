@@ -31,7 +31,7 @@ const BILLGANG_DOMAIN = 'sagitarius.bgng.io';
 const pricingOptions = [
   {
     id: '7-days',
-    name: 'Faceit 7 Days',
+    name: '7 Days',
     price: '12.00',
     description: 'Perfect for testing our software features.',
     features: [
@@ -42,7 +42,7 @@ const pricingOptions = [
     highlight: false,
     billgang: {
       faceit: { path: 'faceit-7-days' },
-      external: { path: 'faceit-7-days' }
+      external: { path: 'CS2-7-days' }
     }
   },
   {
@@ -134,85 +134,93 @@ export default function GetKeyManager() {
     const productPath = plan.path;
     const domain = BILLGANG_DOMAIN.includes('https://') ? BILLGANG_DOMAIN : `https://${BILLGANG_DOMAIN}`;
 
-    // 1. First, check if the Billgang script has already opened a modal
-    const existingEmbed = document.getElementById(`billgang-embed-${productPath}`);
-    if (existingEmbed) {
-      setShowCategorySelector(false);
-      return;
+    setShowCategorySelector(false);
+
+    // If the user insists on a refresh when the embed appears, we can trigger it 
+    // BUT we need to persist the intended plan to open it after reload.
+    // However, usually they just want it to work. 
+    // I'll try a "clean" injection first with higher z-index.
+    
+    console.log('Manually triggering Billgang embed for:', productPath);
+    
+    // Ensure container exists
+    let container = document.getElementById('billgang-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'billgang-container';
+      document.body.appendChild(container);
     }
 
-    // 2. If no modal is open after 100ms, manually trigger the logic from embed.js
-    // to ensure it works even if the script's DOMContentLoaded listener failed.
-    setTimeout(() => {
-      const alreadyOpened = document.getElementById(`billgang-embed-${productPath}`);
-      if (alreadyOpened) {
-        setShowCategorySelector(false);
-        return;
-      }
+    // Clean up any existing modal of the same product first
+    const existing = document.getElementById('billgang-embed-' + productPath);
+    if (existing) existing.remove();
 
-      console.log('Manually triggering Billgang embed for:', productPath);
-      
-      // Ensure container exists
-      let container = document.getElementById('billgang-container');
-      if (!container) {
-        container = document.createElement('div');
-        container.id = 'billgang-container';
-        document.body.appendChild(container);
-      }
+    // Create modal (same logic as platform.billgang.com/embed.js)
+    document.body.style.overflow = 'hidden';
+    const modal = document.createElement('div');
+    modal.id = 'billgang-embed-' + productPath;
+    modal.style.position = 'fixed';
+    modal.style.width = '100vw';
+    modal.style.height = '100vh';
+    modal.style.zIndex = '999999';
+    modal.style.top = '0';
+    modal.style.left = '0';
 
-      // Create modal (same logic as platform.billgang.com/embed.js)
-      document.body.style.overflow = 'hidden';
-      const modal = document.createElement('div');
-      modal.id = 'billgang-embed-' + productPath;
-      modal.style.position = 'fixed';
-      modal.style.width = '100%';
-      modal.style.height = '100%';
-      modal.style.zIndex = '9998';
-      modal.style.top = '0';
-      modal.style.left = '0';
+    const modalBackdrop = document.createElement('div');
+    modalBackdrop.style.position = 'absolute';
+    modalBackdrop.style.width = '100%';
+    modalBackdrop.style.height = '100%';
+    modalBackdrop.style.background = 'rgba(0, 0, 0, 0.8)';
+    modalBackdrop.style.backdropFilter = 'blur(8px)';
+    modalBackdrop.onclick = () => {
+      modal.remove();
+      document.body.style.overflow = 'auto';
+    };
+    modal.appendChild(modalBackdrop);
 
-      const modalBackdrop = document.createElement('div');
-      modalBackdrop.classList.add('billgang-backdrop');
-      modalBackdrop.style.position = 'absolute';
-      modalBackdrop.style.width = '100%';
-      modalBackdrop.style.height = '100%';
-      modalBackdrop.style.background = '#00000075';
-      modalBackdrop.style.backdropFilter = 'blur(3px)';
-      modal.appendChild(modalBackdrop);
+    const iframeWrapper = document.createElement('div');
+    iframeWrapper.style.position = 'absolute';
+    iframeWrapper.style.width = '100%';
+    iframeWrapper.style.height = '100%';
+    iframeWrapper.style.display = 'flex';
+    iframeWrapper.style.alignItems = 'center';
+    iframeWrapper.style.justifyContent = 'center';
+    iframeWrapper.style.zIndex = '1';
+    iframeWrapper.style.pointerEvents = 'none';
 
-      const iframeWrapper = document.createElement('div');
-      iframeWrapper.style.position = 'absolute';
-      iframeWrapper.style.width = '100%';
-      iframeWrapper.style.height = '100%';
-      iframeWrapper.style.margin = 'auto';
-      iframeWrapper.style.zIndex = '1';
+    const iframeContainer = document.createElement('div');
+    iframeContainer.style.width = '90%';
+    iframeContainer.style.maxWidth = '500px';
+    iframeContainer.style.height = '90%';
+    iframeContainer.style.maxHeight = '700px';
+    iframeContainer.style.backgroundColor = '#0a0a0a';
+    iframeContainer.style.borderRadius = '24px';
+    iframeContainer.style.overflow = 'hidden';
+    iframeContainer.style.pointerEvents = 'auto';
+    iframeContainer.style.border = '1px solid rgba(255,255,255,0.1)';
+    iframeContainer.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.5)';
 
-      const spinner = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" width="35" height="35" style="shape-rendering: auto; display: block; background: transparent;"><g><circle cx="50" cy="50" fill="none" stroke="rgba(255, 255, 255, 1)" stroke-width="10" r="35" stroke-dasharray="164.93361431346415 56.97787143782138"><animateTransform attributeName="transform" type="rotate" repeatCount="indefinite" dur="1s" values="0 50 50;360 50 50" keyTimes="0;1"></animateTransform></circle></g></svg>`;
-      const loader = document.createElement('div');
-      loader.id = "billgang-loader";
-      loader.style.position = 'absolute';
-      loader.style.width = '100%';
-      loader.style.height = '100%';
-      loader.style.display = 'flex';
-      loader.style.justifyContent = 'center';
-      loader.style.alignItems = 'center';
-      loader.innerHTML = spinner;
-      iframeWrapper.appendChild(loader);
+    const loader = document.createElement('div');
+    loader.style.position = 'absolute';
+    loader.style.inset = '0';
+    loader.style.display = 'flex';
+    loader.style.justifyContent = 'center';
+    loader.style.alignItems = 'center';
+    loader.style.background = '#0a0a0a';
+    loader.innerHTML = `<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>`;
+    iframeContainer.appendChild(loader);
 
-      const iframe = document.createElement('iframe');
-      iframe.src = `${domain}/embed/${productPath}`;
-      iframe.style.position = 'absolute';
-      iframe.style.width = '100%';
-      iframe.style.height = '100%';
-      iframe.onload = () => document.getElementById('billgang-loader')?.remove();
-      iframe.scrolling = 'auto';
-      
-      iframeWrapper.appendChild(iframe);
-      modal.appendChild(iframeWrapper);
-      container.appendChild(modal);
-
-      setShowCategorySelector(false);
-    }, 100);
+    const iframe = document.createElement('iframe');
+    iframe.src = `${domain}/embed/${productPath}`;
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    iframe.style.border = 'none';
+    iframe.onload = () => loader.remove();
+    
+    iframeContainer.appendChild(iframe);
+    iframeWrapper.appendChild(iframeContainer);
+    modal.appendChild(iframeWrapper);
+    container.appendChild(modal);
   };
 
   return (
@@ -237,9 +245,9 @@ export default function GetKeyManager() {
           <button
             onClick={handleVerify}
             disabled={verifying}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-[11px] font-bold text-white uppercase tracking-widest transition-all"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[var(--accent)]/30 text-[11px] font-bold text-white uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(255,255,255,0.02)] hover:shadow-[0_0_30px_rgba(197,160,89,0.05)] active:scale-95"
           >
-            {verifying ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
+            {verifying ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} className="text-[var(--accent)]" />}
             Verify My Purchase
           </button>
           {verifyResult && (
@@ -271,10 +279,10 @@ export default function GetKeyManager() {
             </div>
 
             <div className="mb-8 relative">
-              <div className="flex items-baseline gap-1">
+              <div className="flex items-baseline gap-1 font-sans">
                 <span className="text-2xl font-bold text-white/40">€</span>
-                <span className="text-5xl font-black text-white tracking-tighter">{plan.price.split('.')[0]}</span>
-                <span className="text-xl font-bold text-white/40">.{plan.price.split('.')[1]}</span>
+                <span className="text-5xl font-extrabold text-white tracking-tight tabular-nums">{plan.price.split('.')[0]}</span>
+                <span className="text-xl font-bold text-white/40 tabular-nums">.{plan.price.split('.')[1]}</span>
               </div>
             </div>
 

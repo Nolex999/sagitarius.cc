@@ -18,7 +18,9 @@ import {
   ShieldCheck,
   MessageCircle,
   Menu,
-  X
+  X,
+  Diamond,
+  Star
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { User as AuthUser } from '@supabase/supabase-js';
@@ -59,22 +61,46 @@ function getUserRole(email?: string, dbRole?: string): UserRole {
 
 function RoleBadge({ role }: { role: UserRole }) {
   if (role === 'owner') return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold bg-black text-white border border-white/20 shadow-[0_0_12px_rgba(255,255,255,0.08)]">
-      <Crown size={8} strokeWidth={2.5} /> Owner
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold bg-black text-white border border-white/20 shadow-[0_0_12px_rgba(255,255,255,0.08)]">
+      <Crown size={8} strokeWidth={2.5} className="text-white" /> Owner
     </span>
   );
   if (role === 'admin') return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold border bg-gradient-to-r from-[var(--accent)] to-[var(--accent-gold)] text-black border-[var(--accent)]/20 shadow-[0_0_10px_rgba(197,160,89,0.15)]">
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold border bg-gradient-to-r from-[var(--accent)] to-[var(--accent-gold)] text-black border-[var(--accent)]/20 shadow-[0_0_10px_rgba(197,160,89,0.15)]">
       <Shield size={8} strokeWidth={2.5} /> Admin
     </span>
   );
-  return <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">Member</span>;
+  if (role === 'vip') return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold border bg-[#ffd700]/10 text-[#ffd700] border-[#ffd700]/20 shadow-[0_0_12px_rgba(255,215,0,0.1)]">
+      <style>{`
+        @keyframes sidebar-diamond-spin {
+          from { transform: rotateY(0deg); }
+          to { transform: rotateY(360deg); }
+        }
+        .sidebar-diamond-spin {
+          display: inline-block;
+          animation: sidebar-diamond-spin 3s linear infinite;
+        }
+      `}</style>
+      <span className="sidebar-diamond-spin">
+        <Diamond size={8} fill="currentColor" strokeWidth={2.5} />
+      </span>
+      VIP
+    </span>
+  );
+  if (role === 'high_member') return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold border bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.1)]">
+      <Star size={8} fill="currentColor" strokeWidth={2.5} /> High Member
+    </span>
+  );
+  return <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold px-1">Member</span>;
 }
 
 export default function Sidebar({ user }: { user: AuthUser }) {
   const pathname = usePathname();
   const router = useRouter();
   const [dbRole, setDbRole] = useState<string | null>(null);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -84,6 +110,37 @@ export default function Sidebar({ user }: { user: AuthUser }) {
       if (data) setDbRole(data.role);
     }
     fetchRole();
+  }, [user.id]);
+
+  useEffect(() => {
+    async function fetchUnread() {
+      const supabase = createClient();
+      const { count } = await supabase
+        .from('inbox_messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+      
+      if (count !== null) setUnreadCount(count);
+    }
+    fetchUnread();
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel('inbox_changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'inbox_messages',
+        filter: `user_id=eq.${user.id}`
+      }, () => {
+        fetchUnread();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user.id]);
 
   useEffect(() => {
@@ -125,7 +182,7 @@ export default function Sidebar({ user }: { user: AuthUser }) {
                 <Link
                   key={href}
                   href={href}
-                  className={`flex items-center gap-2.5 h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
+                  className={`flex items-center gap-2.5 h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all relative ${
                     isActive 
                       ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20 shadow-[0_0_15px_rgba(197,160,89,0.1)]' 
                       : 'text-white/40 hover:text-white hover:bg-white/5'
@@ -133,6 +190,11 @@ export default function Sidebar({ user }: { user: AuthUser }) {
                 >
                   <Icon size={14} strokeWidth={isActive ? 3 : 1.5} />
                   <span className="hidden min-[1300px]:inline">{label}</span>
+                  {label === 'Inbox' && unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 bg-red-500 text-white text-[8px] flex items-center justify-center rounded-full border-2 border-black font-bold">
+                      {unreadCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -174,7 +236,7 @@ export default function Sidebar({ user }: { user: AuthUser }) {
                 <Link
                   key={href}
                   href={href}
-                  className={`flex items-center gap-4 h-12 px-4 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${
+                  className={`flex items-center gap-4 h-12 px-4 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all relative ${
                     isActive 
                       ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20' 
                       : 'text-white/40 hover:text-white hover:bg-white/5'
@@ -182,6 +244,11 @@ export default function Sidebar({ user }: { user: AuthUser }) {
                 >
                   <Icon size={16} strokeWidth={isActive ? 2.5 : 1.5} />
                   {label}
+                  {label === 'Inbox' && unreadCount > 0 && (
+                    <span className="absolute right-4 h-5 min-w-[20px] px-1.5 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full border-2 border-[var(--bg-surface)] font-bold">
+                      {unreadCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}
