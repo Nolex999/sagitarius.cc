@@ -66,7 +66,7 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_casino_spin timestampt
 -- Mise à jour de la contrainte ROLE
 ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
 ALTER TABLE public.profiles ADD CONSTRAINT profiles_role_check 
-  CHECK (role IN ('member', 'admin', 'owner', 'vip', 'high_member'));
+  CHECK (role IN ('member', 'admin', 'owner', 'vip', 'super_vip', 'high_member'));
 
 -- Table: inv_code (Invitations)
 CREATE TABLE IF NOT EXISTS public.inv_code (
@@ -425,8 +425,8 @@ BEGIN
     RAISE EXCEPTION 'Ce casino est réservé aux membres VIP uniquement';
   END IF;
 
-  -- 3. Vérification Cooldown (7 jours)
-  IF v_last_spin IS NOT NULL AND now() - v_last_spin < interval '7 jours' THEN
+  -- 3. Vérification Cooldown (7 jours) - Skip pour super_vip
+  IF v_user_role != 'super_vip' AND v_last_spin IS NOT NULL AND now() - v_last_spin < interval '7 jours' THEN
     RAISE EXCEPTION 'Tu dois attendre 1 semaine entre chaque spin';
   END IF;
 

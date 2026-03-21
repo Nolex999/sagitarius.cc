@@ -25,7 +25,7 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import type { User as AuthUser } from '@supabase/supabase-js';
 
-type UserRole = 'owner' | 'admin' | 'vip' | 'high_member' | 'member';
+type UserRole = 'owner' | 'admin' | 'super_vip' | 'vip' | 'high_member' | 'member';
 
 interface NavItem {
   href: string;
@@ -44,7 +44,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard/s4', label: 'Admin', icon: Shield, requiredRole: ['admin', 'owner'] },
   { href: '/dashboard/s5', label: 'Settings', icon: Settings, requiredRole: ['owner'] },
   { href: '/dashboard/policies', label: 'Policies', icon: ShieldCheck },
-  { href: '/dashboard/casino', label: 'Casino', icon: Diamond, requiredRole: ['vip', 'admin', 'owner'] },
+  { href: '/dashboard/casino', label: 'Casino', icon: Diamond, requiredRole: ['super_vip', 'vip', 'admin', 'owner'] },
   { href: '/dashboard/support', label: 'Support', icon: MessageCircle },
 ];
 
@@ -69,6 +69,11 @@ function RoleBadge({ role }: { role: UserRole }) {
   if (role === 'admin') return (
     <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold border bg-gradient-to-r from-[var(--accent)] to-[var(--accent-gold)] text-black border-[var(--accent)]/20 shadow-[0_0_10px_rgba(197,160,89,0.15)]">
       <Shield size={8} strokeWidth={2.5} /> Admin
+    </span>
+  );
+  if (role === 'super_vip') return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold border bg-gradient-to-r from-blue-600/20 via-[var(--accent)]/30 to-blue-600/20 text-white border-[var(--accent)]/40 animate-pulse shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+      <Crown size={8} strokeWidth={3} className="text-[var(--accent)]" /> SUPER VIP
     </span>
   );
   if (role === 'vip') return (

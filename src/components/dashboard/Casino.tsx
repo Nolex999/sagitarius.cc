@@ -49,6 +49,7 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
   }, []);
 
   const canSpin = () => {
+    if (profile.role === 'super_vip') return true;
     if (!profile.last_casino_spin) return true;
     const lastSpin = new Date(profile.last_casino_spin).getTime();
     const now = new Date().getTime();

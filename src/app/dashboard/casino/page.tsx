@@ -34,7 +34,7 @@ export default function CasinoPage() {
     );
   }
 
-  const isVip = profile?.role === 'vip' || profile?.role === 'admin' || profile?.role === 'owner';
+  const isVip = ['vip', 'super_vip', 'admin', 'owner'].includes(profile?.role);
 
   if (!isVip) {
     return (
