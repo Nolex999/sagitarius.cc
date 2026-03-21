@@ -32,7 +32,7 @@ const pricingOptions = [
   {
     id: '7-days',
     name: 'Faceit 7 Days',
-    price: '0.00',
+    price: '12.00',
     description: 'Perfect for testing our software features.',
     features: [
       'Full Access for 7 Days',
@@ -41,8 +41,8 @@ const pricingOptions = [
     ],
     highlight: false,
     billgang: {
-      faceit: { path: 'faceit-7-days' },
-      external: { path: 'CS2-7-days' }
+      faceit: { path: 'test' },
+      external: { path: 'test' }
     }
   },
   {
