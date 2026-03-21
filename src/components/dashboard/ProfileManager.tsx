@@ -249,6 +249,51 @@ export default function ProfileManager() {
         </div>
       </div>
 
+      {/* REFERRAL PROGRAM SECTION */}
+      <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.05] relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+          <Zap size={120} className="text-[var(--accent)]" />
+        </div>
+        
+        <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+          <div className="space-y-3 flex-1 text-center md:text-left">
+            <h2 className="text-xl font-black text-white uppercase tracking-widest flex items-center justify-center md:justify-start gap-3">
+              <Zap className="text-[var(--accent)]" size={24} fill="currentColor" />
+              Referral Program
+            </h2>
+            <p className="text-xs text-white/40 max-w-lg leading-relaxed font-bold uppercase tracking-wider">
+              Invite your friends to Sagitarius. For every friend who verifies their first purchase, you'll receive a <span className="text-[var(--accent)]">1-Day Free Key</span> in your Inbox!
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 w-full md:w-auto min-w-[300px]">
+             <div className="bg-black/40 border border-white/10 rounded-2xl p-4 flex items-center justify-between gap-4">
+              <div className="truncate font-mono text-[10px] text-white/30 uppercase tracking-widest">
+                sagitarius.cc/auth/register?ref={profile?.id?.split('-')[0]}
+              </div>
+              <button 
+                onClick={() => copyToClipboard(`https://sagitarius.cc/auth/register?ref=${profile?.id}`, 'Referral link copied!')}
+                className="h-9 px-4 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:bg-white/90 transition-all flex items-center gap-2 shrink-0 shadow-lg active:scale-95 border border-white/10"
+              >
+                <Copy size={14} />
+                Copy Link
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/5 text-center">
+                <span className="block text-2xl font-black text-white">{profile?.referral_count || 0}</span>
+                <span className="text-[8px] text-white/10 font-black uppercase tracking-[0.2em]">Referrals</span>
+              </div>
+              <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/5 text-center">
+                <span className="block text-2xl font-black text-[var(--accent)]">{profile?.referral_rewards || 0}</span>
+                <span className="text-[8px] text-white/10 font-black uppercase tracking-[0.2em]">Rewards Earned</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="space-y-6">
         {/* INVITES AREA */}
         <div className="flex items-center justify-between px-2">

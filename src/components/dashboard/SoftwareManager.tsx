@@ -52,6 +52,7 @@ interface Category {
   isOpen?: boolean;
   isKeysOpen?: boolean;
   keys?: SoftwareKey[];
+  status?: 'undetected' | 'testing' | 'detected' | string;
 }
 
 const OWNER_EMAILS = ['chris@sagitarius.cc', 'chris@nolex.me', 'n0lex9999@gmail.com'];
@@ -332,16 +333,53 @@ export default function SoftwareManager() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-            <Download size={28} className="text-[var(--accent)]" />
-            Downloads
-          </h1>
-          <p className="text-sm text-white/40 mt-1">
-            Enter your key to download your software loader
-          </p>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-black text-white flex items-center gap-3 uppercase tracking-widest">
+              <Download size={28} className="text-[var(--accent)]" />
+              Products
+            </h1>
+            <p className="text-[10px] text-white/20 mt-1 font-black uppercase tracking-widest">
+              Private Software Access & Monitoring
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-6 bg-white/[0.01] border border-white/5 rounded-2xl px-6 py-3">
+             <div className="flex items-center gap-2">
+               <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
+               <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">UD</span>
+             </div>
+             <div className="flex items-center gap-2">
+               <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.6)]" />
+               <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">MT</span>
+             </div>
+             <div className="flex items-center gap-2">
+               <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
+               <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">DT</span>
+             </div>
+          </div>
         </div>
+
+      {/* Monitoring Summary Card */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {categories.map(cat => (
+          <div key={`mon-${cat.id}`} className="p-4 rounded-2xl bg-white/[0.01] border border-white/5 flex items-center justify-between group">
+             <div className="flex items-center gap-3">
+               <div className="h-2 w-2 rounded-full shadow-lg" style={{ 
+                 backgroundColor: cat.status === 'detected' ? '#ef4444' : cat.status === 'testing' ? '#eab308' : '#22c55e',
+                 boxShadow: `0 0 10px ${cat.status === 'detected' ? 'rgba(239,68,68,0.4)' : cat.status === 'testing' ? 'rgba(234,179,8,0.4)' : 'rgba(34,197,94,0.4)'}`
+               }} />
+               <span className="text-[11px] font-bold text-white/80 uppercase tracking-widest">{cat.name}</span>
+             </div>
+             <span className={`text-[8px] font-black uppercase tracking-[0.2em] px-2.5 py-1 rounded-md border ${
+               cat.status === 'detected' ? 'bg-red-500/10 border-red-500/10 text-red-500' :
+               cat.status === 'testing' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' :
+               'bg-green-500/10 border-green-500/10 text-green-500'
+             }`}>
+               {(cat.status || 'undetected').toUpperCase()}
+             </span>
+          </div>
+        ))}
       </div>
 
       {error && (
@@ -425,10 +463,35 @@ export default function SoftwareManager() {
                 </div>
                 <div>
                    <h3 className="text-[13px] font-black text-white/90 uppercase tracking-[0.2em]">{cat.name}</h3>
+                   <div className="flex items-center gap-1.5 mt-0.5">
+                     <span className={`text-[7px] font-black uppercase tracking-widest ${
+                       cat.status === 'detected' ? 'text-red-500' :
+                       cat.status === 'testing' ? 'text-yellow-500' :
+                       'text-green-500'
+                     }`}>
+                       {(cat.status || 'undetected').toUpperCase()}
+                     </span>
+                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
+                {isManager && (
+                  <select
+                    value={cat.status || 'undetected'}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={async (e) => {
+                      const newStatus = e.target.value;
+                      const { error } = await supabase.from('software_categories').update({ status: newStatus }).eq('id', cat.id);
+                      if (!error) fetchData();
+                    }}
+                    className="bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-[8px] font-black text-white/40 uppercase tracking-widest outline-none focus:border-[var(--accent)]/30 transition-all"
+                  >
+                    <option value="undetected">UD</option>
+                    <option value="testing">MT</option>
+                    <option value="detected">DT</option>
+                  </select>
+                )}
                 {isManager && (
                   <button
                     onClick={(e) => { e.stopPropagation(); deleteCategory(cat.id); }}
@@ -590,6 +653,58 @@ export default function SoftwareManager() {
             <p className="text-white/20 text-xs mt-1">Please come back later or contact an administrator.</p>
           </div>
         )}
+      </div>
+
+      {/* News & Changelog Section */}
+      <div className="pt-12 space-y-8">
+        <div className="flex items-center justify-between px-2">
+           <h2 className="text-xl font-black text-white uppercase tracking-[0.3em] flex items-center gap-3">
+             <Globe className="text-[var(--accent)]" size={24} />
+             Latest Updates
+           </h2>
+           <span className="text-[9px] text-white/20 font-black uppercase tracking-widest">Dev Blog</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+           <div className="p-6 rounded-[2rem] bg-white/[0.01] border border-white/5 relative overflow-hidden group hover:border-[var(--accent)]/20 transition-all duration-500">
+              <div className="absolute top-0 right-0 p-4 pt-6 text-[8px] font-black text-white/10 uppercase tracking-widest">21 Mar 2026</div>
+              <div className="space-y-4">
+                 <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-green-500/10 border border-green-500/10 text-green-500 text-[8px] font-black uppercase tracking-widest">
+                    Security Update
+                 </div>
+                 <h3 className="text-lg font-black text-white uppercase tracking-wider">Faceit Kernel Driver Re-build</h3>
+                 <p className="text-xs text-white/40 leading-relaxed font-bold uppercase tracking-wider">
+                    We updated the internal communication protocol to bypass the latest AC patch. All users are required to download the new loader version.
+                 </p>
+                 <div className="pt-2 flex items-center gap-2 text-[9px] font-black text-[var(--accent)] uppercase tracking-widest cursor-pointer hover:gap-3 transition-all">
+                    View Technical Details <ChevronRight size={12} />
+                 </div>
+              </div>
+           </div>
+
+           <div className="p-6 rounded-[2rem] bg-white/[0.01] border border-white/5 relative overflow-hidden group hover:border-blue-500/20 transition-all duration-500">
+              <div className="absolute top-0 right-0 p-4 pt-6 text-[8px] font-black text-white/10 uppercase tracking-widest">18 Mar 2026</div>
+              <div className="space-y-4">
+                 <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/10 text-blue-400 text-[8px] font-black uppercase tracking-widest">
+                    New Feature
+                 </div>
+                 <h3 className="text-lg font-black text-white uppercase tracking-wider">Cloud Configs Live</h3>
+                 <p className="text-xs text-white/40 leading-relaxed font-bold uppercase tracking-wider">
+                    Settings can now be saved directly to the cloud. Share your configuration codes with the community or import pro setups instantly.
+                 </p>
+                 <div className="pt-2 flex items-center gap-2 text-[9px] font-black text-blue-400 uppercase tracking-widest cursor-pointer hover:gap-3 transition-all">
+                    Read Patch Notes <ChevronRight size={12} />
+                 </div>
+              </div>
+           </div>
+        </div>
+
+        <div className="p-8 rounded-[2.5rem] bg-white/[0.01] border border-white/5 border-dashed flex flex-col items-center justify-center gap-4">
+           <AlertCircle size={32} className="text-white/5" />
+           <p className="text-[10px] text-white/10 font-black uppercase tracking-[0.4em] text-center">
+             Older updates can be found in our private archive.
+           </p>
+        </div>
       </div>
 
       <input

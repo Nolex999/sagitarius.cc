@@ -156,6 +156,35 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    if (newlyAdded > 0) {
+      // Background Referral Check (Don't block response)
+      (async () => {
+        try {
+          const { data: pData } = await supabase.from('profiles').select('referred_by').eq('id', user.id).maybeSingle();
+          if (pData?.referred_by) {
+             const rewardKey = 'SAG-REF-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-GIFT';
+             
+             // 1. Deliver Reward Key to Referrer (already in inbox)
+             await supabase.from('inbox_messages').insert({
+               user_id: pData.referred_by,
+               type: 'key',
+               title: 'Referral Reward: 1 Day Key! 🎁',
+               content: `A friend you referred just verified their first purchase! Enjoy your 1-day free access.`,
+               reveal_content: rewardKey
+             });
+
+             // 2. Increment Referrer Stats
+             // Note: These columns might need to be created in Supabase
+             await supabase.from('profiles').update({ 
+               referral_rewards: supabase.rpc('increment', { row_id: pData.referred_by, amount: 1 }) 
+             } as any).eq('id', pData.referred_by);
+          }
+        } catch (err) {
+          console.error('Referral logic error:', err);
+        }
+      })();
+    }
+
     return NextResponse.json({ 
       success: true, 
       found: totalFound,
