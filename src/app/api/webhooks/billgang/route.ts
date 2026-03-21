@@ -126,48 +126,70 @@ export async function POST(req: NextRequest) {
     }
 
     // 6. Explicitly signal Delivery to Billgang API (Reinforcement)
+    // NOTE: For Dynamic Delivery, returning the JSON at the end is usually sufficient.
+    // However, if the user explicitly wants us to "send successful delivered", 
+    // we'll attempt it in the background to avoid timing out the webhook.
     const orderId = order.id || payload.data?.id || payload.id;
     const billgangKey = process.env.BILLGANG_API_KEY;
-    const shopId = '254708457'; // Extracted from API key in verify route
+    const shopId = '254708457'; 
 
     if (orderId && billgangKey) {
-      console.log(`Sending explicit delivery signal to Billgang (pg-api) for Order: ${orderId}`);
-      try {
-        // Using pg-api endpoint which is used in other working parts of the app
-        const deliverRes = await fetch(`https://pg-api.billgang.com/v1/dash/shops/${shopId}/orders/${orderId}/deliver`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${billgangKey}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            content: randomKey
-          })
-        });
+      // Fire and forget (optional) OR try a different domain/endpoint if pg-api is 500ing
+      // We log results but don't AWAIT them before returning to Billgang to prevent timeouts.
+      (async () => {
+        try {
+          console.log(`Background delivery signal for Order: ${orderId}`);
+          
+          // Trying standard fulfillment path which some documentation suggests (might be 404/500 if dynamic already handles it)
+          const deliverRes = await fetch(`https://pg-api.billgang.com/v1/dash/shops/${shopId}/orders/${orderId}/deliver`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${billgangKey}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              content: randomKey,
+              textData: randomKey,
+              delivered_goods: [randomKey]
+            })
+          });
 
-        if (deliverRes.ok) {
-          const successData = await deliverRes.json();
-          console.log('Billgang Delivery API SUCCESS:', JSON.stringify(successData, null, 2));
-        } else {
-          const errorText = await deliverRes.text();
-          console.error(`Billgang Delivery API FAILURE (${deliverRes.status}):`, errorText);
+          if (deliverRes.ok) {
+            console.log('Billgang Manual Delivery SUCCESS');
+          } else {
+            const err = await deliverRes.text();
+            console.warn(`Billgang Manual Delivery Signal (status ${deliverRes.status}):`, err.substring(0, 100));
+          }
+        } catch (err) {
+          console.error('Billgang background delivery error:', err);
         }
-      } catch (err) {
-        console.error('Billgang Delivery API: Network Error', err);
-      }
-    } else {
-      console.warn('Missing Order ID or Billgang API Key - Skipping explicit delivery signal.');
+      })();
     }
 
-    // 7. Return the key to Billgang for Dynamic Delivery (Original Method)
-    console.log('Returning key to Billgang:', randomKey);
+    // 7. Return the key to Billgang for Dynamic Delivery (Universal Format)
+    // Many Billgang versions expect an array for delivered_goods
+    console.log('Fulfilling Dynamic Delivery to Billgang:', randomKey);
     return NextResponse.json({ 
-      delivered_goods: randomKey 
+      success: true,
+      status: "success",
+      delivered_goods: [randomKey], // Array is often required
+      content: randomKey,            // Alternative field name
+      delivery_status: "DELIVERED",  // Explicitly tell them the state
+      text_data: randomKey,          // Alternative field name
+      data: {
+        delivered_goods: [randomKey],
+        content: randomKey
+      }
     });
 
   } catch (error: any) {
     console.error('Billgang Dynamic Webhook Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    // Returning a non-200 code signals a delivery failure to Billgang
+    return NextResponse.json({ 
+      success: false, 
+      error: error.message,
+      status: "error"
+    }, { status: 500 });
   }
 }
