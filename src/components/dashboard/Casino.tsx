@@ -73,20 +73,18 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
 
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
-      // 1. Choose result
-      const rand = Math.random() * 100;
-      let cumulativeWeight = 0;
-      let wonReward = REWARDS[0];
-      for (const reward of REWARDS) {
-        cumulativeWeight += reward.weight;
-        if (rand <= cumulativeWeight) {
-          wonReward = reward;
-          break;
-        }
-      }
+      // 1. Call secure server-side spin function
+      const { data, error: rpcError } = await supabase.rpc('spin_casino_wheel');
 
+      if (rpcError) throw rpcError;
+
+      const wonReward = REWARDS.find(r => r.id === data.reward_id) || REWARDS[0];
+      const wonKey = data.key;
+
+      // Update sequence visually for the winner
       const targetIndex = 80;
       const newSequence = [...sequence];
       newSequence[targetIndex] = wonReward;
@@ -94,7 +92,6 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
 
       // Random landing position within the card (center is 0, -70 to +70)
       const randomLandingOffset = Math.floor(Math.random() * 140) - 70;
-      
       const cardWidth = 176; // 160px + 16px margin
       const offset = targetIndex * cardWidth - (scrollRef.current?.offsetWidth || 0) / 2 + cardWidth / 2 + randomLandingOffset;
       setScrollOffset(offset);
@@ -105,31 +102,19 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
       // 2. Start animation (7s)
       setTimeout(async () => {
         setSpinning(false);
-        setResult(wonReward);
+        setResult({ ...wonReward, key: wonKey });
 
-        const now = new Date().toISOString();
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ last_casino_spin: now })
-          .eq('id', profile.id);
-
-        if (updateError) throw updateError;
-
-        await supabase.from('inbox_messages').insert([{
-            user_id: profile.id,
-            title: '🎰 CASINO JACKPOT!',
-            content: `Incredible! You just won the **${wonReward.label}** in the VIP Casino. Open a support ticket to claim your reward.`,
-            type: 'notification',
-            metadata: { reward: wonReward.id }
-        }]);
-
-        setSuccess(`JACKPOT! You won: ${wonReward.label}`);
-        setProfile({ ...profile, last_casino_spin: now });
+        setSuccess(`JACKPOT! You won: ${wonReward.label}. Check your Inbox for your key!`);
+        
+        // Refresh local profile to update timer
+        const { data: profileUpdate } = await supabase.from('profiles').select('*').eq('id', profile.id).single();
+        if (profileUpdate) setProfile(profileUpdate);
+        
         onSpinDone();
       }, 7000);
 
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Error spinning the wheel');
     } finally {
       setLoading(false);
     }
@@ -216,11 +201,14 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
                 <p className="text-xs text-white uppercase font-black tracking-widest leading-relaxed">
                    You won a <span className={result.color}>{result.label}</span>
                 </p>
-                {result.id !== 'lose' && (
-                  <p className="text-[9px] text-white/30 uppercase font-black tracking-widest mt-4">
-                     Check your Dashboard Inbox for your rewards
-                  </p>
+                {result.key && (
+                  <div className="mt-4 p-3 rounded-xl bg-black/40 border border-white/10 font-mono text-[10px] text-[var(--accent)] font-bold tracking-widest animate-pulse">
+                    CODE: {result.key}
+                  </div>
                 )}
+                <p className="text-[9px] text-white/30 uppercase font-black tracking-widest mt-4">
+                   This key has also been saved in your Dashboard Inbox.
+                </p>
              </div>
           </div>
         )}

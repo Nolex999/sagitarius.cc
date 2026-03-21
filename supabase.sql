@@ -401,3 +401,75 @@ INSERT INTO public.lycee_classes (name, order_index) SELECT 'Général', 1
 WHERE NOT EXISTS (SELECT 1 FROM public.lycee_classes LIMIT 1);
 
 NOTIFY pgrst, 'reload schema';
+
+-- ==========================================
+-- 9. CASINO SYSTÈME (FONCTION SÉCURISÉE)
+-- ==========================================
+
+CREATE OR REPLACE FUNCTION public.spin_casino_wheel()
+RETURNS json AS $$
+DECLARE
+  v_user_role text;
+  v_last_spin timestamptz;
+  v_rand float;
+  v_reward_id text;
+  v_reward_label text;
+  v_key text;
+BEGIN
+  -- 1. Récupération des infos utilisateur
+  SELECT role, last_casino_spin INTO v_user_role, v_last_spin 
+  FROM public.profiles WHERE id = auth.uid();
+
+  -- 2. Vérification Rôle
+  IF v_user_role NOT IN ('vip', 'admin', 'owner') THEN
+    RAISE EXCEPTION 'Ce casino est réservé aux membres VIP uniquement';
+  END IF;
+
+  -- 3. Vérification Cooldown (7 jours)
+  IF v_last_spin IS NOT NULL AND now() - v_last_spin < interval '7 jours' THEN
+    RAISE EXCEPTION 'Tu dois attendre 1 semaine entre chaque spin';
+  END IF;
+
+  -- 4. Tirage au sort
+  v_rand := random() * 100;
+  
+  IF v_rand <= 1 THEN
+    v_reward_id := 'lifetime';
+    v_reward_label := 'LIFETIME ACCESS';
+  ELSIF v_rand <= 6 THEN
+    v_reward_id := '30day';
+    v_reward_label := '30-Day Premium';
+  ELSIF v_rand <= 40 THEN
+    v_reward_id := '7day';
+    v_reward_label := '7-Day Extension';
+  ELSE
+    v_reward_id := '1day';
+    v_reward_label := '1-Day Access';
+  END IF;
+
+  -- 5. Génération d'une clé fictive unique (ou récupération depuis software_keys)
+  -- Pour simplifier, on génère un code cadeau unique
+  v_key := 'SAGI-' || upper(substring(gen_random_uuid()::text, 1, 8));
+
+  -- 6. Mise à jour de la date de spin
+  UPDATE public.profiles SET last_casino_spin = now() WHERE id = auth.uid();
+
+  -- 7. Insertion dans l'Inbox (Notification directe)
+  INSERT INTO public.inbox_messages (user_id, title, content, type, is_revealed, reveal_content)
+  VALUES (
+    auth.uid(),
+    '🎰 CASINO JACKPOT!',
+    'Félicitations ! Tu as gagné un accès **' || v_reward_label || '** ! Utilise le code ci-dessous pour activer ton produit.',
+    'key',
+    false,
+    v_key
+  );
+
+  RETURN json_build_object(
+    'success', true,
+    'reward_id', v_reward_id,
+    'reward_label', v_reward_label,
+    'key', v_key
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
