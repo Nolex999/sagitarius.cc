@@ -324,7 +324,7 @@ export default function S3Page() {
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-3">
              <div className="w-8 h-8 rounded-lg bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center">
-                <Image src="/logo.svg" alt="Logo" width={18} height={18} className="brightness-125" />
+                <Image src="/logo.svg" alt="Logo" width={18} height={18} className="" />
              </div>
              <span className="font-mono text-[10px] font-black uppercase tracking-[0.4em] text-white">Sagitarius</span>
           </div>

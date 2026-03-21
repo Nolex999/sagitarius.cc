@@ -69,8 +69,8 @@ export default function ClaimPage() {
             src="/logo.svg"
             alt="Logo"
             width={120}
-            height={100}
-            className="mx-auto brightness-125"
+            height={120}
+            className="mx-auto"
             priority
           />
           <div className="space-y-1">

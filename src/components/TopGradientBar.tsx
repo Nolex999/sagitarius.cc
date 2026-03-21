@@ -6,8 +6,8 @@ import { usePathname } from 'next/navigation';
 // Route-based gradient colors
 const routeGradients: Record<string, string[]> = {
   '/dashboard': ['#C5A059', '#D4AF37', '#8B6D31'],
-  '/auth': ['#ffffff', '#a1a1a1', '#ffffff'],
-  '/bio': ['#22c55e', '#06b6d4', '#14b8a6'],
+  '/auth': ['#C5A059', '#D4AF37', '#8B6D31'],
+  '/bio': ['#C5A059', '#D4AF37', '#8B6D31'],
 };
 
 function getGradientForRoute(pathname: string): string[] {
