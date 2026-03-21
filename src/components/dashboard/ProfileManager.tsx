@@ -252,18 +252,18 @@ export default function ProfileManager() {
       {/* HWID MANAGEMENT SECTION */}
       <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.05] relative overflow-hidden group">
         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-          <ShieldCheck size={120} className="text-blue-500" />
+          <ShieldCheck size={120} className="text-[var(--accent)]" />
         </div>
         
         <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
           <div className="space-y-3 flex-1 text-center md:text-left">
             <h2 className="text-xl font-black text-white uppercase tracking-widest flex items-center justify-center md:justify-start gap-3">
-              <ShieldCheck className="text-blue-500" size={24} fill="currentColor" />
+              <ShieldCheck className="text-[var(--accent)]" size={24} fill="currentColor" />
               Hardware Identity (HWID)
             </h2>
             <p className="text-xs text-white/40 max-w-lg leading-relaxed font-bold uppercase tracking-wider">
               Your software access is locked to your hardware. If you change components or PC, you must request a reset.
-              <span className="block mt-2 text-blue-500/60 transition-colors group-hover:text-blue-400">
+              <span className="block mt-2 text-[var(--accent)]/60 transition-colors group-hover:text-[var(--accent)]">
                 1 Reset allowed every 7 days.
               </span>
             </p>
@@ -290,7 +290,7 @@ export default function ProfileManager() {
               </div>
 
               {profile?.hwid_reset_status === 'pending' ? (
-                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest justify-center">
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-[var(--accent)] text-[10px] font-black uppercase tracking-widest justify-center">
                    <Loader2 size={14} className="animate-spin" />
                    Reset Request Pending
                 </div>
@@ -314,7 +314,7 @@ export default function ProfileManager() {
                       setLoading(false);
                     }
                   }}
-                  className="w-full h-11 rounded-xl bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-400 transition-all flex items-center justify-center gap-3 disabled:opacity-30 disabled:grayscale shadow-lg active:scale-95"
+                  className="w-full h-11 rounded-xl bg-[var(--accent)] text-black text-[10px] font-black uppercase tracking-widest hover:bg-[var(--accent-gold)] transition-all flex items-center justify-center gap-3 disabled:opacity-30 disabled:grayscale shadow-lg active:scale-95 border border-[var(--accent)]/20 shadow-[var(--accent)]/10"
                 >
                   <ShieldCheck size={16} />
                   Request HWID Reset

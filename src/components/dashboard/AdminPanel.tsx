@@ -256,7 +256,7 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
         <button
           onClick={() => setActiveTab('hwid')}
           className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2.5 ${
-            activeTab === 'hwid' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
+            activeTab === 'hwid' ? 'bg-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
           }`}
         >
           <ShieldCheck size={14} />
@@ -523,10 +523,10 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <div className="flex items-center justify-between px-2">
             <h2 className="text-lg font-black text-white flex items-center gap-3 uppercase tracking-widest">
-              <ShieldCheck className="text-blue-500" size={20} />
+              <ShieldCheck className="text-[var(--accent)]" size={20} />
               HWID Reset Requests
             </h2>
-            <span className="px-3 py-1 rounded-md bg-blue-500/5 border border-blue-500/10 text-[9px] font-black text-blue-400 uppercase tracking-[0.2em]">
+            <span className="px-3 py-1 rounded-md bg-[var(--accent)]/5 border border-[var(--accent)]/10 text-[9px] font-black text-[var(--accent)]/60 uppercase tracking-[0.2em]">
               {profiles.filter(p => p.hwid_reset_status === 'pending').length} Pending
             </span>
           </div>
@@ -573,7 +573,7 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
                                setLoading(false);
                             }
                          }}
-                         className="flex-1 md:flex-none h-10 px-6 rounded-xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 transition-all flex items-center gap-2 shadow-lg"
+                         className="flex-1 md:flex-none h-10 px-6 rounded-xl bg-[var(--accent)] text-black text-[10px] font-black uppercase tracking-widest hover:bg-[var(--accent-gold)] transition-all flex items-center gap-2 shadow-lg shadow-[var(--accent)]/5"
                        >
                           <CheckCircle2 size={14} /> Approve
                        </button>
