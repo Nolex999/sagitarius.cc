@@ -317,7 +317,8 @@ export default function SoftwareManager() {
         if (result.message === 'casino_key') {
           setIsCasinoKey(userInputKey);
         } else if (result.loader_url) {
-          window.open(result.loader_url, '_blank');
+          // Trigger the unique loader generation API
+          window.location.href = `/api/loader/generate?key=${encodeURIComponent(userInputKey)}`;
           setUserInputKey('');
         }
       } else {
@@ -341,7 +342,8 @@ export default function SoftwareManager() {
       if (error) throw error;
       const result = data[0];
       if (result.success && result.loader_url) {
-        window.open(result.loader_url, '_blank');
+        // Trigger the unique loader generation API
+        window.location.href = `/api/loader/generate?key=${encodeURIComponent(isCasinoKey)}`;
         setIsCasinoKey(null);
         setUserInputKey('');
       } else {

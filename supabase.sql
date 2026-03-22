@@ -240,6 +240,9 @@ CREATE TABLE IF NOT EXISTS public.software_keys (
   metadata jsonb DEFAULT '{}'::jsonb
 );
 
+-- Ensure metadata column exists if table was already created
+ALTER TABLE public.software_keys ADD COLUMN IF NOT EXISTS metadata jsonb DEFAULT '{}'::jsonb;
+
 -- Verification logic for keys (Updated for Casino Mystery Keys)
 CREATE OR REPLACE FUNCTION public.verify_software_key(p_key text)
 RETURNS TABLE (loader_url text, category_name text, success boolean, message text) AS $$
