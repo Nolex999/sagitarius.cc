@@ -77,14 +77,6 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
     setSuccess(null);
 
     try {
-      // Reset state for new spin
-      setResult(null);
-      setSpinning(false);
-      setScrollOffset(0);
-      
-      // Small delay to ensure reset is applied before animation
-      await new Promise(resolve => setTimeout(resolve, 50));
-
       // 1. Call secure server-side spin function
       const { data, error: rpcError } = await supabase.rpc('spin_casino_wheel');
 
@@ -101,13 +93,25 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
 
       // Random landing position within the card (center is 0, -70 to +70)
       const randomLandingOffset = Math.floor(Math.random() * 140) - 70;
-      const cardWidth = 176; // 160px + 16px margin
-      // IMPORTANT: Using the viewport width (scrollRef) instead of the track width
-      const viewportWidth = scrollRef.current?.offsetWidth || 0;
-      const offset = targetIndex * cardWidth - viewportWidth / 2 + cardWidth / 2 + randomLandingOffset;
+      const cardWidth = 176; // 160px + 8px left margin + 8px right margin
       
-      setScrollOffset(offset);
-      setSpinning(true);
+      // Calculate viewport width safely
+      const viewport = scrollRef.current;
+      const viewportWidth = viewport ? viewport.getBoundingClientRect().width : 800;
+      
+      // Center of card 80 should be at center of viewport
+      const offset = (targetIndex * cardWidth) + (cardWidth / 2) - (viewportWidth / 2) + randomLandingOffset;
+      
+      // Reset position to 0 instantly before animating to the real prize
+      setResult(null);
+      setSpinning(false);
+      setScrollOffset(0);
+
+      // Use a timeout to allow the browser to process the reset to 0 before starting the 7s transition
+      setTimeout(() => {
+        setScrollOffset(offset);
+        setSpinning(true);
+      }, 50);
 
       // 2. Start animation (7s)
       setTimeout(async () => {
@@ -121,7 +125,7 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
         if (profileUpdate) setProfile(profileUpdate);
         
         onSpinDone();
-      }, 7000);
+      }, 7050); // Match the CSS transition + reset delay
 
     } catch (err: any) {
       console.error('Casino Spin Error:', err);
@@ -161,7 +165,7 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
             {sequence.map((item, idx) => (
               <div 
                 key={`${item.id}-${idx}`} 
-                className={`flex-shrink-0 w-40 h-32 mx-2 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col items-center justify-center gap-3 transition-colors duration-500 ${spinning ? 'grayscale opacity-50' : 'grayscale-0 opacity-100'}`}
+                className={`flex-shrink-0 w-[160px] h-32 mx-[8px] rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col items-center justify-center gap-3 transition-colors duration-500 ${spinning ? 'grayscale opacity-50' : 'grayscale-0 opacity-100'}`}
               >
                   <item.icon size={32} className={`${item.color} drop-shadow-[0_0_10px_currentColor]`} />
                   <span className={`text-[8px] font-black uppercase tracking-widest text-center px-2 ${item.color}`}>{item.label}</span>
