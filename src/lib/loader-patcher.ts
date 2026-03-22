@@ -6,7 +6,7 @@ import path from 'path';
  * and replacing it with another string.
  */
 export async function patchLoader(templatePath: string, key: string): Promise<Buffer> {
-  const placeholder = "TRINITY-KEY-PLACEHOLDER-FOR-SERVER-PATCHING-TOOL-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-PLACEHOLDER-FOR-SERVE-PATCH-PATCH-KEY-HERE";
+  const placeholder = "SAGITARIUS-KEY-PLACEHOLDER-FOR-SERVER-PATCHING-TOOL-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-PLACEHOLDER-FOR-SERVE-PATCH-PATCH-KEY-HERE";
   const placeholderBuffer = Buffer.from(placeholder, 'utf-8');
   
   if (!fs.existsSync(templatePath)) {
