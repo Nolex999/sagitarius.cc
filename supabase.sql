@@ -221,21 +221,44 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 5. SAGITARIUS INITIALIZATION & SEEDING
 -- ----------------------------------------------------------------------------
 
--- Insert Default Categories (Sagitarius) - Safe with LOWER() conflict handling
-INSERT INTO public.software_categories (name, status, logo_url)
-VALUES 
-  ('CS2 External', 'undetected', '/assets/cs2.webp'),
-  ('FACEIT', 'testing', '/assets/faceit.jpg')
-ON CONFLICT (LOWER(name)) DO UPDATE SET logo_url = EXCLUDED.logo_url;
+-- 5. SAGITARIUS INITIALIZATION & SEEDING & MIGRATION
+-- ----------------------------------------------------------------------------
 
--- Migration: Update old names to new names if they exist
-UPDATE public.software_categories 
-SET name = 'CS2 External', logo_url = '/assets/cs2.webp' 
-WHERE name IN ('Sagitarius CS2 External', 'Trinity CS2 External');
+DO $$
+DECLARE
+    v_cs2_id uuid;
+    v_faceit_id uuid;
+BEGIN
+    -- 5.1 Ensure target categories exist and get IDs
+    INSERT INTO public.software_categories (name, status, logo_url)
+    VALUES ('CS2 External', 'undetected', '/assets/cs2.webp')
+    ON CONFLICT (LOWER(name)) DO UPDATE SET logo_url = EXCLUDED.logo_url
+    RETURNING id INTO v_cs2_id;
 
-UPDATE public.software_categories 
-SET name = 'FACEIT', logo_url = '/assets/faceit.jpg' 
-WHERE name IN ('Sagitarius FACEIT', 'Trinity FACEIT');
+    INSERT INTO public.software_categories (name, status, logo_url)
+    VALUES ('FACEIT', 'testing', '/assets/faceit.jpg')
+    ON CONFLICT (LOWER(name)) DO UPDATE SET logo_url = EXCLUDED.logo_url
+    RETURNING id INTO v_faceit_id;
+
+    -- 5.2 Move FILES from old branding variants to new consolidated ones
+    UPDATE public.software_files SET category_id = v_cs2_id 
+    WHERE category_id IN (SELECT id FROM public.software_categories WHERE name IN ('Sagitarius CS2 External', 'Trinity CS2 External') AND id != v_cs2_id);
+
+    UPDATE public.software_files SET category_id = v_faceit_id 
+    WHERE category_id IN (SELECT id FROM public.software_categories WHERE name IN ('Sagitarius FACEIT', 'Trinity FACEIT') AND id != v_faceit_id);
+
+    -- 5.3 Move KEYS from old branding variants
+    UPDATE public.software_keys SET category_id = v_cs2_id 
+    WHERE category_id IN (SELECT id FROM public.software_categories WHERE name IN ('Sagitarius CS2 External', 'Trinity CS2 External') AND id != v_cs2_id);
+
+    UPDATE public.software_keys SET category_id = v_faceit_id 
+    WHERE category_id IN (SELECT id FROM public.software_categories WHERE name IN ('Sagitarius FACEIT', 'Trinity FACEIT') AND id != v_faceit_id);
+
+    -- 5.4 Safe Cleanup of old obsolete categories
+    DELETE FROM public.software_categories 
+    WHERE name IN ('Sagitarius CS2 External', 'Trinity CS2 External', 'Sagitarius FACEIT', 'Trinity FACEIT')
+    AND id NOT IN (v_cs2_id, v_faceit_id);
+END $$;
 
 -- Seed initial version if empty (Secured placeholder)
 INSERT INTO public.loader_versions (version, download_url, is_mandatory)

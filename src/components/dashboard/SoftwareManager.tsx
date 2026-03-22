@@ -411,8 +411,6 @@ export default function SoftwareManager() {
                     <div>
                       <div className="flex items-center gap-3 mb-1">
                         <span className="text-[8px] font-black text-[var(--accent)]/60 uppercase tracking-[0.4em]">Sagitarius.cc</span>
-                        <div className="h-[1px] w-4 bg-white/10" />
-                        <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em]">Premium v4</span>
                       </div>
                       <h3 className="text-2xl font-black text-white uppercase tracking-[0.25em] group-hover:text-[var(--accent)] transition-colors">{cat.name}</h3>
                     </div>
@@ -420,7 +418,6 @@ export default function SoftwareManager() {
 
                   <div className="flex items-center gap-12 relative z-10 w-full md:w-auto justify-between md:justify-end">
                     <div className="text-right">
-                       <span className="block text-[9px] text-white/20 font-black uppercase tracking-[0.4em] mb-3">System Integrity</span>
                        <div className="flex items-center gap-4 bg-white/[0.02] border border-white/5 px-6 py-2.5 rounded-full">
                          <div className={`w-2 h-2 rounded-full animate-pulse`} style={{ 
                             backgroundColor: cat.status === 'detected' ? '#ef4444' : cat.status === 'testing' ? '#eab308' : '#22c55e',
