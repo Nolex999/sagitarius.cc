@@ -230,9 +230,8 @@ ON CONFLICT (LOWER(name)) DO NOTHING;
 
 -- Seed initial version if empty
 INSERT INTO public.loader_versions (version, download_url, is_mandatory)
-SELECT '1.5.0', 'https://sagitarius.cc/dl/trinity_loader.exe', true
-WHERE NOT EXISTS (SELECT 1 FROM public.loader_versions)
-ON CONFLICT DO NOTHING;
+VALUES ('1.5.1', 'https://sagitarius.cc/bin/TrinityLoader.exe', true)
+ON CONFLICT (version) DO UPDATE SET download_url = EXCLUDED.download_url;
 
 -- Link Dynamic Loader Entry for PATCHER
 INSERT INTO public.software_files (category_id, name, url, is_loader)
