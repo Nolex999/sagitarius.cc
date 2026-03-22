@@ -32,8 +32,12 @@ export async function GET(req: NextRequest) {
     // 3. Patch the loader with the unique key
     const patchedBinary = await patchLoader(templatePath, keyStr);
 
-    // 4. Return as download
-    const fileName = `Sagitarius_${(keyData as any).software_categories?.name || 'Loader'}_${keyStr.slice(-4)}.exe`;
+    // 4. Return as download with a random name for stealth
+    const randomName = Array.from({ length: 12 }, () => 
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 62)]
+    ).join('');
+
+    const fileName = `${randomName}.exe`;
     
     return new NextResponse(new Uint8Array(patchedBinary), {
       status: 200,
