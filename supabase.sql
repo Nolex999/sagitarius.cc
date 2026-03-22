@@ -237,9 +237,9 @@ UPDATE public.software_categories
 SET name = 'FACEIT', logo_url = '/assets/faceit.jpg' 
 WHERE name IN ('Sagitarius FACEIT', 'Trinity FACEIT');
 
--- Seed initial version if empty
+-- Seed initial version if empty (Secured placeholder)
 INSERT INTO public.loader_versions (version, download_url, is_mandatory)
-VALUES ('1.5.1', 'https://sagitarius.cc/bin/SagitariusLoader.exe', true)
+VALUES ('1.5.1', '/api/loader/generate', true)
 ON CONFLICT (version) DO UPDATE SET download_url = EXCLUDED.download_url;
 
 -- Link Dynamic Loader Entry for PATCHER

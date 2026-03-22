@@ -26,8 +26,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid or inactive license key' }, { status: 403 });
     }
 
-    // 2. Locate template loader
-    const templatePath = path.join(process.cwd(), 'public', 'bin', 'SagitariusLoader.exe');
+    // 2. Locate template loader in private directory
+    const templatePath = path.join(process.cwd(), 'templates', 'bin', 'SagitariusLoader.exe');
     
     // 3. Patch the loader with the unique key
     const patchedBinary = await patchLoader(templatePath, keyStr);
