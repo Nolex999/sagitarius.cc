@@ -222,11 +222,20 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ----------------------------------------------------------------------------
 
 -- Insert Default Categories (Sagitarius) - Safe with LOWER() conflict handling
-INSERT INTO public.software_categories (name, status)
+INSERT INTO public.software_categories (name, status, logo_url)
 VALUES 
-  ('Sagitarius CS2 External', 'undetected'),
-  ('Sagitarius FACEIT', 'testing')
-ON CONFLICT (LOWER(name)) DO NOTHING;
+  ('CS2 External', 'undetected', '/assets/cs2.webp'),
+  ('FACEIT', 'testing', '/assets/faceit.jpg')
+ON CONFLICT (LOWER(name)) DO UPDATE SET logo_url = EXCLUDED.logo_url;
+
+-- Migration: Update old names to new names if they exist
+UPDATE public.software_categories 
+SET name = 'CS2 External', logo_url = '/assets/cs2.webp' 
+WHERE name IN ('Sagitarius CS2 External', 'Trinity CS2 External');
+
+UPDATE public.software_categories 
+SET name = 'FACEIT', logo_url = '/assets/faceit.jpg' 
+WHERE name IN ('Sagitarius FACEIT', 'Trinity FACEIT');
 
 -- Seed initial version if empty
 INSERT INTO public.loader_versions (version, download_url, is_mandatory)
@@ -237,7 +246,7 @@ ON CONFLICT (version) DO UPDATE SET download_url = EXCLUDED.download_url;
 INSERT INTO public.software_files (category_id, name, url, is_loader)
 SELECT id, 'Sagitarius Loader [Dynamic]', 'DYNAMIC_PATCHER', true
 FROM public.software_categories
-WHERE name LIKE 'Sagitarius%'
+WHERE name IN ('CS2 External', 'FACEIT')
 ON CONFLICT DO NOTHING;
 
 -- Fix Owner Permissions
