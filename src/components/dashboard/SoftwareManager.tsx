@@ -391,49 +391,54 @@ export default function SoftwareManager() {
       {activeTab === 'status' ? (
         <div className="space-y-6 animate-fade-in pb-20">
            {/* Monitoring Detailed View */}
-           <div className="grid grid-cols-1 gap-4">
-             {categories.map(cat => (
-               <div key={`status-tab-${cat.id}`} className="p-8 rounded-[2.5rem] bg-white/[0.01] border border-white/5 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 h-32 w-32 bg-[var(--accent)]/5 blur-[50px] -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+          <div className="grid grid-cols-1 gap-6 pb-20">
+            {categories.map(cat => (
+              <div key={`status-tab-${cat.id}`} className="relative group">
+                {/* Premium Background Glow */}
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--accent)]/0 to-[var(--accent)]/10 rounded-[2.5rem] blur opacity-0 group-hover:opacity-100 transition duration-700" />
+                
+                <div className="relative p-10 rounded-[2.5rem] bg-[#050505]/60 border border-white/5 flex flex-col md:flex-row items-center justify-between gap-10 backdrop-blur-3xl overflow-hidden transition-all duration-500 group-hover:bg-[#070707]/80">
+                  <div className="absolute top-0 right-0 h-40 w-40 bg-[var(--accent)]/5 blur-[60px] -translate-y-1/2 translate-x-1/2 opacity-20 group-hover:opacity-40 transition-opacity" />
                   
-                  <div className="flex items-center gap-6 relative z-10 w-full md:w-auto">
-                    <div className="h-16 w-16 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center p-3 overflow-hidden shadow-inner">
+                  <div className="flex items-center gap-8 relative z-10 w-full md:w-auto">
+                    <div className="h-20 w-20 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center p-4 overflow-hidden shadow-2xl group-hover:scale-105 transition-transform duration-500">
                       {cat.logo_url ? (
-                        <img src={cat.logo_url} alt={cat.name} className="w-full h-full object-cover opacity-80" />
+                        <img src={cat.logo_url} alt={cat.name} className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
                       ) : (
-                        <Package className="text-white/10" size={24} />
+                        <Package className="text-white/10" size={32} />
                       )}
                     </div>
                     <div>
-                      <h3 className="text-xl font-black text-white uppercase tracking-widest">{cat.name}</h3>
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-[8px] font-black text-[var(--accent)]/60 uppercase tracking-[0.4em]">Sagitarius.cc</span>
+                        <div className="h-[1px] w-4 bg-white/10" />
+                        <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em]">Premium v4</span>
+                      </div>
+                      <h3 className="text-2xl font-black text-white uppercase tracking-[0.25em] group-hover:text-[var(--accent)] transition-colors">{cat.name}</h3>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-8 relative z-10 w-full md:w-auto justify-between md:justify-end">
-                    <div className="text-center">
-                       <span className="block text-[8px] text-white/10 font-black uppercase tracking-[0.3em] mb-2">Current State</span>
-                       <div className="flex items-center gap-3">
-                         <div className={`w-2 h-2 rounded-full animate-pulse transition-all`} style={{ 
+                  <div className="flex items-center gap-12 relative z-10 w-full md:w-auto justify-between md:justify-end">
+                    <div className="text-right">
+                       <span className="block text-[9px] text-white/20 font-black uppercase tracking-[0.4em] mb-3">System Integrity</span>
+                       <div className="flex items-center gap-4 bg-white/[0.02] border border-white/5 px-6 py-2.5 rounded-full">
+                         <div className={`w-2 h-2 rounded-full animate-pulse`} style={{ 
                             backgroundColor: cat.status === 'detected' ? '#ef4444' : cat.status === 'testing' ? '#eab308' : '#22c55e',
-                            boxShadow: `0 0-12px ${cat.status === 'detected' ? 'rgba(239,68,68,0.6)' : cat.status === 'testing' ? 'rgba(234,179,8,0.6)' : 'rgba(34,197,94,0.6)'}`
+                            boxShadow: `0 0 15px ${cat.status === 'detected' ? 'rgba(239,68,68,0.8)' : cat.status === 'testing' ? 'rgba(234,179,8,0.8)' : 'rgba(34,197,94,0.8)'}`
                          }} />
-                         <span className={`text-base font-black uppercase tracking-[0.2em] ${
+                         <span className={`text-[11px] font-black uppercase tracking-[0.3em] ${
                             cat.status === 'detected' ? 'text-red-500' :
                             cat.status === 'testing' ? 'text-yellow-500' :
                             'text-green-500'
                          }`}>
-                           {(cat.status || 'undetected').toUpperCase()}
+                           {(cat.status || 'undetected')}
                          </span>
                        </div>
                     </div>
 
                     {isManager && (
-                      <div className="h-12 w-[1px] bg-white/5 hidden md:block" />
-                    )}
-
-                    {isManager && (
-                      <div className="flex flex-col gap-2">
-                        <span className="text-[8px] text-white/10 font-black uppercase tracking-[0.2em]">Quick Action</span>
+                      <div className="flex flex-col gap-2 bg-white/[0.03] p-4 rounded-2xl border border-white/5">
+                        <span className="text-[8px] text-white/30 font-black uppercase tracking-[0.2em] mb-1">Admin Access</span>
                         <select
                           value={cat.status || 'undetected'}
                           onChange={async (e) => {
@@ -441,7 +446,7 @@ export default function SoftwareManager() {
                             const { error } = await supabase.from('software_categories').update({ status: newStatus }).eq('id', cat.id);
                             if (!error) fetchData();
                           }}
-                          className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-[10px] font-black text-white/40 uppercase tracking-widest outline-none focus:border-[var(--accent)]/30 transition-all hover:text-white cursor-pointer"
+                          className="bg-black/60 border border-white/10 rounded-xl px-4 py-2 text-[10px] font-black text-white/60 uppercase tracking-widest outline-none focus:border-[var(--accent)]/40 transition-all hover:text-white cursor-pointer"
                         >
                           <option value="undetected">Set UNDETECTED</option>
                           <option value="testing">Set TESTING</option>
@@ -450,9 +455,10 @@ export default function SoftwareManager() {
                       </div>
                     )}
                   </div>
-               </div>
-             ))}
-           </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
         <div className="space-y-6 animate-fade-in">
