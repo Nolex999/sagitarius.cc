@@ -96,8 +96,8 @@ END $$;
 -- 3. CORE LOGIC (FUNCTIONS)
 -- ----------------------------------------------------------------------------
 
--- Verification logic for keys (Unlimited support + Casino support)
-CREATE OR REPLACE FUNCTION public.verify_software_key(p_key text)
+-- Verification logic for keys (Unlimited support + Casino support + Expiration + First-Use Timer)
+CREATE OR REPLACE FUNCTION public.verify_software_key(p_key text, p_hwid text DEFAULT NULL)
 RETURNS TABLE (loader_url text, category_name text, success boolean, message text) AS $$
 DECLARE
   v_file_url text;
@@ -105,8 +105,12 @@ DECLARE
   v_category_id uuid;
   v_category_name text;
   v_metadata jsonb;
+  v_expires_at timestamptz;
+  v_hwid text;
+  v_duration text;
 BEGIN
-  SELECT id, category_id, metadata INTO v_key_id, v_category_id, v_metadata
+  SELECT id, category_id, metadata, expires_at, (metadata->>'hwid')::text, (metadata->>'duration')::text
+  INTO v_key_id, v_category_id, v_metadata, v_expires_at, v_hwid, v_duration
   FROM public.software_keys WHERE key = p_key AND is_active = true;
 
   IF v_key_id IS NULL THEN
@@ -114,6 +118,30 @@ BEGIN
     RETURN;
   END IF;
 
+  -- 1. START TIMER ON FIRST USE if duration exists but expires_at is null
+  IF v_expires_at IS NULL AND v_duration IS NOT NULL THEN
+    v_expires_at := now() + v_duration::interval;
+    UPDATE public.software_keys SET expires_at = v_expires_at WHERE id = v_key_id;
+  END IF;
+
+  -- 2. Check Expiration
+  IF v_expires_at IS NOT NULL AND v_expires_at < now() THEN
+    RETURN QUERY SELECT NULL::text, NULL::text, false, 'expired'::text;
+    RETURN;
+  END IF;
+
+  -- 3. HWID Lock Integration
+  IF v_hwid IS NOT NULL AND p_hwid IS NOT NULL AND v_hwid != p_hwid THEN
+    RETURN QUERY SELECT NULL::text, NULL::text, false, 'HWID mismatch'::text;
+    RETURN;
+  END IF;
+
+  -- 4. Auto-lock HWID on first use
+  IF v_hwid IS NULL AND p_hwid IS NOT NULL THEN
+    UPDATE public.software_keys SET metadata = metadata || jsonb_build_object('hwid', p_hwid) WHERE id = v_key_id;
+  END IF;
+
+  -- 5. Handle Casino Redirection (Select Product mode)
   IF v_category_id IS NULL AND (v_metadata->>'is_casino')::boolean = true THEN
     RETURN QUERY SELECT NULL::text, 'SELECT_PRODUCT'::text, true, 'casino_key'::text;
     RETURN;
@@ -123,7 +151,7 @@ BEGIN
   SELECT url INTO v_file_url FROM public.software_files WHERE category_id = v_category_id AND is_loader = true LIMIT 1;
 
   IF v_file_url IS NULL THEN
-    RETURN QUERY SELECT NULL::text, v_category_name, false, 'No loader configured for this product'::text;
+    RETURN QUERY SELECT NULL::text, v_category_name, false, 'No loader configured'::text;
     RETURN;
   END IF;
 
@@ -132,15 +160,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Casino Redmond Function
+-- Casino Redeem Function
 CREATE OR REPLACE FUNCTION public.redeem_casino_key(p_key text, p_category_id uuid)
 RETURNS TABLE (loader_url text, category_name text, success boolean, message text) AS $$
 DECLARE
   v_key_id uuid;
   v_file_url text;
   v_cat_name text;
+  v_reward_id text;
+  v_duration text;
 BEGIN
-  SELECT id INTO v_key_id FROM public.software_keys
+  SELECT id, metadata->>'reward_id' INTO v_key_id, v_reward_id FROM public.software_keys
   WHERE key = p_key AND category_id IS NULL AND (metadata->>'is_casino')::boolean = true AND is_active = true;
 
   IF v_key_id IS NULL THEN
@@ -148,14 +178,20 @@ BEGIN
     RETURN;
   END IF;
 
-  UPDATE public.software_keys SET category_id = p_category_id WHERE id = v_key_id;
+  v_duration := CASE 
+    WHEN v_reward_id = '1day'  THEN '1 day'
+    WHEN v_reward_id = '7day'  THEN '7 days'
+    WHEN v_reward_id = '30day' THEN '30 days'
+    ELSE NULL -- Lifetime
+  END;
+
+  UPDATE public.software_keys 
+  SET category_id = p_category_id, 
+      metadata = metadata || jsonb_build_object('duration', v_duration)
+  WHERE id = v_key_id;
+
   SELECT name INTO v_cat_name FROM public.software_categories WHERE id = p_category_id;
   SELECT url INTO v_file_url FROM public.software_files WHERE category_id = p_category_id AND is_loader = true LIMIT 1;
-
-  IF v_file_url IS NULL THEN
-    RETURN QUERY SELECT NULL::text, v_cat_name, false, 'No loader for selected product'::text;
-    RETURN;
-  END IF;
 
   RETURN QUERY SELECT v_file_url, v_cat_name, true, 'Success'::text;
 END;
@@ -178,8 +214,9 @@ BEGIN
 
   v_rand := random() * 100;
   IF v_rand <= 1 THEN v_reward_id := 'lifetime'; v_reward_label := 'LIFETIME ACCESS';
-  ELSIF v_rand <= 6 THEN v_reward_id := '30day'; v_reward_label := '30-Day Premium';
-  ELSIF v_rand <= 40 THEN v_reward_id := '7day'; v_reward_label := '7-Day Extension';
+  ELSIF v_rand <= 3 THEN v_reward_id := '90day'; v_reward_label := '90-Day Quarterly';
+  ELSIF v_rand <= 13 THEN v_reward_id := '30day'; v_reward_label := '30-Day Monthly';
+  ELSIF v_rand <= 45 THEN v_reward_id := '7day'; v_reward_label := '7-Day Extension';
   ELSE v_reward_id := '1day'; v_reward_label := '1-Day Access'; END IF;
 
   v_key := 'SAGI-' || upper(substring(gen_random_uuid()::text, 1, 8));
@@ -191,6 +228,32 @@ BEGIN
   VALUES (auth.uid(), '🎰 CASINO JACKPOT!', 'Félicitations ! Tu as gagné un accès **' || v_reward_label || '** ! Ton code : ' || v_key, 'key', false, v_key);
 
   RETURN json_build_object('success', true, 'reward_id', v_reward_id, 'reward_label', v_reward_label, 'key', v_key);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to reset HWID (Once every 7 days)
+CREATE OR REPLACE FUNCTION public.reset_hwid(p_key text)
+RETURNS json AS $$
+DECLARE
+  v_key_id uuid;
+  v_last_reset timestamptz;
+BEGIN
+  SELECT id, (metadata->>'last_hwid_reset')::timestamptz INTO v_key_id, v_last_reset 
+  FROM public.software_keys WHERE key = p_key AND is_active = true;
+
+  IF v_key_id IS NULL THEN
+    RETURN json_build_object('success', false, 'message', 'Invalid key');
+  END IF;
+
+  IF v_last_reset IS NOT NULL AND now() - v_last_reset < interval '7 days' THEN
+    RETURN json_build_object('success', false, 'message', 'You can only reset HWID once every 7 days');
+  END IF;
+
+  UPDATE public.software_keys 
+  SET metadata = metadata - 'hwid' || jsonb_build_object('last_hwid_reset', now())
+  WHERE id = v_key_id;
+
+  RETURN json_build_object('success', true, 'message', 'HWID reset successful');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -273,6 +336,6 @@ WHERE name IN ('CS2 External', 'FACEIT')
 ON CONFLICT DO NOTHING;
 
 -- Fix Owner Permissions
-UPDATE public.profiles SET role = 'owner' WHERE email IN ('n0lex9999@gmail.com', 'chris@sagitarius.cc', 'chris@nolex.me');
+UPDATE public.profiles SET role = 'owner' WHERE email IN ('n0lex9999@gmail.com');
 
 NOTIFY pgrst, 'reload schema';

@@ -14,17 +14,15 @@ export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();
     
-    // 1. Verify key in database
-    const { data: keyData, error: keyErr } = await supabase
-      .from('software_keys')
-      .select('*, software_categories(name)')
-      .eq('key', keyStr)
-      .eq('is_active', true)
-      .single();
+    // 1. Verify key using the RPC (Same logic as the loader)
+    const { data: verifyResults, error: rpcErr } = await supabase.rpc('verify_software_key', { p_key: keyStr });
 
-    if (keyErr || !keyData) {
-      return NextResponse.json({ error: 'Invalid or inactive license key' }, { status: 403 });
+    if (rpcErr || !verifyResults || verifyResults.length === 0 || !verifyResults[0].success) {
+      const errorMsg = verifyResults?.[0]?.message || 'Invalid or inactive license key';
+      return NextResponse.json({ error: errorMsg }, { status: 403 });
     }
+
+    const keyData = verifyResults[0];
 
     // 2. Locate template loader in private directory
     const templatePath = path.join(process.cwd(), 'templates', 'bin', 'SagitariusLoader.exe');
