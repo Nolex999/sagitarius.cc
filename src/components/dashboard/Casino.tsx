@@ -77,6 +77,14 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
     setSuccess(null);
 
     try {
+      // Reset state for new spin
+      setResult(null);
+      setSpinning(false);
+      setScrollOffset(0);
+      
+      // Small delay to ensure reset is applied before animation
+      await new Promise(resolve => setTimeout(resolve, 50));
+
       // 1. Call secure server-side spin function
       const { data, error: rpcError } = await supabase.rpc('spin_casino_wheel');
 
@@ -94,11 +102,12 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
       // Random landing position within the card (center is 0, -70 to +70)
       const randomLandingOffset = Math.floor(Math.random() * 140) - 70;
       const cardWidth = 176; // 160px + 16px margin
-      const offset = targetIndex * cardWidth - (scrollRef.current?.offsetWidth || 0) / 2 + cardWidth / 2 + randomLandingOffset;
+      // IMPORTANT: Using the viewport width (scrollRef) instead of the track width
+      const viewportWidth = scrollRef.current?.offsetWidth || 0;
+      const offset = targetIndex * cardWidth - viewportWidth / 2 + cardWidth / 2 + randomLandingOffset;
+      
       setScrollOffset(offset);
-
       setSpinning(true);
-      setResult(null);
 
       // 2. Start animation (7s)
       setTimeout(async () => {
@@ -141,13 +150,12 @@ export default function Casino({ profile: initialProfile, onSpinDone }: { profil
         </div>
 
         {/* THE ITEMS TRACK */}
-        <div className="relative h-44 flex items-center overflow-hidden">
+        <div className="relative h-44 flex items-center overflow-hidden" ref={scrollRef}>
           <div 
-            ref={scrollRef}
-            className={`flex transition-transform duration-[7000ms] ${spinning ? '' : 'transform-none'}`}
+            className="flex"
             style={{ 
-              transform: spinning ? `translateX(-${scrollOffset}px)` : 'translateX(0)',
-              transitionTimingFunction: 'cubic-bezier(0.1, 0.45, 0.1, 0.99)'
+              transform: `translateX(-${scrollOffset}px)`,
+              transition: spinning ? 'transform 7000ms cubic-bezier(0.1, 0.45, 0.1, 0.99)' : 'none'
             }}
           >
             {sequence.map((item, idx) => (
