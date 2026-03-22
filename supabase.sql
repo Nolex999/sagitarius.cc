@@ -1,16 +1,13 @@
 -- ============================================================================
--- Sagitarius.cc - ULTIMATE MASTER SETUP (FIXED)
--- Combines: Core Schema + Bio Profiles + Software Manager + License Keys + Inbox
+-- Sagitarius.cc - ULTIMATE MASTER SETUP (FINAL - TRINITY INTEGRATED)
+-- Combines: Core Schema + Bio Profiles + Software Manager + License Keys + Inbox + Casino
 -- ============================================================================
 
--- Désactive temporairement le cache pour s'assurer que les changements sont pris en compte
 NOTIFY pgrst, 'reload schema';
 
--- ==========================================
--- 1. TABLES DE BASE (CELEBRITIES & LYCÉE)
+-- 1. TABLES DE BASE
 -- ==========================================
 
--- Table: celebrities
 CREATE TABLE IF NOT EXISTS public.celebrities (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
@@ -22,14 +19,12 @@ CREATE TABLE IF NOT EXISTS public.celebrities (
   created_by uuid REFERENCES auth.users(id)
 );
 
--- Table: lycee_classes
 CREATE TABLE IF NOT EXISTS public.lycee_classes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
   order_index int DEFAULT 1
 );
 
--- Table: lycee_entries
 CREATE TABLE IF NOT EXISTS public.lycee_entries (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   class_id uuid REFERENCES public.lycee_classes(id) ON DELETE CASCADE,
@@ -42,47 +37,26 @@ CREATE TABLE IF NOT EXISTS public.lycee_entries (
   created_by uuid REFERENCES auth.users(id)
 );
 
--- ==========================================
 -- 2. SYSTÈME DE COMPTES & RÔLES
 -- ==========================================
 
--- Table: profiles
 CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   username text,
+  email text,
+  avatar_url text,
   role text DEFAULT 'member',
+  hwid text,
+  last_hwid_reset timestamptz,
+  hwid_reset_status text,
+  last_casino_spin timestamptz,
   created_at timestamptz DEFAULT now()
 );
 
--- FIX: Assurer que les colonnes nécessaires existent dans profiles
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email text;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url text;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS created_at timestamptz DEFAULT now();
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS hwid text;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_hwid_reset timestamptz;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS hwid_reset_status text;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_casino_spin timestamptz;
-
--- Mise à jour de la contrainte ROLE
 ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
 ALTER TABLE public.profiles ADD CONSTRAINT profiles_role_check 
   CHECK (role IN ('member', 'admin', 'owner', 'vip', 'super_vip', 'high_member'));
 
--- Table: inv_code (Invitations)
-CREATE TABLE IF NOT EXISTS public.inv_code (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  code text UNIQUE NOT NULL,
-  is_active boolean DEFAULT true,
-  max_uses int DEFAULT 1,
-  current_uses int DEFAULT 0,
-  expires_at timestamptz,
-  created_by uuid REFERENCES auth.users(id)
-);
-
--- FIX: Assurer que les colonnes nécessaires existent dans inv_code
-ALTER TABLE public.inv_code ADD COLUMN IF NOT EXISTS assigned_to uuid REFERENCES auth.users(id);
-
--- Création auto du profil
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
@@ -98,24 +72,7 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- Fonction de validation de code invitation
-CREATE OR REPLACE FUNCTION public.validate_invite_code(p_code text)
-RETURNS json AS $$
-DECLARE v_valid boolean;
-BEGIN
-  SELECT EXISTS (
-    SELECT 1 FROM inv_code
-    WHERE upper(trim(code)) = upper(trim(p_code))
-      AND is_active = true
-      AND (expires_at IS NULL OR expires_at > now())
-      AND (max_uses = 0 OR current_uses < max_uses)
-  ) INTO v_valid;
-  RETURN json_build_object('valid', v_valid);
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- ==========================================
--- 3. BIO PROFILES system
+-- 3. BIO PROFILES
 -- ==========================================
 
 CREATE TABLE IF NOT EXISTS public.bio_profiles (
@@ -129,36 +86,9 @@ CREATE TABLE IF NOT EXISTS public.bio_profiles (
   updated_at timestamptz DEFAULT now()
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS bio_profiles_username_idx ON public.bio_profiles(username);
-CREATE INDEX IF NOT EXISTS bio_profiles_user_id_idx ON public.bio_profiles(user_id);
-
-CREATE OR REPLACE FUNCTION update_bio_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = now();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS bio_profiles_updated_at ON public.bio_profiles;
-CREATE TRIGGER bio_profiles_updated_at
-  BEFORE UPDATE ON public.bio_profiles
-  FOR EACH ROW EXECUTE FUNCTION update_bio_updated_at();
-
-CREATE OR REPLACE FUNCTION increment_bio_views(profile_username text)
-RETURNS void AS $$
-BEGIN
-  UPDATE public.bio_profiles
-  SET views = views + 1
-  WHERE username = profile_username AND is_published = true;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- ==========================================
--- 4. NEW: SOFTWARE MANAGEMENT SYSTEM
+-- 4. SOFTWARE MANAGEMENT (TRINITY ENABLED)
 -- ==========================================
 
--- Software Categories
 CREATE TABLE IF NOT EXISTS public.software_categories (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
@@ -168,10 +98,6 @@ CREATE TABLE IF NOT EXISTS public.software_categories (
   created_by uuid REFERENCES auth.users(id)
 );
 
--- Ensure status column exists if table was already created
-ALTER TABLE public.software_categories ADD COLUMN IF NOT EXISTS status text DEFAULT 'undetected';
-
--- Software Files
 CREATE TABLE IF NOT EXISTS public.software_files (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   category_id uuid REFERENCES public.software_categories(id) ON DELETE CASCADE,
@@ -185,49 +111,6 @@ CREATE TABLE IF NOT EXISTS public.software_files (
   created_by uuid REFERENCES auth.users(id)
 );
 
--- Function to broadcast a message to all users
-CREATE OR REPLACE FUNCTION public.broadcast_message(p_title text, p_content text, p_type text DEFAULT 'notification')
-RETURNS void AS $$
-BEGIN
-  -- Verify requester is admin or owner
-  IF NOT EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND role IN ('admin', 'owner')
-  ) THEN
-    RAISE EXCEPTION 'Unauthorized';
-  END IF;
-
-  INSERT INTO public.inbox_messages (user_id, title, content, type)
-  SELECT id, p_title, p_content, p_type FROM public.profiles;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Function to send a message to a specific user by email
-CREATE OR REPLACE FUNCTION public.send_direct_message(p_email text, p_title text, p_content text, p_type text DEFAULT 'notification')
-RETURNS void AS $$
-DECLARE
-  v_user_id uuid;
-BEGIN
-  -- Verify requester is admin or owner
-  IF NOT EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND role IN ('admin', 'owner')
-  ) THEN
-    RAISE EXCEPTION 'Unauthorized';
-  END IF;
-
-  SELECT id INTO v_user_id FROM public.profiles WHERE email = p_email;
-  
-  IF v_user_id IS NULL THEN
-    RAISE EXCEPTION 'User not found';
-  END IF;
-
-  INSERT INTO public.inbox_messages (user_id, title, content, type)
-  VALUES (v_user_id, p_title, p_content, p_type);
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Software Activation Keys
 CREATE TABLE IF NOT EXISTS public.software_keys (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   key text UNIQUE NOT NULL,
@@ -235,15 +118,14 @@ CREATE TABLE IF NOT EXISTS public.software_keys (
   is_active boolean DEFAULT true,
   max_uses int DEFAULT 1,
   current_uses int DEFAULT 0,
+  metadata jsonb DEFAULT '{}'::jsonb,
   created_at timestamptz DEFAULT now(),
-  created_by uuid REFERENCES auth.users(id),
-  metadata jsonb DEFAULT '{}'::jsonb
+  created_by uuid REFERENCES auth.users(id)
 );
 
--- Ensure metadata column exists if table was already created
-ALTER TABLE public.software_keys ADD COLUMN IF NOT EXISTS metadata jsonb DEFAULT '{}'::jsonb;
+-- 5. VERIFICATION & REDEMPTION LOGIC
+-- ==========================================
 
--- Verification logic for keys (Updated for Casino Mystery Keys)
 CREATE OR REPLACE FUNCTION public.verify_software_key(p_key text)
 RETURNS TABLE (loader_url text, category_name text, success boolean, message text) AS $$
 DECLARE
@@ -253,26 +135,20 @@ DECLARE
   v_category_name text;
   v_metadata jsonb;
 BEGIN
-  -- Search for key across all categories
   SELECT id, category_id, metadata INTO v_key_id, v_category_id, v_metadata
-  FROM public.software_keys
-  WHERE key = p_key AND is_active = true;
+  FROM public.software_keys WHERE key = p_key AND is_active = true;
 
   IF v_key_id IS NULL THEN
     RETURN QUERY SELECT NULL::text, NULL::text, false, 'Invalid or disabled key'::text;
     RETURN;
   END IF;
 
-  -- CASINO KEY logic
   IF v_category_id IS NULL AND (v_metadata->>'is_casino')::boolean = true THEN
     RETURN QUERY SELECT NULL::text, 'SELECT_PRODUCT'::text, true, 'casino_key'::text;
     RETURN;
   END IF;
 
-  -- Get category info
   SELECT name INTO v_category_name FROM public.software_categories WHERE id = v_category_id;
-
-  -- Get loader file
   SELECT url INTO v_file_url FROM public.software_files
   WHERE category_id = v_category_id AND is_loader = true LIMIT 1;
 
@@ -281,14 +157,11 @@ BEGIN
     RETURN;
   END IF;
 
-  -- Increment uses but don't block if max_uses exceeded (per user request for unlimited)
   UPDATE public.software_keys SET current_uses = current_uses + 1 WHERE id = v_key_id;
-  
   RETURN QUERY SELECT v_file_url, v_category_name, true, 'Success'::text;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- New function to redeem a casino mystery key
 CREATE OR REPLACE FUNCTION public.redeem_casino_key(p_key text, p_category_id uuid)
 RETURNS TABLE (loader_url text, category_name text, success boolean, message text) AS $$
 DECLARE
@@ -296,7 +169,6 @@ DECLARE
   v_file_url text;
   v_cat_name text;
 BEGIN
-  -- Verify the key is a valid casino key
   SELECT id INTO v_key_id FROM public.software_keys
   WHERE key = p_key AND category_id IS NULL AND (metadata->>'is_casino')::boolean = true AND is_active = true;
 
@@ -305,10 +177,7 @@ BEGIN
     RETURN;
   END IF;
 
-  -- Bind the key to the selected category
   UPDATE public.software_keys SET category_id = p_category_id WHERE id = v_key_id;
-
-  -- Get loader info
   SELECT name INTO v_cat_name FROM public.software_categories WHERE id = p_category_id;
   SELECT url INTO v_file_url FROM public.software_files WHERE category_id = p_category_id AND is_loader = true LIMIT 1;
 
@@ -321,8 +190,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- ==========================================
--- 5. NEW: INBOX SYSTEM
+-- 6. INBOX SYSTEM
 -- ==========================================
 
 CREATE TABLE IF NOT EXISTS public.inbox_messages (
@@ -338,115 +206,7 @@ CREATE TABLE IF NOT EXISTS public.inbox_messages (
   created_at timestamptz DEFAULT now()
 );
 
--- ==========================================
--- 6. SÉCURITÉ (RLS)
--- ==========================================
-
-ALTER TABLE public.celebrities ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.lycee_entries ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.bio_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.software_categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.software_files ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.software_keys ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.inbox_messages ENABLE ROW LEVEL SECURITY;
-
--- 6.0 Profiles Policies
-DROP POLICY IF EXISTS "Anyone can view profiles" ON public.profiles;
-CREATE POLICY "Anyone can view profiles" ON public.profiles FOR SELECT TO authenticated USING (true);
-DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
-CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id);
-DROP POLICY IF EXISTS "Admins can update any profile" ON public.profiles;
-CREATE POLICY "Admins can update any profile" ON public.profiles FOR UPDATE TO authenticated USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('admin', 'owner'))
-);
-
--- 6.1 Celebrities Policies
-DROP POLICY IF EXISTS "Anyone can view celebrities" ON public.celebrities;
-CREATE POLICY "Anyone can view celebrities" ON public.celebrities FOR SELECT TO authenticated USING (true);
-DROP POLICY IF EXISTS "Authenticated users can add celebrities" ON public.celebrities;
-CREATE POLICY "Authenticated users can add celebrities" ON public.celebrities FOR INSERT TO authenticated WITH CHECK (true);
-
--- 6.2 Lycée Policies
-DROP POLICY IF EXISTS "Anyone can view lycee classes" ON public.lycee_classes;
-CREATE POLICY "Anyone can view lycee classes" ON public.lycee_classes FOR SELECT TO authenticated USING (true);
-DROP POLICY IF EXISTS "Anyone can view lycee entries" ON public.lycee_entries;
-CREATE POLICY "Anyone can view lycee entries" ON public.lycee_entries FOR SELECT TO authenticated USING (true);
-DROP POLICY IF EXISTS "Authenticated users can add lycee entries" ON public.lycee_entries;
-CREATE POLICY "Authenticated users can add lycee entries" ON public.lycee_entries FOR INSERT TO authenticated WITH CHECK (true);
-
--- 6.4 Inbox Policies
-DROP POLICY IF EXISTS "Users can view own messages" ON public.inbox_messages;
-CREATE POLICY "Users can view own messages" ON public.inbox_messages FOR SELECT TO authenticated USING (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Users can update own messages" ON public.inbox_messages;
-CREATE POLICY "Users can update own messages" ON public.inbox_messages FOR UPDATE TO authenticated USING (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Users can delete own messages" ON public.inbox_messages;
-CREATE POLICY "Users can delete own messages" ON public.inbox_messages FOR DELETE TO authenticated USING (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Anyone can insert own messages" ON public.inbox_messages;
-CREATE POLICY "Anyone can insert own messages" ON public.inbox_messages FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
--- Allow admins/owners to delete any message
-DROP POLICY IF EXISTS "Admins can delete any message" ON public.inbox_messages;
-CREATE POLICY "Admins can delete any message" ON public.inbox_messages FOR DELETE TO authenticated USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('admin', 'owner'))
-);
-
--- 6.5 Software System Policies
-DROP POLICY IF EXISTS "Anyone can view categories" ON public.software_categories;
-CREATE POLICY "Anyone can view categories" ON public.software_categories FOR SELECT TO authenticated USING (true);
-
-DROP POLICY IF EXISTS "Anyone can view files" ON public.software_files;
-CREATE POLICY "Anyone can view files" ON public.software_files FOR SELECT TO authenticated USING (true);
-
-DROP POLICY IF EXISTS "Anyone can view own keys" ON public.software_keys;
-CREATE POLICY "Anyone can view own keys" ON public.software_keys FOR SELECT TO authenticated USING (true);
-
--- 6.6 Storage Policies (Avatar)
--- This ensures the bucket exists and is public
-INSERT INTO storage.buckets (id, name, public) VALUES ('avatar', 'avatar', true) ON CONFLICT (id) DO NOTHING;
-
--- Policy to allow anyone (public) to see the avatars
-DROP POLICY IF EXISTS "Avatar images are publicly accessible" ON storage.objects;
-CREATE POLICY "Avatar images are publicly accessible" ON storage.objects FOR SELECT USING (bucket_id = 'avatar');
-
--- Policy to allow authenticated users to upload their own avatar
-DROP POLICY IF EXISTS "Anyone can upload an avatar" ON storage.objects;
-CREATE POLICY "Anyone can upload an avatar" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'avatar');
-
--- Policy to allow users to update/delete their own avatar
-DROP POLICY IF EXISTS "Anyone can update their own avatar" ON storage.objects;
-CREATE POLICY "Anyone can update their own avatar" ON storage.objects FOR UPDATE TO authenticated USING (auth.uid() = owner) WITH CHECK (bucket_id = 'avatar');
-
-DROP POLICY IF EXISTS "Anyone can delete their own avatar" ON storage.objects;
-CREATE POLICY "Anyone can delete their own avatar" ON storage.objects FOR DELETE TO authenticated USING (auth.uid() = owner);
-
--- (Autres politiques simplifiées pour brevity...)
-DROP POLICY IF EXISTS "Public can read published bio profiles" ON public.bio_profiles;
-CREATE POLICY "Public can read published bio profiles" ON public.bio_profiles FOR SELECT USING (is_published = true);
-DROP POLICY IF EXISTS "Users can manage own bio" ON public.bio_profiles;
-CREATE POLICY "Users can manage own bio" ON public.bio_profiles FOR ALL TO authenticated USING (auth.uid() = user_id);
-
--- ==========================================
--- 8. INITIALISATION
--- ==========================================
-
--- FIX: Définit le propriétaire de manière plus robuste (via auth.users)
-DO $$
-BEGIN
-  -- D'abord, on s'assure que l'email est rempli dans profiles pour cet utilisateur
-  UPDATE public.profiles p
-  SET email = u.email, role = 'owner'
-  FROM auth.users u
-  WHERE p.id = u.id AND u.email = 'n0lex9999@gmail.com';
-END $$;
-
--- Crée une classe par défaut
-INSERT INTO public.lycee_classes (name, order_index) SELECT 'Général', 1
-WHERE NOT EXISTS (SELECT 1 FROM public.lycee_classes LIMIT 1);
-
-NOTIFY pgrst, 'reload schema';
-
--- ==========================================
--- 9. CASINO SYSTÈME (FONCTION SÉCURISÉE)
+-- 7. CASINO SYSTEM
 -- ==========================================
 
 CREATE OR REPLACE FUNCTION public.spin_casino_wheel()
@@ -459,45 +219,83 @@ DECLARE
   v_reward_label text;
   v_key text;
 BEGIN
-  -- 1. Récupération des infos utilisateur
   SELECT role, last_casino_spin INTO v_user_role, v_last_spin 
   FROM public.profiles WHERE id = auth.uid();
 
-  -- 2. Vérification Rôle
   IF v_user_role NOT IN ('vip', 'super_vip', 'admin', 'owner') THEN
     RAISE EXCEPTION 'Ce casino est réservé aux membres VIP uniquement';
   END IF;
 
-  -- 3. Vérification Cooldown (7 jours) - Skip pour super_vip
   IF v_user_role != 'super_vip' AND v_last_spin IS NOT NULL AND now() - v_last_spin < interval '7 days' THEN
     RAISE EXCEPTION 'Tu dois attendre 1 semaine entre chaque spin';
   END IF;
 
-  -- 4. Tirage au sort
   v_rand := random() * 100;
   IF v_rand <= 1 THEN v_reward_id := 'lifetime'; v_reward_label := 'LIFETIME ACCESS';
   ELSIF v_rand <= 6 THEN v_reward_id := '30day'; v_reward_label := '30-Day Premium';
   ELSIF v_rand <= 40 THEN v_reward_id := '7day'; v_reward_label := '7-Day Extension';
   ELSE v_reward_id := '1day'; v_reward_label := '1-Day Access'; END IF;
 
-  -- 5. Génération et Insertion d'une clé MYSTÈRE (sans category_id fixe)
   v_key := 'SAGI-' || upper(substring(gen_random_uuid()::text, 1, 8));
   
-  -- On insère la clé avec le flag is_casino, elle ne sera liée qu'au moment du téléchargement
   INSERT INTO public.software_keys (key, category_id, max_uses, created_by, metadata)
-  VALUES (v_key, NULL, 1, auth.uid(), jsonb_build_object(
-    'reward_id', v_reward_id, 
-    'reward_label', v_reward_label,
-    'is_casino', true
-  ));
+  VALUES (v_key, NULL, 1, auth.uid(), jsonb_build_object('reward_id', v_reward_id, 'reward_label', v_reward_label, 'is_casino', true));
 
-  -- 6. Mise à jour de la date de spin
   UPDATE public.profiles SET last_casino_spin = now() WHERE id = auth.uid();
-
-  -- 7. Insertion dans l'Inbox
   INSERT INTO public.inbox_messages (user_id, title, content, type, is_revealed, reveal_content)
   VALUES (auth.uid(), '🎰 CASINO JACKPOT!', 'Félicitations ! Tu as gagné un accès **' || v_reward_label || '** ! Ton code : ' || v_key, 'key', false, v_key);
 
   RETURN json_build_object('success', true, 'reward_id', v_reward_id, 'reward_label', v_reward_label, 'key', v_key);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 8. POLICIES (RLS)
+-- ==========================================
+
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.software_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.software_files ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.software_keys ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.inbox_messages ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public Select Profiles" ON public.profiles;
+CREATE POLICY "Public Select Profiles" ON public.profiles FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "User Update Own Profile" ON public.profiles;
+CREATE POLICY "User Update Own Profile" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Public View Categories" ON public.software_categories;
+CREATE POLICY "Public View Categories" ON public.software_categories FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Public View Files" ON public.software_files;
+CREATE POLICY "Public View Files" ON public.software_files FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Public View Keys" ON public.software_keys;
+CREATE POLICY "Public View Keys" ON public.software_keys FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "User View Own Messages" ON public.inbox_messages;
+CREATE POLICY "User View Own Messages" ON public.inbox_messages FOR SELECT TO authenticated USING (auth.uid() = user_id);
+
+-- 9. INITIALIZATION & SEEDING (TRINITY)
+-- ==========================================
+
+-- Insert Default Categories
+INSERT INTO public.software_categories (name, status)
+SELECT 'Trinity CS2 External', 'undetected'
+WHERE NOT EXISTS (SELECT 1 FROM public.software_categories WHERE name = 'Trinity CS2 External');
+
+INSERT INTO public.software_categories (name, status)
+SELECT 'Trinity FACEIT', 'testing'
+WHERE NOT EXISTS (SELECT 1 FROM public.software_categories WHERE name = 'Trinity FACEIT');
+
+-- Link Dynamic Loader Entry
+-- This ensures the download logic triggers our server-side patcher API
+INSERT INTO public.software_files (category_id, name, url, is_loader)
+SELECT id, 'Trinity Loader [Dynamic]', 'DYNAMIC_PATCHER', true
+FROM public.software_categories
+WHERE NOT EXISTS (
+    SELECT 1 FROM public.software_files 
+    WHERE category_id = software_categories.id AND is_loader = true
+);
+
+-- Fix Owner Permissions
+UPDATE public.profiles SET role = 'owner' WHERE email IN ('n0lex9999@gmail.com', 'chris@sagitarius.cc');
+
+NOTIFY pgrst, 'reload schema';
