@@ -207,6 +207,11 @@ BEGIN
   SELECT name INTO v_cat_name FROM public.software_categories WHERE id = p_category_id;
   SELECT url INTO v_file_url FROM public.software_files WHERE category_id = p_category_id AND is_loader = true LIMIT 1;
 
+  IF v_file_url IS NULL THEN
+    RETURN QUERY SELECT NULL::text, v_cat_name, false, 'No loader found for this category'::text;
+    RETURN;
+  END IF;
+
   RETURN QUERY SELECT v_file_url, v_cat_name, true, 'Success'::text;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -346,7 +351,7 @@ ON CONFLICT (version) DO UPDATE SET download_url = EXCLUDED.download_url;
 INSERT INTO public.software_files (category_id, name, url, is_loader)
 SELECT id, 'Sagitarius Loader [Dynamic]', 'DYNAMIC_PATCHER', true
 FROM public.software_categories
-WHERE name IN ('CS2 External', 'FACEIT')
+WHERE name IN ('CS2 External', 'Legit Mode', 'FACEIT')
 ON CONFLICT DO NOTHING;
 
 -- Fix Owner Permissions
