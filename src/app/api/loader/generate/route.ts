@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     }
 
     // 2. Locate template loader
-    const templatePath = path.join(process.cwd(), 'public', 'bin', 'TrinityLoader.exe');
+    const templatePath = path.join(process.cwd(), 'public', 'bin', 'SagitariusLoader.exe');
     
     // 3. Patch the loader with the unique key
     const patchedBinary = await patchLoader(templatePath, keyStr);

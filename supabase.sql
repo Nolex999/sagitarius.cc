@@ -1,6 +1,6 @@
 -- ============================================================================
 -- SAGITARIUS.cc - SAFE ULTIMATE MASTER SETUP (V2)
--- Combines: Core Schema + Software Manager + Casino + Trinity Integration
+-- Combines: Core Schema + Software Manager + Casino + Sagitarius Integration
 -- ============================================================================
 
 NOTIFY pgrst, 'reload schema';
@@ -218,26 +218,26 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 5. TRINITY INITIALIZATION & SEEDING
+-- 5. SAGITARIUS INITIALIZATION & SEEDING
 -- ----------------------------------------------------------------------------
 
--- Insert Default Categories (Trinity) - Safe with LOWER() conflict handling
+-- Insert Default Categories (Sagitarius) - Safe with LOWER() conflict handling
 INSERT INTO public.software_categories (name, status)
 VALUES 
-  ('Trinity CS2 External', 'undetected'),
-  ('Trinity FACEIT', 'testing')
+  ('Sagitarius CS2 External', 'undetected'),
+  ('Sagitarius FACEIT', 'testing')
 ON CONFLICT (LOWER(name)) DO NOTHING;
 
 -- Seed initial version if empty
 INSERT INTO public.loader_versions (version, download_url, is_mandatory)
-VALUES ('1.5.1', 'https://sagitarius.cc/bin/TrinityLoader.exe', true)
+VALUES ('1.5.1', 'https://sagitarius.cc/bin/SagitariusLoader.exe', true)
 ON CONFLICT (version) DO UPDATE SET download_url = EXCLUDED.download_url;
 
 -- Link Dynamic Loader Entry for PATCHER
 INSERT INTO public.software_files (category_id, name, url, is_loader)
-SELECT id, 'Trinity Loader [Dynamic]', 'DYNAMIC_PATCHER', true
+SELECT id, 'Sagitarius Loader [Dynamic]', 'DYNAMIC_PATCHER', true
 FROM public.software_categories
-WHERE name LIKE 'Trinity%'
+WHERE name LIKE 'Sagitarius%'
 ON CONFLICT DO NOTHING;
 
 -- Fix Owner Permissions
