@@ -298,17 +298,6 @@ export default function SoftwareManager() {
     }
   };
 
-  const handleDownload = (file: SoftwareFile, catName: string) => {
-    if (file.is_loader && file.url === 'DYNAMIC_PATCHER') {
-      // If the user is logged in, they can enter their key to download.
-      // But here, we might want to check the keys they already own.
-      // For now, let's just use a prompt or redirect to the key input.
-      setError("Please enter your activation key in the main box below to generate your unique loader.");
-      return;
-    }
-    window.open(file.url, '_blank');
-  };
-
   const verifyAndDownloadGlobal = async () => {
     if (!userInputKey) return;
     
@@ -479,7 +468,7 @@ export default function SoftwareManager() {
 
           {/* Global Download Box */}
           {/* Global Download Box */}
-          {!isCasinoKey && (
+          {!isManager && !isCasinoKey && (
             <div className="bg-white/[0.01] border border-white/5 rounded-[2.5rem] p-10 flex flex-col items-center gap-6 text-center backdrop-blur-3xl relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-b from-[var(--accent)]/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               
@@ -517,111 +506,6 @@ export default function SoftwareManager() {
               </div>
             </div>
           )}
-
-          {/* MANAGER: Add Category */}
-          {isManager && (
-            <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 mb-8">
-              <div className="flex items-center gap-3 mb-4">
-                <FolderPlus className="text-[var(--accent)]" size={20} />
-                <h3 className="text-sm font-black text-white uppercase tracking-widest">Create New Category</h3>
-              </div>
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  placeholder="Category Name (e.g. FACEIT External)"
-                  value={newCategoryName}
-                  onChange={e => setNewCategoryName(e.target.value)}
-                  className="flex-1 h-10 px-4 rounded-xl bg-black/40 border border-white/5 text-xs text-white outline-none focus:border-[var(--accent)]/40 transition-all"
-                />
-                <button
-                  onClick={addCategory}
-                  className="px-6 rounded-xl bg-[var(--accent)] text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all"
-                >
-                  Create
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Software Categories List */}
-          <div className="grid grid-cols-1 gap-6">
-            {categories.map(cat => (
-              <div key={`software-cat-${cat.id}`} className="bg-white/[0.01] border border-white/5 rounded-3xl overflow-hidden backdrop-blur-3xl group">
-                <div className="p-6 flex items-center justify-between border-b border-white/5">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-white/[0.03] border border-white/5 p-2 overflow-hidden flex items-center justify-center">
-                      {cat.logo_url ? <img src={cat.logo_url} className="w-full h-full object-contain" /> : <Package className="text-white/10" />}
-                    </div>
-                    <div>
-                      <h4 className="font-black text-white uppercase tracking-widest">{cat.name}</h4>
-                      <p className="text-[9px] text-white/20 font-black uppercase tracking-widest">{cat.files.length} active files</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    {isManager && (
-                      <button
-                        onClick={() => { setUploadTarget({ catId: cat.id, isLoader: true }); fileInputRef.current?.click(); }}
-                        className="p-3 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all"
-                        title="Upload Loader"
-                      >
-                        <Zap size={16} />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => toggleCategory(cat.id)}
-                      className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-white/20 hover:text-white transition-all"
-                    >
-                      {cat.isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                    </button>
-                  </div>
-                </div>
-
-                {cat.isOpen && (
-                  <div className="p-4 space-y-3 animate-fade-in">
-                    {cat.files.length === 0 ? (
-                      <p className="text-center py-6 text-[10px] text-white/10 font-black uppercase tracking-widest">No files available yet</p>
-                    ) : (
-                      cat.files.map(file => (
-                        <div key={file.id} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.01] border border-white/5 hover:bg-white/[0.02] transition-all group/file">
-                          <div className="flex items-center gap-4">
-                            <div className={`p-3 rounded-xl ${file.is_loader ? 'bg-[var(--accent)]/10 text-[var(--accent)]' : 'bg-white/5 text-white/20'}`}>
-                              {file.is_loader ? <Zap size={18} /> : <Package size={18} />}
-                            </div>
-                            <div>
-                               <div className="flex items-center gap-2">
-                                 <span className="text-xs font-black text-white uppercase tracking-widest">{file.name}</span>
-                                 {file.version && <span className="text-[8px] bg-white/10 px-1.5 py-0.5 rounded text-white/40 font-black tracking-widest">V{file.version}</span>}
-                               </div>
-                               <span className="text-[9px] text-white/20 font-black uppercase tracking-widest">{file.size} • {file.is_loader ? 'Loader' : 'Package'}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-3">
-                            <button
-                              onClick={() => handleDownload(file, cat.name)}
-                              className="px-6 py-2.5 rounded-xl bg-white/5 text-white/40 text-[9px] font-black uppercase tracking-widest hover:bg-[var(--accent)] hover:text-black transition-all flex items-center gap-2"
-                            >
-                              <Download size={14} />
-                              Download
-                            </button>
-                            {isManager && (
-                              <button
-                                onClick={() => deleteFile(cat.id, file.id)}
-                                className="p-2.5 rounded-xl text-red-500/20 hover:text-red-500 hover:bg-red-500/10 transition-all"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
 
           {/* CASINO KEY SELECTION UI */}
           {isCasinoKey && (
