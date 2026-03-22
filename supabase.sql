@@ -52,8 +52,17 @@ CREATE TABLE IF NOT EXISTS public.software_keys (
   current_uses int DEFAULT 0,
   created_at timestamptz DEFAULT now(),
   created_by uuid REFERENCES auth.users(id),
-  metadata jsonb DEFAULT '{}'::jsonb
+  metadata jsonb DEFAULT '{}'::jsonb,
+  expires_at timestamptz
 );
+
+-- Migration check for existing tables
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'software_keys' AND column_name = 'expires_at') THEN
+    ALTER TABLE public.software_keys ADD COLUMN expires_at timestamptz;
+  END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS public.inbox_messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
