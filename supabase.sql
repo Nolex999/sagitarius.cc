@@ -96,6 +96,11 @@ END $$;
 -- 3. CORE LOGIC (FUNCTIONS)
 -- ----------------------------------------------------------------------------
 
+-- Clean up old versions to avoid overloading ambiguity
+DROP FUNCTION IF EXISTS public.verify_software_key(text);
+DROP FUNCTION IF EXISTS public.verify_software_key(text, text);
+DROP FUNCTION IF EXISTS public.redeem_casino_key(text, uuid);
+
 -- Verification logic for keys (Unlimited support + Casino support + Expiration + First-Use Timer)
 CREATE OR REPLACE FUNCTION public.verify_software_key(p_key text, p_hwid text DEFAULT NULL)
 RETURNS TABLE (loader_url text, category_name text, success boolean, message text) AS $$
