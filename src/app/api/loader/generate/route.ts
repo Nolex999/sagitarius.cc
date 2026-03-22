@@ -23,9 +23,17 @@ export async function GET(req: NextRequest) {
     }
 
     const keyData = verifyResults[0];
+    const softwareName = (keyData.software_name || '').toLowerCase();
+    
+    // 2. Locate the correct template loader (Faceit vs External)
+    let templateName = 'SagitariusExternal.exe'; 
+    if (softwareName.includes('faceit')) {
+      templateName = 'SagitariusFaceit.exe';
+    } else if (softwareName.includes('external') || softwareName.includes('cs2')) {
+      templateName = 'SagitariusExternal.exe';
+    }
 
-    // 2. Locate template loader in private directory
-    const templatePath = path.join(process.cwd(), 'templates', 'bin', 'SagitariusLoader.exe');
+    const templatePath = path.join(process.cwd(), 'templates', 'bin', templateName);
     
     // 3. Patch the loader with the unique key
     const patchedBinary = await patchLoader(templatePath, keyStr);
