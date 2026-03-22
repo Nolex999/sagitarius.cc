@@ -505,6 +505,9 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 10. TRINITY INITIALIZATION & SEEDING
 -- ==========================================
 
+-- Cleanup old non-trinity categories (Duplicates from previous seeds)
+DELETE FROM public.software_categories WHERE name IN ('CS2 EXTERNAL', 'FACEIT CLIENT');
+
 -- Insert Default Categories
 INSERT INTO public.software_categories (name, status)
 SELECT 'Trinity CS2 External', 'undetected'
