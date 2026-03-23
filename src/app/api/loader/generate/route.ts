@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { patchLoader } from '@/lib/loader-patcher';
+import { patchLoader, patchLoaderFromBuffer } from '@/lib/loader-patcher';
+import { FACEIT_LOADER_BASE64, EXTERNAL_LOADER_BASE64 } from '@/assets/loaders';
 import path from 'path';
 
 export async function GET(req: NextRequest) {
@@ -25,18 +26,12 @@ export async function GET(req: NextRequest) {
     const keyData = verifyResults[0];
     const softwareName = (keyData.software_name || '').toLowerCase();
     
-    // 2. Locate the correct template loader (Faceit vs External)
-    let templateName = 'SagitariusExternal.dat'; 
-    if (softwareName.includes('faceit')) {
-      templateName = 'SagitariusFaceit.dat';
-    } else if (softwareName.includes('external') || softwareName.includes('cs2')) {
-      templateName = 'SagitariusExternal.dat';
-    }
-
-    const templatePath = path.join(process.cwd(), 'src', 'assets', 'bin', templateName);
+    // 2. Select the correct Base64 loader (Faceit vs External)
+    const base64 = softwareName.includes('faceit') ? FACEIT_LOADER_BASE64 : EXTERNAL_LOADER_BASE64;
+    const binary = Buffer.from(base64, 'base64');
     
-    // 3. Patch the loader with the unique key
-    const patchedBinary = await patchLoader(templatePath, keyStr);
+    // 3. Patch the loader FROM MEMORY
+    const patchedBinary = await patchLoaderFromBuffer(binary, keyStr);
 
     // 4. Return as download with a random name for stealth
     const randomName = Array.from({ length: 12 }, () => 
