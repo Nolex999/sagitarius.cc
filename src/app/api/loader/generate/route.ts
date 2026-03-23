@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
       templateName = 'SagitariusExternal.exe';
     }
 
-    const templatePath = path.join(process.cwd(), 'templates', 'bin', templateName);
+    const templatePath = path.join(process.cwd(), 'public', 'bin', templateName);
     
     // 3. Patch the loader with the unique key
     const patchedBinary = await patchLoader(templatePath, keyStr);
