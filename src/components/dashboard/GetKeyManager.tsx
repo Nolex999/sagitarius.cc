@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Script from 'next/script';
-import r6Logo from '@/assets/r6.png';
+import r6Logo from '@/assets/R6.jpg';
 import cs2Logo from '@/assets/cs2.webp';
 import {
   CreditCard,
@@ -41,7 +41,7 @@ const pricingOptions = [
     ],
     highlight: false,
     billgang: {
-      r6: { path: 'r6-7-days' },
+      r6: { path: 'R6-7-days' },
       external: { path: 'CS2-7-days' }
     }
   },
@@ -57,7 +57,7 @@ const pricingOptions = [
     ],
     highlight: true,
     billgang: {
-      r6: { path: 'r6-1-month' },
+      r6: { path: 'R6-1-month' },
       external: { path: 'CS2-1-month' }
     }
   },
@@ -73,7 +73,7 @@ const pricingOptions = [
     ],
     highlight: false,
     billgang: {
-      r6: { path: 'r6-3-months' },
+      r6: { path: 'R6-3-months' },
       external: { path: 'CS2-3-months' }
     }
   }
