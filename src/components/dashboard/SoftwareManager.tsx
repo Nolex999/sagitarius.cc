@@ -154,13 +154,15 @@ export default function SoftwareManager() {
 
       if (fileErr) throw fileErr;
 
-      const merged = (cats || []).map((cat: any) => ({
-        ...cat,
-        files: (files || []).filter((f: any) => f.category_id === cat.id),
-        isOpen: true,
-        isKeysOpen: false,
-        keys: []
-      }));
+      const merged = (cats || [])
+        .filter((cat: any) => !cat.name.toLowerCase().includes('faceit'))
+        .map((cat: any) => ({
+          ...cat,
+          files: (files || []).filter((f: any) => f.category_id === cat.id),
+          isOpen: true,
+          isKeysOpen: false,
+          keys: []
+        }));
 
       setCategories(merged);
     } catch (err: any) {

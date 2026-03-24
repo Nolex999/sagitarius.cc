@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       // Lookup user by email if userId missing
       (!userId && customerEmail) ? supabaseAdmin.from('profiles').select('id').eq('email', customerEmail).maybeSingle() : Promise.resolve({ data: userId ? { id: userId } : null }),
       // Search for category
-      supabaseAdmin.from('software_categories').select('id, name').ilike('name', `%${(productName || '').toLowerCase().includes('faceit') ? 'faceit' : (productName || '').toLowerCase().includes('cs2') || (productName || '').toLowerCase().includes('external') ? 'external' : 'cheat'}%`).limit(1).maybeSingle()
+      supabaseAdmin.from('software_categories').select('id, name').ilike('name', `%${(productName || '').toLowerCase().includes('r6') || (productName || '').toLowerCase().includes('siege') ? 'rainbow six siege' : (productName || '').toLowerCase().includes('cs2') || (productName || '').toLowerCase().includes('external') ? 'external' : 'cheat'}%`).limit(1).maybeSingle()
     ]);
 
     if (userResult.data) userId = userResult.data.id;
