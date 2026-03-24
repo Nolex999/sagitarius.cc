@@ -4,7 +4,7 @@ import TopGradientBar from '@/components/TopGradientBar';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Sagitarius.cc | Precision Software',
+  title: 'Sagitarius .cc | Precision Software',
   description: 'Premium counter-strike software. Join the elite.',
   metadataBase: new URL('https://sagitarius.cc'),
   openGraph: {
