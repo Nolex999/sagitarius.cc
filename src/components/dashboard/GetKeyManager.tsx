@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Script from 'next/script';
-import faceitLogo from '@/assets/faceit.jpg';
+import r6Logo from '@/assets/r6.png';
 import cs2Logo from '@/assets/cs2.webp';
 import {
   CreditCard,
@@ -41,7 +41,7 @@ const pricingOptions = [
     ],
     highlight: false,
     billgang: {
-      faceit: { path: 'faceit-7-days' },
+      r6: { path: 'r6-7-days' },
       external: { path: 'CS2-7-days' }
     }
   },
@@ -57,7 +57,7 @@ const pricingOptions = [
     ],
     highlight: true,
     billgang: {
-      faceit: { path: 'faceit-1-month' },
+      r6: { path: 'r6-1-month' },
       external: { path: 'CS2-1-month' }
     }
   },
@@ -73,7 +73,7 @@ const pricingOptions = [
     ],
     highlight: false,
     billgang: {
-      faceit: { path: 'faceit-3-months' },
+      r6: { path: 'r6-3-months' },
       external: { path: 'CS2-3-months' }
     }
   }
@@ -129,7 +129,7 @@ export default function GetKeyManager() {
     setShowCategorySelector(true);
   };
 
-  const handleFinalPurchase = (category: 'faceit' | 'external') => {
+  const handleFinalPurchase = (category: 'r6' | 'external') => {
     const plan = selectedPlan.billgang[category];
     const productPath = plan.path;
     const domain = BILLGANG_DOMAIN.includes('https://') ? BILLGANG_DOMAIN : `https://${BILLGANG_DOMAIN}`;
@@ -383,22 +383,22 @@ export default function GetKeyManager() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button
-                onClick={() => handleFinalPurchase('faceit')}
-                data-billgang-product-path={selectedPlan.billgang.faceit.path}
+                onClick={() => handleFinalPurchase('r6')}
+                data-billgang-product-path={selectedPlan.billgang.r6.path}
                 data-billgang-domain={BILLGANG_DOMAIN}
                 data-billgang-custom-fields={JSON.stringify({ user_id: user?.id })}
                 className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-[var(--accent)]/30 transition-all duration-500 h-[220px]"
               >
                 <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110 pointer-events-none">
                   <Image
-                    src={faceitLogo}
-                    alt="Faceit"
+                    src={r6Logo}
+                    alt="R6"
                     fill
                     className="object-contain"
                   />
                 </div>
                 <div className="space-y-1 pointer-events-none">
-                  <p className="text-xs font-black text-white uppercase tracking-widest">Faceit Client</p>
+                  <p className="text-xs font-black text-white uppercase tracking-widest">Rainbow Six Siege</p>
                   <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">Premium Protection</p>
                 </div>
               </button>

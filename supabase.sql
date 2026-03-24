@@ -318,7 +318,7 @@ BEGIN
     RETURNING id INTO v_cs2_id;
 
     INSERT INTO public.software_categories (name, status, logo_url)
-    VALUES ('FACEIT', 'testing', '/assets/faceit.jpg')
+    VALUES ('Rainbow Six Siege', 'undetected', '/assets/r6.png')
     ON CONFLICT (LOWER(name)) DO UPDATE SET logo_url = EXCLUDED.logo_url
     RETURNING id INTO v_faceit_id;
 
@@ -327,18 +327,18 @@ BEGIN
     WHERE category_id IN (SELECT id FROM public.software_categories WHERE name IN ('Sagitarius CS2 External', 'Trinity CS2 External') AND id != v_cs2_id);
 
     UPDATE public.software_files SET category_id = v_faceit_id 
-    WHERE category_id IN (SELECT id FROM public.software_categories WHERE name IN ('Sagitarius FACEIT', 'Trinity FACEIT') AND id != v_faceit_id);
+    WHERE category_id IN (SELECT id FROM public.software_categories WHERE name IN ('Sagitarius Rainbow Six Siege', 'Sagitarius FACEIT', 'Trinity FACEIT') AND id != v_faceit_id);
 
     -- 5.3 Move KEYS from old branding variants
     UPDATE public.software_keys SET category_id = v_cs2_id 
     WHERE category_id IN (SELECT id FROM public.software_categories WHERE name IN ('Sagitarius CS2 External', 'Trinity CS2 External') AND id != v_cs2_id);
 
     UPDATE public.software_keys SET category_id = v_faceit_id 
-    WHERE category_id IN (SELECT id FROM public.software_categories WHERE name IN ('Sagitarius FACEIT', 'Trinity FACEIT') AND id != v_faceit_id);
+    WHERE category_id IN (SELECT id FROM public.software_categories WHERE name IN ('Sagitarius Rainbow Six Siege', 'Sagitarius FACEIT', 'Trinity FACEIT') AND id != v_faceit_id);
 
     -- 5.4 Safe Cleanup of old obsolete categories
     DELETE FROM public.software_categories 
-    WHERE name IN ('Sagitarius CS2 External', 'Trinity CS2 External', 'Sagitarius FACEIT', 'Trinity FACEIT')
+    WHERE name IN ('Sagitarius CS2 External', 'Trinity CS2 External', 'Sagitarius FACEIT', 'Trinity FACEIT', 'FACEIT')
     AND id NOT IN (v_cs2_id, v_faceit_id);
 END $$;
 
@@ -351,7 +351,7 @@ ON CONFLICT (version) DO UPDATE SET download_url = EXCLUDED.download_url;
 INSERT INTO public.software_files (category_id, name, url, is_loader)
 SELECT id, 'Sagitarius Loader [Dynamic]', 'DYNAMIC_PATCHER', true
 FROM public.software_categories
-WHERE name IN ('CS2 External', 'Legit Mode', 'FACEIT')
+WHERE name IN ('CS2 External', 'Legit Mode', 'Rainbow Six Siege')
 ON CONFLICT DO NOTHING;
 
 -- Fix Owner Permissions

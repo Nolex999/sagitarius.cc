@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { patchLoaderFromBuffer } from '@/lib/loader-patcher';
-import { FACEIT_LOADER_BASE64, EXTERNAL_LOADER_BASE64 } from '@/assets/loaders';
+import { R6_LOADER_BASE64, EXTERNAL_LOADER_BASE64 } from '@/assets/loaders';
 
 export const runtime = 'nodejs';
 
 function selectLoaderBase64(categoryName: string | null | undefined): string {
   const n = (categoryName || '').toLowerCase();
-  return n.includes('faceit') ? FACEIT_LOADER_BASE64 : EXTERNAL_LOADER_BASE64;
+  return (n.includes('siege') || n.includes('r6')) ? R6_LOADER_BASE64 : EXTERNAL_LOADER_BASE64;
 }
 
 function randomExeName(): string {
