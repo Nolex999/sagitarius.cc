@@ -79,6 +79,40 @@ export default function SoftwareManager() {
 
   const supabase = createClient();
 
+  const downloadPatchedLoader = async (key: string) => {
+    const res = await fetch('/api/loader/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key }),
+      credentials: 'same-origin',
+    });
+    if (!res.ok) {
+      let msg = 'Download failed';
+      try {
+        const j = await res.json();
+        if (j?.error && typeof j.error === 'string') msg = j.error;
+      } catch {
+        /* ignore */
+      }
+      throw new Error(msg);
+    }
+    const blob = await res.blob();
+    let filename = 'Sagitarius-Loader.exe';
+    const cd = res.headers.get('Content-Disposition');
+    const quoted = cd?.match(/filename="([^"]+)"/i);
+    const plain = cd?.match(/filename=([^;\s]+)/i);
+    if (quoted?.[1]) filename = quoted[1];
+    else if (plain?.[1]) filename = plain[1].replace(/"/g, '');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   useEffect(() => {
     async function init() {
       const { data: { user } } = await supabase.auth.getUser();
@@ -317,8 +351,7 @@ export default function SoftwareManager() {
         if (result.message === 'casino_key') {
           setIsCasinoKey(userInputKey);
         } else if (result.loader_url) {
-          // Trigger the unique loader generation API
-          window.location.href = `/api/loader/generate?key=${encodeURIComponent(userInputKey)}`;
+          await downloadPatchedLoader(userInputKey);
           setUserInputKey('');
         }
       } else {
@@ -342,8 +375,7 @@ export default function SoftwareManager() {
       if (error) throw error;
       const result = data[0];
       if (result.success && result.loader_url) {
-        // Trigger the unique loader generation API
-        window.location.href = `/api/loader/generate?key=${encodeURIComponent(isCasinoKey)}`;
+        await downloadPatchedLoader(isCasinoKey);
         setIsCasinoKey(null);
         setUserInputKey('');
       } else {

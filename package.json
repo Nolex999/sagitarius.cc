@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "bundle-loaders": "node scripts/bundle-loaders.cjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
