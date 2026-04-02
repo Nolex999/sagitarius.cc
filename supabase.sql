@@ -276,6 +276,35 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Function to get key expiry info for the loader UI (days remaining display)
+DROP FUNCTION IF EXISTS public.get_key_expiry(text);
+CREATE OR REPLACE FUNCTION public.get_key_expiry(p_key text)
+RETURNS TABLE (expires_at timestamptz, days_remaining int, category_name text) AS $$
+DECLARE
+  v_expires_at timestamptz;
+  v_category_id uuid;
+  v_cat_name text;
+BEGIN
+  SELECT sk.expires_at, sk.category_id
+  INTO v_expires_at, v_category_id
+  FROM public.software_keys sk
+  WHERE sk.key = p_key AND sk.is_active = true;
+
+  IF v_category_id IS NOT NULL THEN
+    SELECT sc.name INTO v_cat_name FROM public.software_categories sc WHERE sc.id = v_category_id;
+  END IF;
+
+  IF v_expires_at IS NULL THEN
+    -- Lifetime key
+    RETURN QUERY SELECT NULL::timestamptz, -1::int, COALESCE(v_cat_name, 'Software')::text;
+  ELSE
+    RETURN QUERY SELECT v_expires_at,
+      GREATEST(0, EXTRACT(DAY FROM (v_expires_at - now()))::int),
+      COALESCE(v_cat_name, 'Software')::text;
+  END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- 4. VERSION MANAGEMENT & UPDATES
 -- ----------------------------------------------------------------------------
 
