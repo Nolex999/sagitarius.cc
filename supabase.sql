@@ -279,11 +279,12 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Function to get key expiry info for the loader UI (days remaining display)
 DROP FUNCTION IF EXISTS public.get_key_expiry(text);
 CREATE OR REPLACE FUNCTION public.get_key_expiry(p_key text)
-RETURNS TABLE (expires_at timestamptz, days_remaining int, category_name text) AS $$
+RETURNS TABLE (expires_at timestamptz, time_left text, category_name text) AS $$
 DECLARE
   v_expires_at timestamptz;
   v_category_id uuid;
   v_cat_name text;
+  v_minutes int;
 BEGIN
   SELECT sk.expires_at, sk.category_id
   INTO v_expires_at, v_category_id
@@ -296,11 +297,18 @@ BEGIN
 
   IF v_expires_at IS NULL THEN
     -- Lifetime key
-    RETURN QUERY SELECT NULL::timestamptz, -1::int, COALESCE(v_cat_name, 'Software')::text;
+    RETURN QUERY SELECT NULL::timestamptz, 'LIFETIME'::text, COALESCE(v_cat_name, 'Software')::text;
   ELSE
-    RETURN QUERY SELECT v_expires_at,
-      GREATEST(0, EXTRACT(DAY FROM (v_expires_at - now()))::int),
-      COALESCE(v_cat_name, 'Software')::text;
+    v_minutes := GREATEST(0, EXTRACT(EPOCH FROM (v_expires_at - now())) / 60)::int;
+    IF v_minutes <= 0 THEN
+      RETURN QUERY SELECT v_expires_at, 'EXPIRES TODAY'::text, COALESCE(v_cat_name, 'Software')::text;
+    ELSIF v_minutes < 60 THEN
+      RETURN QUERY SELECT v_expires_at, v_minutes || ' MINUTE' || CASE WHEN v_minutes = 1 THEN '' ELSE 'S' END, COALESCE(v_cat_name, 'Software')::text;
+    ELSIF v_minutes < 1440 THEN
+      RETURN QUERY SELECT v_expires_at, (v_minutes / 60) || ' HOUR' || CASE WHEN (v_minutes / 60) = 1 THEN '' ELSE 'S' END, COALESCE(v_cat_name, 'Software')::text;
+    ELSE
+      RETURN QUERY SELECT v_expires_at, (v_minutes / 1440) || ' DAY' || CASE WHEN (v_minutes / 1440) = 1 THEN '' ELSE 'S' END, COALESCE(v_cat_name, 'Software')::text;
+    END IF;
   END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

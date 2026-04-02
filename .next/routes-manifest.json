@@ -58,10 +58,46 @@
       "namedRegex": "^/_not\\-found(?:/)?$"
     },
     {
+      "page": "/api/loader/generate",
+      "regex": "^/api/loader/generate(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/loader/generate(?:/)?$"
+    },
+    {
+      "page": "/api/payments/billgang/create",
+      "regex": "^/api/payments/billgang/create(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/payments/billgang/create(?:/)?$"
+    },
+    {
+      "page": "/api/payments/billgang-plugin/create-charge",
+      "regex": "^/api/payments/billgang\\-plugin/create\\-charge(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/payments/billgang\\-plugin/create\\-charge(?:/)?$"
+    },
+    {
+      "page": "/api/payments/billgang-plugin/validate",
+      "regex": "^/api/payments/billgang\\-plugin/validate(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/payments/billgang\\-plugin/validate(?:/)?$"
+    },
+    {
+      "page": "/api/payments/billgang-plugin/webhook",
+      "regex": "^/api/payments/billgang\\-plugin/webhook(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/payments/billgang\\-plugin/webhook(?:/)?$"
+    },
+    {
       "page": "/api/payments/verify",
       "regex": "^/api/payments/verify(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/payments/verify(?:/)?$"
+    },
+    {
+      "page": "/api/webhooks/billgang",
+      "regex": "^/api/webhooks/billgang(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/webhooks/billgang(?:/)?$"
     },
     {
       "page": "/api/webhooks/sellauth",
@@ -100,6 +136,12 @@
       "namedRegex": "^/auth/reset\\-password(?:/)?$"
     },
     {
+      "page": "/dashboard/casino",
+      "regex": "^/dashboard/casino(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/casino(?:/)?$"
+    },
+    {
       "page": "/dashboard/firmware",
       "regex": "^/dashboard/firmware(?:/)?$",
       "routeKeys": {},
@@ -116,6 +158,18 @@
       "regex": "^/dashboard/inbox(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/dashboard/inbox(?:/)?$"
+    },
+    {
+      "page": "/dashboard/policies",
+      "regex": "^/dashboard/policies(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/policies(?:/)?$"
+    },
+    {
+      "page": "/dashboard/profile",
+      "regex": "^/dashboard/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/profile(?:/)?$"
     },
     {
       "page": "/dashboard/s3",
@@ -152,6 +206,12 @@
       "regex": "^/dashboard/software(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/dashboard/software(?:/)?$"
+    },
+    {
+      "page": "/dashboard/support",
+      "regex": "^/dashboard/support(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/support(?:/)?$"
     }
   ],
   "dataRoutes": [],

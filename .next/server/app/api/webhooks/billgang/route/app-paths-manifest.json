@@ -1,0 +1,3 @@
+{
+  "/api/webhooks/billgang/route": "app/api/webhooks/billgang/route.js"
+}
