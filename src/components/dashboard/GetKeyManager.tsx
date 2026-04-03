@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import Script from 'next/script';
+import Image from 'next/image';
 import r6Logo from '@/assets/R6.jpg';
-import cs2Logo from '@/assets/cs2.webp';
 import {
   CreditCard,
   Coins,
@@ -32,56 +31,49 @@ const pricingOptions = [
   {
     id: '7-days',
     name: '7 Days',
-    price: '12.00',
+    subtitle: 'Rainbow Six Siege',
     description: 'Perfect for testing our software features.',
+    price: '12.00',
     features: [
       'Full Access for 7 Days',
       'Instant Key Delivery',
       'UNDETECTED',
     ],
     highlight: false,
-    billgang: {
-      r6: { path: 'R6-7-days' },
-      external: { path: 'CS2-7-days' }
-    }
+    billgangPath: 'R6-7-days'
   },
   {
     id: '1-month',
     name: '1 Month',
-    price: '34.99',
+    subtitle: 'Rainbow Six Siege',
     description: 'Most popular choice for gamers.',
+    price: '34.99',
     features: [
       'Full Access for 30 Days',
       'Instant Key Delivery',
       'UNDETECTED',
     ],
     highlight: true,
-    billgang: {
-      r6: { path: 'R6-1-month' },
-      external: { path: 'CS2-1-month' }
-    }
+    billgangPath: 'R6-1-month'
   },
   {
     id: '3-months',
     name: '3 Months',
-    price: '79.99',
+    subtitle: 'Rainbow Six Siege',
     description: 'Best value for long-term reliability.',
+    price: '79.99',
     features: [
       'Full Access for 90 Days',
       'Instant Key Delivery',
       'UNDETECTED',
     ],
     highlight: false,
-    billgang: {
-      r6: { path: 'R6-3-months' },
-      external: { path: 'CS2-3-months' }
-    }
+    billgangPath: 'R6-3-months'
   }
 ];
 
 export default function GetKeyManager() {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
-  const [showCategorySelector, setShowCategorySelector] = useState(false);
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verifyResult, setVerifyResult] = useState<string | null>(null);
@@ -126,24 +118,11 @@ export default function GetKeyManager() {
 
   const initiatePurchase = (plan: any) => {
     setSelectedPlan(plan);
-    setShowCategorySelector(true);
-  };
-
-  const handleFinalPurchase = (category: 'r6' | 'external') => {
-    const plan = selectedPlan.billgang[category];
-    const productPath = plan.path;
+    const productPath = plan.billgangPath;
     const domain = BILLGANG_DOMAIN.includes('https://') ? BILLGANG_DOMAIN : `https://${BILLGANG_DOMAIN}`;
 
-    setShowCategorySelector(false);
-
-    // If the user insists on a refresh when the embed appears, we can trigger it 
-    // BUT we need to persist the intended plan to open it after reload.
-    // However, usually they just want it to work. 
-    // I'll try a "clean" injection first with higher z-index.
-    
     console.log('Manually triggering Billgang embed for:', productPath);
-    
-    // Ensure container exists
+
     let container = document.getElementById('billgang-container');
     if (!container) {
       container = document.createElement('div');
@@ -151,11 +130,9 @@ export default function GetKeyManager() {
       document.body.appendChild(container);
     }
 
-    // Clean up any existing modal of the same product first
     const existing = document.getElementById('billgang-embed-' + productPath);
     if (existing) existing.remove();
 
-    // Create modal (same logic as platform.billgang.com/embed.js)
     document.body.style.overflow = 'hidden';
     const modal = document.createElement('div');
     modal.id = 'billgang-embed-' + productPath;
@@ -216,7 +193,7 @@ export default function GetKeyManager() {
     iframe.style.height = '100%';
     iframe.style.border = 'none';
     iframe.onload = () => loader.remove();
-    
+
     iframeContainer.appendChild(iframe);
     iframeWrapper.appendChild(iframeContainer);
     modal.appendChild(iframeWrapper);
@@ -274,8 +251,13 @@ export default function GetKeyManager() {
             )}
 
             <div className="space-y-1 mb-8">
-              <h3 className="text-xl font-bold text-white tracking-tight">{plan.name}</h3>
-              <p className="text-xs text-white/30">{plan.description}</p>
+              <div className="flex items-center gap-3">
+                <div className="relative h-8 w-12 rounded-lg overflow-hidden flex-shrink-0">
+                  <Image src={r6Logo} alt="R6" fill className="object-cover" />
+                </div>
+                <h3 className="text-xl font-bold text-white tracking-tight">{plan.name}</h3>
+              </div>
+              <p className="text-xs text-white/30">{plan.subtitle} — {plan.description}</p>
             </div>
 
             <div className="mb-8 relative">
@@ -362,71 +344,6 @@ export default function GetKeyManager() {
           </div>
         </div>
       </div>
-
-      {/* Category Selection Modal */}
-      {showCategorySelector && selectedPlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="relative w-full max-w-xl bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-10 shadow-2xl overflow-hidden">
-            <div className="absolute top-6 right-6">
-              <button
-                onClick={() => setShowCategorySelector(false)}
-                className="p-2 rounded-full hover:bg-white/5 text-white/40 hover:text-white transition-all"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="text-center mb-10 space-y-2">
-              <h2 className="text-2xl font-black text-white tracking-tight uppercase tracking-widest">Select Version</h2>
-              <p className="text-sm text-white/40">Choose the version for your {selectedPlan.name} access</p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <button
-                onClick={() => handleFinalPurchase('r6')}
-                data-billgang-product-path={selectedPlan.billgang.r6.path}
-                data-billgang-domain={BILLGANG_DOMAIN}
-                data-billgang-custom-fields={JSON.stringify({ user_id: user?.id })}
-                className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-[var(--accent)]/30 transition-all duration-500 h-[220px]"
-              >
-                <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110 pointer-events-none">
-                  <Image
-                    src={r6Logo}
-                    alt="R6"
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-                <div className="space-y-1 pointer-events-none">
-                  <p className="text-xs font-black text-white uppercase tracking-widest">Rainbow Six Siege</p>
-                  <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">Premium Protection</p>
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleFinalPurchase('external')}
-                data-billgang-product-path={selectedPlan.billgang.external.path}
-                data-billgang-domain={BILLGANG_DOMAIN}
-                data-billgang-custom-fields={JSON.stringify({ user_id: user?.id })}
-                className="group relative flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-blue-500/30 transition-all duration-500 h-[220px]"
-              >
-                <div className="relative h-20 w-32 grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110 pointer-events-none">
-                  <Image
-                    src={cs2Logo}
-                    alt="CS2"
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-                <div className="space-y-1 pointer-events-none">
-                  <p className="text-xs font-black text-white uppercase tracking-widest">CS2 External</p>
-                  <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">High Performance</p>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {error && (
         <div className="fixed bottom-10 right-10 z-[100] p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5">

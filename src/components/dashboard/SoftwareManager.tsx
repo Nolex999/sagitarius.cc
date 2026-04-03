@@ -76,6 +76,7 @@ export default function SoftwareManager() {
   const [isCasinoKey, setIsCasinoKey] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [activeTab, setActiveTab] = useState<'software' | 'status'>('software');
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
 
   const supabase = createClient();
 
@@ -358,6 +359,8 @@ export default function SoftwareManager() {
         } else if (result.loader_url) {
           await downloadPatchedLoader(userInputKey);
           setUserInputKey('');
+          setDownloadSuccess(true);
+          setTimeout(() => setDownloadSuccess(false), 15000);
         }
       } else {
         setError(result.message || 'Verification failed');
@@ -369,23 +372,15 @@ export default function SoftwareManager() {
     }
   };
 
-  const redeemAndDownload = async (catId: string) => {
+  const redeemCasinoKey = async () => {
     if (!isCasinoKey) return;
     setVerifying(true);
     try {
-      const { data, error } = await supabase.rpc('redeem_casino_key', {
-        p_key: isCasinoKey,
-        p_category_id: catId
-      });
-      if (error) throw error;
-      const result = data[0];
-      if (result.success && result.loader_url) {
-        await downloadPatchedLoader(isCasinoKey);
-        setIsCasinoKey(null);
-        setUserInputKey('');
-      } else {
-        setError(result.message || 'Redemption failed');
-      }
+      await downloadPatchedLoader(isCasinoKey);
+      setIsCasinoKey(null);
+      setUserInputKey('');
+      setDownloadSuccess(true);
+      setTimeout(() => setDownloadSuccess(false), 15000);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -503,6 +498,25 @@ export default function SoftwareManager() {
             </div>
           )}
 
+      {downloadSuccess && (
+        <div className="bg-gradient-to-r from-[var(--accent)]/10 to-[var(--accent)]/5 border border-[var(--accent)]/20 rounded-[2.5rem] p-8 flex flex-col items-center gap-4 text-center backdrop-blur-3xl relative overflow-hidden animate-in zoom-in-95 duration-500">
+           <div className="absolute top-0 right-0 h-40 w-40 bg-[var(--accent)]/10 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2 animate-pulse" />
+           <div className="h-14 w-14 rounded-full bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">
+             <ShieldCheck size={28} />
+           </div>
+           <h3 className="text-lg font-black text-white uppercase tracking-[0.2em]">Download Successful</h3>
+           <p className="text-[11px] text-white/40 max-w-md leading-relaxed">
+             Le loader est universel — il fonctionne pour tous les jeux. Le paiement était nécessaire uniquement pour la protection de notre software et de notre business.
+           </p>
+           <button 
+             onClick={() => setDownloadSuccess(false)}
+             className="text-[9px] text-white/10 hover:text-white/30 uppercase font-black tracking-widest transition-colors"
+           >
+             Dismiss
+           </button>
+        </div>
+      )}
+
           {/* Global Download Box */}
           {/* Global Download Box */}
           {!isManager && !isCasinoKey && (
@@ -544,8 +558,8 @@ export default function SoftwareManager() {
             </div>
           )}
 
-          {/* CASINO KEY SELECTION UI */}
-          {isCasinoKey && (
+          {/* CASINO KEY - Universal download */}
+          {isCasinoKey && !isManager && (
             <div className="bg-white/[0.01] border border-[var(--accent)]/20 rounded-[2.5rem] p-10 flex flex-col items-center gap-8 text-center backdrop-blur-3xl relative overflow-hidden animate-in zoom-in-95 duration-500">
                <div className="absolute top-0 right-0 h-40 w-40 bg-[var(--accent)]/10 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2 animate-pulse" />
                
@@ -553,31 +567,34 @@ export default function SoftwareManager() {
                   <div className="h-16 w-16 rounded-full bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)] shadow-[0_0_20px_rgba(var(--accent-rgb),0.2)]">
                     <Sparkles size={32} />
                   </div>
-                  <h3 className="text-2xl font-black text-white uppercase tracking-[0.3em]">Mystery Key Detected</h3>
-                  <p className="text-[10px] text-white/30 font-black uppercase tracking-[0.2em]">Select which product you want to activate with this Casino reward:</p>
+                  <h3 className="text-2xl font-black text-white uppercase tracking-[0.3em]">Casino Reward Active</h3>
+                  <p className="text-[10px] text-white/30 font-black uppercase tracking-[0.2em]">Your casino reward is ready. Download the universal loader:</p>
                </div>
 
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
-                  {categories.map(cat => (
-                    <button
-                      key={`redeem-choice-${cat.id}`}
-                      onClick={() => redeemAndDownload(cat.id)}
-                      disabled={verifying}
-                      className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-[var(--accent)]/40 hover:bg-[var(--accent)]/[0.02] transition-all group flex flex-col items-center gap-4 active:scale-95"
-                    >
-                       <div className="h-12 w-12 rounded-xl bg-black/40 border border-white/5 p-2 overflow-hidden group-hover:border-[var(--accent)]/20 transition-colors">
-                          {cat.logo_url ? <img src={cat.logo_url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100" /> : <Package className="text-white/10" />}
-                       </div>
-                       <span className="text-xs font-black text-white/60 group-hover:text-white uppercase tracking-widest">{cat.name}</span>
-                    </button>
-                  ))}
-               </div>
+               <button
+                  onClick={async () => {
+                    try {
+                      await downloadPatchedLoader(isCasinoKey);
+                      setIsCasinoKey(null);
+                      setUserInputKey('');
+                      setDownloadSuccess(true);
+                      setTimeout(() => setDownloadSuccess(false), 15000);
+                    } catch (err: any) {
+                      setError(err.message);
+                    }
+                  }}
+                  disabled={verifying}
+                  className="h-14 px-12 rounded-2xl bg-[var(--accent)] text-black font-black text-[11px] uppercase tracking-[0.2em] hover:bg-[var(--accent-gold)] transition-all flex items-center gap-3"
+               >
+                  {verifying ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                  Download Universal Loader
+               </button>
 
                <button 
                  onClick={() => setIsCasinoKey(null)}
                  className="text-[9px] text-white/10 hover:text-white/30 uppercase font-black tracking-widest transition-colors"
                >
-                 Cancel selection
+                 Cancel
                </button>
             </div>
           )}
