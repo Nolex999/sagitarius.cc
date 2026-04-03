@@ -300,11 +300,17 @@ export default function ProfileManager() {
                   onClick={async () => {
                     setLoading(true);
                     try {
-                      const { error } = await supabase
+                      // 1. Set pending status on profile
+                      const { error: profileError } = await supabase
                         .from('profiles')
                         .update({ hwid_reset_status: 'pending' })
                         .eq('id', profile.id);
-                      if (error) throw error;
+                      if (profileError) throw profileError;
+
+                      // 2. Also reset HWID on all software_keys for this user
+                      const { error: keysError } = await supabase.rpc('reset_user_hwid', { p_user_id: profile.id });
+                      if (keysError) console.error('Keys HWID reset error:', keysError);
+
                       setProfile({ ...profile, hwid_reset_status: 'pending' });
                       setSuccess('HWID Reset request sent to administrators!');
                     } catch (err: any) {

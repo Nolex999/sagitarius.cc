@@ -560,23 +560,29 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
                     </div>
 
                     <div className="flex items-center gap-3 w-full md:w-auto relative z-10">
-                       <button
-                         onClick={async () => {
-                            setLoading(true);
-                            try {
-                               const { error } = await supabase
-                                 .from('profiles')
-                                 .update({ hwid: null, hwid_reset_status: null, last_hwid_reset: new Date().toISOString() })
-                                 .eq('id', profile.id);
-                               if (error) throw error;
-                               setProfiles(profiles.map(p => p.id === profile.id ? { ...p, hwid: null, hwid_reset_status: null, last_hwid_reset: new Date().toISOString() } : p));
-                               setSuccess(`HWID Reset approved for ${profile.username}`);
-                            } catch (err: any) {
-                               setError(err.message);
-                            } finally {
-                               setLoading(false);
-                            }
-                         }}
+                        <button
+                          onClick={async () => {
+                             setLoading(true);
+                             try {
+                                // 1. Reset HWID on profile
+                                const { error: profileError } = await supabase
+                                  .from('profiles')
+                                  .update({ hwid: null, hwid_reset_status: null, last_hwid_reset: new Date().toISOString() })
+                                  .eq('id', profile.id);
+                                if (profileError) throw profileError;
+
+                                // 2. Reset HWID on ALL software_keys for this user
+                                const { error: keysError } = await supabase.rpc('reset_user_hwid', { p_user_id: profile.id });
+                                if (keysError) console.error('Keys HWID reset error:', keysError);
+
+                                setProfiles(profiles.map(p => p.id === profile.id ? { ...p, hwid: null, hwid_reset_status: null, last_hwid_reset: new Date().toISOString() } : p));
+                                setSuccess(`HWID Reset approved for ${profile.username}`);
+                             } catch (err: any) {
+                                setError(err.message);
+                             } finally {
+                                setLoading(false);
+                             }
+                          }}
                          className="flex-1 md:flex-none h-10 px-6 rounded-xl bg-[var(--accent)] text-black text-[10px] font-black uppercase tracking-widest hover:bg-[var(--accent-gold)] transition-all flex items-center gap-2 shadow-lg shadow-[var(--accent)]/5"
                        >
                           <CheckCircle2 size={14} /> Approve

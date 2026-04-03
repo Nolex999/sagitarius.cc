@@ -1,6 +1,7 @@
 -- ============================================================================
--- SAGITARIUS.cc - SAFE ULTIMATE MASTER SETUP (V2)
+-- SAGITARIUS.cc - SAFE ULTIMATE MASTER SETUP (V3)
 -- Combines: Core Schema + Software Manager + Casino + Sagitarius Integration
+--           + Auto-Update + Violation Reporting
 -- ============================================================================
 
 NOTIFY pgrst, 'reload schema';
@@ -251,13 +252,16 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to reset HWID (Once every 7 days)
+-- Resets HWID on BOTH the profile AND all software_keys for this user
 CREATE OR REPLACE FUNCTION public.reset_hwid(p_key text)
 RETURNS json AS $$
 DECLARE
   v_key_id uuid;
   v_last_reset timestamptz;
+  v_created_by uuid;
 BEGIN
-  SELECT id, (metadata->>'last_hwid_reset')::timestamptz INTO v_key_id, v_last_reset 
+  SELECT id, (metadata->>'last_hwid_reset')::timestamptz, created_by
+  INTO v_key_id, v_last_reset, v_created_by
   FROM public.software_keys WHERE key = p_key AND is_active = true;
 
   IF v_key_id IS NULL THEN
@@ -268,46 +272,88 @@ BEGIN
     RETURN json_build_object('success', false, 'message', 'You can only reset HWID once every 7 days');
   END IF;
 
+  -- Reset HWID on the key
   UPDATE public.software_keys 
   SET metadata = metadata - 'hwid' || jsonb_build_object('last_hwid_reset', now())
   WHERE id = v_key_id;
+
+  -- Also reset HWID on the profile if created_by exists
+  IF v_created_by IS NOT NULL THEN
+    UPDATE public.profiles 
+    SET hwid = NULL, last_hwid_reset = now(), hwid_reset_status = NULL
+    WHERE id = v_created_by;
+  END IF;
 
   RETURN json_build_object('success', true, 'message', 'HWID reset successful');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Function to reset HWID for ALL keys of a user (called by AdminPanel)
+CREATE OR REPLACE FUNCTION public.reset_user_hwid(p_user_id uuid)
+RETURNS json AS $$
+BEGIN
+  -- Reset HWID on all software_keys created by this user
+  UPDATE public.software_keys 
+  SET metadata = metadata - 'hwid' || jsonb_build_object('last_hwid_reset', now())
+  WHERE created_by = p_user_id AND (metadata->>'hwid') IS NOT NULL;
+
+  -- Reset HWID on the profile
+  UPDATE public.profiles 
+  SET hwid = NULL, hwid_reset_status = NULL, last_hwid_reset = now()
+  WHERE id = p_user_id;
+
+  RETURN json_build_object('success', true, 'message', 'All HWIDs reset for user');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Function to get key expiry info for the loader UI (days remaining display)
+-- FIX: Calculates time_left from duration metadata even if expires_at is NULL
 DROP FUNCTION IF EXISTS public.get_key_expiry(text);
 CREATE OR REPLACE FUNCTION public.get_key_expiry(p_key text)
-RETURNS TABLE (expires_at timestamptz, time_left text, category_name text) AS $$
+RETURNS TABLE (expires_at timestamptz, time_left text, category_name text, username text) AS $$
 DECLARE
   v_expires_at timestamptz;
   v_category_id uuid;
   v_cat_name text;
   v_minutes int;
+  v_created_by uuid;
+  v_username text;
+  v_duration text;
+  v_created_at timestamptz;
 BEGIN
-  SELECT sk.expires_at, sk.category_id
-  INTO v_expires_at, v_category_id
+  SELECT sk.expires_at, sk.category_id, sk.created_by, sk.created_at, (sk.metadata->>'duration')::text
+  INTO v_expires_at, v_category_id, v_created_by, v_created_at, v_duration
   FROM public.software_keys sk
   WHERE sk.key = p_key AND sk.is_active = true;
+
+  -- Get username from profiles via created_by
+  IF v_created_by IS NOT NULL THEN
+    SELECT p.username INTO v_username FROM public.profiles p WHERE p.id = v_created_by;
+  END IF;
 
   IF v_category_id IS NOT NULL THEN
     SELECT sc.name INTO v_cat_name FROM public.software_categories sc WHERE sc.id = v_category_id;
   END IF;
 
+  -- FIX: If expires_at is NULL but duration exists, calculate it from created_at
+  IF v_expires_at IS NULL AND v_duration IS NOT NULL AND v_created_at IS NOT NULL THEN
+    v_expires_at := v_created_at + v_duration::interval;
+    -- Update the DB so next time it's already set
+    UPDATE public.software_keys SET expires_at = v_expires_at WHERE key = p_key;
+  END IF;
+
   IF v_expires_at IS NULL THEN
-    -- Lifetime key
-    RETURN QUERY SELECT NULL::timestamptz, 'LIFETIME'::text, COALESCE(v_cat_name, 'Software')::text;
+    RETURN QUERY SELECT NULL::timestamptz, 'LIFETIME'::text, COALESCE(v_cat_name, 'Software')::text, COALESCE(v_username, 'User')::text;
   ELSE
     v_minutes := GREATEST(0, EXTRACT(EPOCH FROM (v_expires_at - now())) / 60)::int;
     IF v_minutes <= 0 THEN
-      RETURN QUERY SELECT v_expires_at, 'EXPIRES TODAY'::text, COALESCE(v_cat_name, 'Software')::text;
+      RETURN QUERY SELECT v_expires_at, 'EXPIRED'::text, COALESCE(v_cat_name, 'Software')::text, COALESCE(v_username, 'User')::text;
     ELSIF v_minutes < 60 THEN
-      RETURN QUERY SELECT v_expires_at, v_minutes || ' MINUTE' || CASE WHEN v_minutes = 1 THEN '' ELSE 'S' END, COALESCE(v_cat_name, 'Software')::text;
+      RETURN QUERY SELECT v_expires_at, v_minutes || 'm left', COALESCE(v_cat_name, 'Software')::text, COALESCE(v_username, 'User')::text;
     ELSIF v_minutes < 1440 THEN
-      RETURN QUERY SELECT v_expires_at, (v_minutes / 60) || ' HOUR' || CASE WHEN (v_minutes / 60) = 1 THEN '' ELSE 'S' END, COALESCE(v_cat_name, 'Software')::text;
+      RETURN QUERY SELECT v_expires_at, (v_minutes / 60) || 'h left', COALESCE(v_cat_name, 'Software')::text, COALESCE(v_username, 'User')::text;
     ELSE
-      RETURN QUERY SELECT v_expires_at, (v_minutes / 1440) || ' DAY' || CASE WHEN (v_minutes / 1440) = 1 THEN '' ELSE 'S' END, COALESCE(v_cat_name, 'Software')::text;
+      RETURN QUERY SELECT v_expires_at, (v_minutes / 1440) || 'd left', COALESCE(v_cat_name, 'Software')::text, COALESCE(v_username, 'User')::text;
     END IF;
   END IF;
 END;
@@ -337,8 +383,68 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 5. SAGITARIUS INITIALIZATION & SEEDING
--- ----------------------------------------------------------------------------
+-- ── AUTO-UPDATE CHECK (called by loader at login) ─────────────────────────
+CREATE OR REPLACE FUNCTION public.check_loader_update(p_version text)
+RETURNS json AS $$
+DECLARE
+  v_latest record;
+BEGIN
+  SELECT version, download_url, is_mandatory, release_notes
+  INTO v_latest
+  FROM public.loader_versions 
+  ORDER BY created_at DESC LIMIT 1;
+
+  IF v_latest IS NULL THEN
+    RETURN json_build_object('update_available', false);
+  END IF;
+
+  -- Compare versions (simple string comparison works for semver like 1.0.0 < 1.0.1)
+  IF p_version < v_latest.version THEN
+    RETURN json_build_object(
+      'update_available', true,
+      'latest_version', v_latest.version,
+      'download_url', v_latest.download_url,
+      'is_mandatory', v_latest.is_mandatory,
+      'release_notes', COALESCE(v_latest.release_notes, '')
+    );
+  ELSE
+    RETURN json_build_object('update_available', false);
+  END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ── VIOLATION REPORT (anti-debug / anti-tamper bans) ───────────────────────
+CREATE TABLE IF NOT EXISTS public.violation_logs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  key text,
+  hwid text,
+  reason text,
+  ip_address text,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE OR REPLACE FUNCTION public.report_violation(p_key text, p_hwid text, p_reason text)
+RETURNS json AS $$
+BEGIN
+  -- Log the violation
+  INSERT INTO public.violation_logs (key, hwid, reason)
+  VALUES (p_key, p_hwid, p_reason);
+
+  -- Auto-ban: deactivate the key
+  IF p_key != 'unknown' AND p_key != '' THEN
+    UPDATE public.software_keys SET is_active = false WHERE key = p_key;
+  END IF;
+
+  -- Also ban the HWID on all keys
+  IF p_hwid != '' AND p_hwid != 'debugger_detected' AND p_hwid != 'protection_failed' THEN
+    UPDATE public.software_keys 
+    SET is_active = false 
+    WHERE (metadata->>'hwid') = p_hwid;
+  END IF;
+
+  RETURN json_build_object('success', true, 'message', 'Violation logged and key banned');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 5. SAGITARIUS INITIALIZATION & SEEDING & MIGRATION
 -- ----------------------------------------------------------------------------
@@ -393,5 +499,37 @@ ON CONFLICT DO NOTHING;
 
 -- Fix Owner Permissions
 UPDATE public.profiles SET role = 'owner' WHERE email IN ('n0lex9999@gmail.com');
+
+-- ── RLS for violation_logs ────────────────────────────────────────────────
+ALTER TABLE public.violation_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can insert violations" ON public.violation_logs;
+DROP POLICY IF EXISTS "Admins can view violations" ON public.violation_logs;
+
+-- Anyone can report violations (loader calls this unauthenticated)
+CREATE POLICY "Anyone can insert violations" ON public.violation_logs
+  FOR INSERT WITH CHECK (true);
+
+-- Only admins can view violations
+CREATE POLICY "Admins can view violations" ON public.violation_logs
+  FOR SELECT USING (
+    (SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'owner')
+  );
+
+-- ── RLS for loader_versions ───────────────────────────────────────────────
+ALTER TABLE public.loader_versions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can read loader versions" ON public.loader_versions;
+DROP POLICY IF EXISTS "Admins can manage loader versions" ON public.loader_versions;
+
+-- Anyone can read versions (loader checks for updates)
+CREATE POLICY "Anyone can read loader versions" ON public.loader_versions
+  FOR SELECT USING (true);
+
+-- Only admins can manage versions
+CREATE POLICY "Admins can manage loader versions" ON public.loader_versions
+  FOR ALL USING (
+    (SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'owner')
+  );
 
 NOTIFY pgrst, 'reload schema';
