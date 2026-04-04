@@ -224,45 +224,28 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Tabs */}
-      <div className="flex gap-1.5 p-1 bg-white/[0.02] border border-white/5 rounded-xl w-fit">
-        <button
-          onClick={() => setActiveTab('messaging')}
-          className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2.5 ${
-            activeTab === 'messaging' ? 'bg-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
-          }`}
-        >
-          <Send size={14} />
-          Messaging
-        </button>
-        <button
-          onClick={() => setActiveTab('invites')}
-          className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2.5 ${
-            activeTab === 'invites' ? 'bg-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
-          }`}
-        >
-          <Ticket size={14} />
-          Invites
-        </button>
-        <button
-          onClick={() => setActiveTab('users')}
-          className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2.5 ${
-            activeTab === 'users' ? 'bg-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
-          }`}
-        >
-          <Users size={14} />
-          Users
-        </button>
-        <button
-          onClick={() => setActiveTab('hwid')}
-          className={`px-5 py-2 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2.5 ${
-            activeTab === 'hwid' ? 'bg-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20' : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
-          }`}
-        >
-          <ShieldCheck size={14} />
-          HWID
-        </button>
+      <div className="flex gap-1 p-1 bg-white/[0.02] border border-white/5 rounded-xl w-full overflow-x-auto">
+        {([
+          { id: 'messaging' as const, label: 'Messaging', icon: Send },
+          { id: 'invites' as const, label: 'Invites', icon: Ticket },
+          { id: 'users' as const, label: 'Users', icon: Users },
+          { id: 'hwid' as const, label: 'HWID', icon: ShieldCheck },
+        ]).map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-[0.15em] transition-all flex items-center gap-2 shrink-0 whitespace-nowrap ${
+              activeTab === tab.id
+                ? 'bg-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20'
+                : 'text-white/30 hover:text-white/60 hover:bg-white/[0.02]'
+            }`}
+          >
+            <tab.icon size={13} />
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {error && (
@@ -278,8 +261,9 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
         </div>
       )}
 
+      {/* Messaging Tab */}
       {activeTab === 'messaging' && (
-        <form onSubmit={handleSendMessage} className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <form onSubmit={handleSendMessage} className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <div className="grid grid-cols-2 gap-3 p-2 rounded-2xl bg-white/[0.01] border border-white/[0.04]">
             <button
               type="button"
@@ -327,7 +311,6 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
             )}
             <div className="relative group">
               <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-[var(--accent)] transition-colors" size={14} />
-              <Hash className="absolute left-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-[var(--accent)] transition-colors" size={14} />
               <input
                 type="text"
                 placeholder="Message Title..."
@@ -358,8 +341,9 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
         </form>
       )}
 
+      {/* Invites Tab */}
       {activeTab === 'invites' && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <form onSubmit={handleCreateInvite} className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col gap-3">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1 relative group">
@@ -450,8 +434,9 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
         </div>
       )}
 
+      {/* Users Tab */}
       {activeTab === 'users' && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-500">
            <div className="relative group max-w-md">
             <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-[var(--accent)] transition-colors" size={14} />
             <input
@@ -523,8 +508,10 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
           </div>
         </div>
       )}
+
+      {/* HWID Tab */}
       {activeTab === 'hwid' && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <div className="flex items-center justify-between px-2">
             <h2 className="text-lg font-black text-white flex items-center gap-3 uppercase tracking-widest">
               <ShieldCheck className="text-[var(--accent)]" size={20} />
@@ -564,14 +551,12 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
                           onClick={async () => {
                              setLoading(true);
                              try {
-                                // 1. Reset HWID on profile
                                 const { error: profileError } = await supabase
                                   .from('profiles')
                                   .update({ hwid: null, hwid_reset_status: null, last_hwid_reset: new Date().toISOString() })
                                   .eq('id', profile.id);
                                 if (profileError) throw profileError;
 
-                                // 2. Reset HWID on ALL software_keys for this user
                                 const { error: keysError } = await supabase.rpc('reset_user_hwid', { p_user_id: profile.id });
                                 if (keysError) console.error('Keys HWID reset error:', keysError);
 
