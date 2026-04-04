@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
-  Cpu,
   User,
   Crown,
   Shield,
@@ -38,7 +37,6 @@ const navItems: NavItem[] = [
   { href: '/dashboard/software', label: 'Downloads', icon: Package },
   { href: '/dashboard/get-key', label: 'Get Key', icon: CreditCard },
   { href: '/dashboard/inbox', label: 'Inbox', icon: Inbox },
-  { href: '/dashboard/firmware', label: 'Firmware', icon: Cpu, requiredRole: ['owner', 'admin'] },
   { href: '/dashboard/s3', label: 'Bio Page', icon: User, requiredRole: ['owner', 'admin'] },
   { href: '/dashboard/s7', label: 'Analytics', icon: BarChart3, requiredRole: ['owner', 'admin'] },
   { href: '/dashboard/s4', label: 'Admin', icon: Shield, requiredRole: ['admin', 'owner'] },

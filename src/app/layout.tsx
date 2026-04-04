@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import TopGradientBar from '@/components/TopGradientBar';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Sagitarius .cc | Precision Software',
+  title: 'Sagitarius.cc | Private Software',
   description: 'Premium counter-strike software. Join the elite.',
   metadataBase: new URL('https://sagitarius.cc'),
   openGraph: {
@@ -51,11 +50,6 @@ export default function RootLayout({
       <body>
         <TopGradientBar />
         {children}
-        <Script
-          type="module"
-          src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"
-          strategy="afterInteractive"
-        />
       </body>
     </html>
   );

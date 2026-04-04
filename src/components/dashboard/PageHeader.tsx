@@ -6,7 +6,6 @@ const labels: Record<string, string> = {
   '/dashboard/software': 'Software',
   '/dashboard/get-key': 'Get Key',
   '/dashboard/inbox': 'Inbox',
-  '/dashboard/firmware': 'Firmware',
   '/dashboard/s3': 'Bio Page',
   '/dashboard/s4': 'Admin',
   '/dashboard/s5': 'Settings',
