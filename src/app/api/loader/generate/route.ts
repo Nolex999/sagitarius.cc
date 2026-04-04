@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { patchLoaderFromBuffer } from '@/lib/loader-patcher';
 import { R6_LOADER_BASE64 } from '@/assets/loaders';
 
 export const runtime = 'nodejs';
@@ -13,7 +12,7 @@ function randomExeName(): string {
   return `${s}.exe`;
 }
 
-async function patchAndRespond(keyStr: string): Promise<NextResponse> {
+async function serveLoader(keyStr: string): Promise<NextResponse> {
   const supabase = await createClient();
 
   const { data: verifyResults, error: rpcErr } = await supabase.rpc(
@@ -40,7 +39,7 @@ async function patchAndRespond(keyStr: string): Promise<NextResponse> {
 
   if (row.message === 'casino_key') {
     return NextResponse.json(
-      { error: 'Use the casino product selection first.' },
+      { error: 'Select a product first.' },
       { status: 400 }
     );
   }
@@ -53,10 +52,9 @@ async function patchAndRespond(keyStr: string): Promise<NextResponse> {
   }
 
   const binary = Buffer.from(R6_LOADER_BASE64, 'base64');
-  const patchedBinary = await patchLoaderFromBuffer(binary, keyStr);
   const fileName = randomExeName();
 
-  return new NextResponse(new Uint8Array(patchedBinary), {
+  return new NextResponse(new Uint8Array(binary), {
     status: 200,
     headers: {
       'Content-Type': 'application/octet-stream',
@@ -72,7 +70,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Missing key parameter' }, { status: 400 });
   }
   try {
-    return await patchAndRespond(keyStr);
+    return await serveLoader(keyStr);
   } catch (err: unknown) {
     console.error('Loader Generation Error:', err);
     const message = err instanceof Error ? err.message : 'Internal server error';
@@ -94,7 +92,7 @@ export async function POST(req: NextRequest) {
     if (!keyStr?.trim()) {
       return NextResponse.json({ error: 'Missing key' }, { status: 400 });
     }
-    return await patchAndRespond(keyStr.trim());
+    return await serveLoader(keyStr.trim());
   } catch (err: unknown) {
     console.error('Loader Generation Error:', err);
     const message = err instanceof Error ? err.message : 'Internal server error';
