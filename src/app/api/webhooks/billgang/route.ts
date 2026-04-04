@@ -85,13 +85,11 @@ export async function POST(req: NextRequest) {
     // 3. Map product name to duration for key metadata
     const productLower = (productName || '').toLowerCase();
     let duration: string | null = null;
-    if (productLower.includes('7') && (productLower.includes('day') || productLower.includes('jour'))) {
+    if (productLower === 'r6-7-days' || productLower.includes('7') && productLower.includes('day')) {
       duration = '7 days';
-    } else if (productLower.includes('1') && (productLower.includes('day') || productLower.includes('jour'))) {
-      duration = '1 day';
-    } else if (productLower.includes('30') || productLower.includes('1 month') || productLower.includes('1 mois')) {
+    } else if (productLower === 'r6-1-month' || productLower.includes('1') && productLower.includes('month')) {
       duration = '1 month';
-    } else if (productLower.includes('3') && (productLower.includes('month') || productLower.includes('mois'))) {
+    } else if (productLower === 'r6-3-months' || productLower.includes('3') && productLower.includes('month')) {
       duration = '3 months';
     } else if (productLower.includes('lifetime') || productLower.includes('illimité') || productLower.includes('unlimited')) {
       duration = null;
