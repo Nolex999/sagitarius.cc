@@ -37,7 +37,7 @@ export default function CelebriteColumn({ items }: { items: Celebrity[] }) {
 
     if (error) {
       console.error('Error adding celebrity:', error);
-      alert('Erreur lors de l\'ajout: ' + error.message);
+      alert('Failed to add entry: ' + error.message);
       return;
     }
 
@@ -49,7 +49,7 @@ export default function CelebriteColumn({ items }: { items: Celebrity[] }) {
   return (
     <>
       <SoftwareColumn
-        title="Célébrité"
+        title="Celebrity"
         actions={
           <button
             type="button"
@@ -62,7 +62,7 @@ export default function CelebriteColumn({ items }: { items: Celebrity[] }) {
       >
         {list.length === 0 ? (
           <div className="px-4 py-8 text-center text-[13px] text-[var(--text-muted)]">
-            Aucune entrée
+            No entries
           </div>
         ) : (
           list.map((item) => (
@@ -80,13 +80,13 @@ export default function CelebriteColumn({ items }: { items: Celebrity[] }) {
       <AddEntryDrawer
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        title="Ajouter une célébrité"
+        title="Add Celebrity"
         fields={[
-          { name: 'name', label: 'Nom', required: true },
-          { name: 'category', label: 'Catégorie' },
+          { name: 'name', label: 'Name', required: true },
+          { name: 'category', label: 'Category' },
           { name: 'email', label: 'Email' },
-          { name: 'habitation', label: 'Habitation' },
-          { name: 'telephone', label: 'Téléphone' },
+          { name: 'habitation', label: 'Residence' },
+          { name: 'telephone', label: 'Phone' },
         ]}
         onSubmit={handleAdd}
       />

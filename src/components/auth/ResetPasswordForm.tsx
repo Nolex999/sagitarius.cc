@@ -43,7 +43,7 @@ export default function ResetPasswordForm() {
                 router.push('/auth/login');
             }, 3000);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Erreur lors de la mise à jour du mot de passe');
+            setError(err instanceof Error ? err.message : 'Failed to update password');
         } finally {
             setLoading(false);
         }

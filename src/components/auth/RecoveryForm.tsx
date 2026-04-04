@@ -25,7 +25,7 @@ export default function RecoveryForm() {
             if (err) throw err;
             setSubmitted(true);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Erreur lors de l\'envoi du mail');
+            setError(err instanceof Error ? err.message : 'Failed to send recovery email');
         } finally {
             setLoading(false);
         }

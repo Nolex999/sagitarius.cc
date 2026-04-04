@@ -512,7 +512,7 @@ export default function SoftwareManager() {
            </div>
            <h3 className="text-lg font-black text-white uppercase tracking-[0.2em]">Download Successful</h3>
            <p className="text-[11px] text-white/40 max-w-md leading-relaxed">
-             Le loader est universel — il fonctionne pour tous les jeux. Le paiement était nécessaire uniquement pour la protection de notre software et de notre business.
+              The loader is universal — it works for all games. Payment was required solely for the protection of our software and our business.
            </p>
            <button 
              onClick={() => setDownloadSuccess(false)}

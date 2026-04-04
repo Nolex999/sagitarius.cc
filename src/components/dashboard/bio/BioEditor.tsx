@@ -636,7 +636,7 @@ export default function BioEditor({
 
       {config.theme.bgType === 'image' && (
         <div className="space-y-1">
-          <FieldLabel>URL de l&apos;image ou vidéo local</FieldLabel>
+          <FieldLabel>Image or video URL</FieldLabel>
           <MediaUploader value={config.theme.bgImageUrl} onChange={v => updateTheme('bgImageUrl', v)} type="any" />
         </div>
       )}
@@ -1335,7 +1335,7 @@ export default function BioEditor({
       </p>
 
       <div>
-        <FieldLabel>Title personnalisé</FieldLabel>
+        <FieldLabel>Custom Title</FieldLabel>
         <TextInput value={config.seo?.title ?? ''} onChange={v => updateSeo('title', v)} placeholder="My profile — Sagitarius.cc" />
       </div>
 
@@ -1346,7 +1346,7 @@ export default function BioEditor({
 
       <div>
         <FieldLabel>OG Image URL</FieldLabel>
-        <TextInput value={config.seo?.ogImage ?? ''} onChange={v => updateSeo('ogImage', v)} placeholder="https://... (image d'aperçu)" />
+        <TextInput value={config.seo?.ogImage ?? ''} onChange={v => updateSeo('ogImage', v)} placeholder="https://... (preview image)" />
       </div>
     </div>
   );

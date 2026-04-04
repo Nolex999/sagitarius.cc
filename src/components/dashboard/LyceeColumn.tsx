@@ -36,7 +36,7 @@ export default function LyceeColumn({
 
   const handleAddEntry = async (values: Record<string, string>) => {
     if (!defaultClassId) {
-      alert("Erreur: Aucune classe lycée trouvée dans la base de données. Veuillez lancer le script SQL.");
+      alert("Error: No high school classes found in the database. Please run the SQL script.");
       return;
     }
     const { data: userData } = await supabase.auth.getUser();
@@ -56,7 +56,7 @@ export default function LyceeColumn({
 
     if (error) {
       console.error('Error adding lycee entry:', error);
-      alert('Erreur lors de l\'ajout (Lycée): ' + error.message);
+      alert('Failed to add high school entry: ' + error.message);
       return;
     }
 
@@ -68,7 +68,7 @@ export default function LyceeColumn({
   return (
     <>
       <SoftwareColumn
-        title="Lycée"
+        title="High School"
         actions={
           <button
             type="button"
@@ -82,7 +82,7 @@ export default function LyceeColumn({
         <div className="flex-1">
           {entries.length === 0 ? (
             <div className="px-4 py-8 text-center text-[13px] text-[var(--text-muted)]">
-              Aucune entrée
+              No entries
             </div>
           ) : (
             entries.map((e) => (
@@ -101,13 +101,13 @@ export default function LyceeColumn({
       <AddEntryDrawer
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        title="Ajouter une entrée"
+        title="Add Entry"
         fields={[
-          { name: 'name', label: 'Nom', required: true },
+          { name: 'name', label: 'Name', required: true },
           { name: 'info', label: 'Info' },
           { name: 'email', label: 'Email' },
-          { name: 'habitation', label: 'Habitation' },
-          { name: 'telephone', label: 'Téléphone' },
+          { name: 'habitation', label: 'Residence' },
+          { name: 'telephone', label: 'Phone' },
         ]}
         onSubmit={handleAddEntry}
       />

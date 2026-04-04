@@ -27,7 +27,7 @@ export default function LoginForm() {
       router.push('/dashboard/software');
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur de connexion');
+      setError(err instanceof Error ? err.message : 'Failed to sign in');
     } finally {
       setLoading(false);
     }

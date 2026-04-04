@@ -26,16 +26,16 @@ export default function Flasher() {
             slot="activate" 
             className="group relative px-8 py-4 bg-white text-black font-mono text-xs uppercase tracking-[0.2em] font-bold rounded-full hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]"
           >
-            FLASHER MAINTENANT
+            FLASH NOW
           </button>
           <div slot="unsupported" className="text-red-500 font-mono text-[10px] uppercase tracking-widest">
-            Navigateur non supporté (Utilisez Chrome/Edge)
+            Unsupported browser (Use Chrome/Edge)
           </div>
         </esp-web-install-button>
 
         <div className="flex flex-col gap-2 items-center text-center max-w-[280px]">
           <p className="font-mono text-[9px] uppercase tracking-tight text-white/30 leading-relaxed">
-            Assurez-vous que votre appareil est branché en USB et que les drivers sont installés.
+            Make sure your device is connected via USB and drivers are installed.
           </p>
         </div>
       </div>
