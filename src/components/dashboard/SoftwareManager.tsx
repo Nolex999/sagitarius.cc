@@ -74,6 +74,7 @@ export default function SoftwareManager() {
   
   const [userInputKey, setUserInputKey] = useState('');
   const [isCasinoKey, setIsCasinoKey] = useState<string | null>(null);
+  const [casinoSelectedCat, setCasinoSelectedCat] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [activeTab, setActiveTab] = useState<'software' | 'status'>('software');
   const [downloadSuccess, setDownloadSuccess] = useState(false);
@@ -158,7 +159,7 @@ export default function SoftwareManager() {
       const merged = (cats || [])
         .filter((cat: any) => {
           const name = cat.name.toLowerCase();
-          return !name.includes('faceit') || name.includes('rainbow') || name.includes('siege');
+          return !name.includes('cs2') && !name.includes('external') && !name.includes('faceit') || name.includes('rainbow') || name.includes('siege');
         })
         .map((cat: any) => ({
           ...cat,
@@ -424,7 +425,12 @@ export default function SoftwareManager() {
         <div className="space-y-6 animate-fade-in pb-20">
            {/* Monitoring Detailed View */}
           <div className="grid grid-cols-1 gap-6 pb-20">
-            {categories.map(cat => (
+            {categories
+              .filter((cat: any) => {
+                const name = cat.name.toLowerCase();
+                return !name.includes('cs2') && !name.includes('external') && !name.includes('faceit');
+              })
+              .map(cat => (
               <div key={`status-tab-${cat.id}`} className="relative group">
                 {/* Premium Background Glow */}
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--accent)]/0 to-[var(--accent)]/10 rounded-[2.5rem] blur opacity-0 group-hover:opacity-100 transition duration-700" />
@@ -558,7 +564,7 @@ export default function SoftwareManager() {
             </div>
           )}
 
-          {/* CASINO KEY - Universal download */}
+          {/* CASINO KEY - Product Selection */}
           {isCasinoKey && !isManager && (
             <div className="bg-white/[0.01] border border-[var(--accent)]/20 rounded-[2.5rem] p-10 flex flex-col items-center gap-8 text-center backdrop-blur-3xl relative overflow-hidden animate-in zoom-in-95 duration-500">
                <div className="absolute top-0 right-0 h-40 w-40 bg-[var(--accent)]/10 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2 animate-pulse" />
@@ -568,30 +574,62 @@ export default function SoftwareManager() {
                     <Sparkles size={32} />
                   </div>
                   <h3 className="text-2xl font-black text-white uppercase tracking-[0.3em]">Casino Reward Active</h3>
-                  <p className="text-[10px] text-white/30 font-black uppercase tracking-[0.2em]">Your casino reward is ready. Download the universal loader:</p>
+                  <p className="text-[10px] text-white/30 font-black uppercase tracking-[0.2em]">Select a product to redeem your reward:</p>
+               </div>
+
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg relative z-10">
+                 {categories.filter(c => c.files?.some(f => f.is_loader)).map(cat => (
+                   <button
+                     key={cat.id}
+                     onClick={() => setCasinoSelectedCat(cat.id)}
+                     className={`p-6 rounded-2xl border transition-all flex flex-col items-center gap-3 ${
+                       casinoSelectedCat === cat.id
+                         ? 'bg-[var(--accent)]/10 border-[var(--accent)]/40 shadow-lg shadow-[var(--accent)]/10'
+                         : 'bg-white/[0.02] border-white/5 hover:border-white/10'
+                     }`}
+                   >
+                     {cat.logo_url ? (
+                       <img src={cat.logo_url} alt={cat.name} className="w-12 h-12 object-contain" />
+                     ) : (
+                       <Package className="text-white/20" size={32} />
+                     )}
+                     <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">{cat.name}</span>
+                   </button>
+                 ))}
                </div>
 
                <button
                   onClick={async () => {
+                    if (!casinoSelectedCat) return;
+                    setVerifying(true);
+                    setError(null);
                     try {
+                      const { error } = await supabase.rpc('redeem_casino_key', {
+                        p_key: isCasinoKey,
+                        p_category_id: casinoSelectedCat
+                      });
+                      if (error) throw error;
                       await downloadPatchedLoader(isCasinoKey);
                       setIsCasinoKey(null);
+                      setCasinoSelectedCat(null);
                       setUserInputKey('');
                       setDownloadSuccess(true);
                       setTimeout(() => setDownloadSuccess(false), 15000);
                     } catch (err: any) {
                       setError(err.message);
+                    } finally {
+                      setVerifying(false);
                     }
                   }}
-                  disabled={verifying}
-                  className="h-14 px-12 rounded-2xl bg-[var(--accent)] text-black font-black text-[11px] uppercase tracking-[0.2em] hover:bg-[var(--accent-gold)] transition-all flex items-center gap-3"
+                  disabled={verifying || !casinoSelectedCat}
+                  className="h-14 px-12 rounded-2xl bg-[var(--accent)] text-black font-black text-[11px] uppercase tracking-[0.2em] hover:bg-[var(--accent-gold)] disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-3"
                >
                   {verifying ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-                  Download Universal Loader
+                  Redeem & Download
                </button>
 
                <button 
-                 onClick={() => setIsCasinoKey(null)}
+                 onClick={() => { setIsCasinoKey(null); setCasinoSelectedCat(null); }}
                  className="text-[9px] text-white/10 hover:text-white/30 uppercase font-black tracking-widest transition-colors"
                >
                  Cancel
