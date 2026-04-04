@@ -82,18 +82,34 @@ export async function POST(req: NextRequest) {
 
     console.log('Selected category for key generation:', category.name, category.id);
 
-    // 3. Generate a NEW key for this category (Automatic Generation)
+    // 3. Map product name to duration for key metadata
+    const productLower = (productName || '').toLowerCase();
+    let duration: string | null = null;
+    if (productLower.includes('7') && (productLower.includes('day') || productLower.includes('jour'))) {
+      duration = '7 days';
+    } else if (productLower.includes('1') && (productLower.includes('day') || productLower.includes('jour'))) {
+      duration = '1 day';
+    } else if (productLower.includes('30') || productLower.includes('1 month') || productLower.includes('1 mois')) {
+      duration = '1 month';
+    } else if (productLower.includes('3') && (productLower.includes('month') || productLower.includes('mois'))) {
+      duration = '3 months';
+    } else if (productLower.includes('lifetime') || productLower.includes('illimité') || productLower.includes('unlimited')) {
+      duration = null;
+    }
+
+    // 4. Generate a NEW key for this category (Automatic Generation)
     const randomKey = 'SAG-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + 
                       Math.random().toString(36).substring(2, 6).toUpperCase() + '-' +
                       Math.random().toString(36).substring(2, 6).toUpperCase();
 
-    // 4. Save the new key to the database
+    // 5. Save the new key to the database
     const { data: keyData, error: insertError } = await supabaseAdmin
       .from('software_keys')
       .insert({
           key: randomKey,
           category_id: category.id,
           max_uses: 1,
+          metadata: duration ? { duration } : {},
       })
       .select()
       .maybeSingle();

@@ -134,9 +134,13 @@ BEGIN
   END IF;
 
   -- 1. START TIMER ON FIRST USE if duration exists but expires_at is null
-  IF v_expires_at IS NULL AND v_duration IS NOT NULL THEN
-    v_expires_at := now() + v_duration::interval;
-    UPDATE public.software_keys SET expires_at = v_expires_at WHERE id = v_key_id;
+  IF v_expires_at IS NULL AND v_duration IS NOT NULL AND v_duration != '' THEN
+    BEGIN
+      v_expires_at := now() + v_duration::interval;
+      UPDATE public.software_keys SET expires_at = v_expires_at WHERE id = v_key_id;
+    EXCEPTION WHEN OTHERS THEN
+      v_expires_at := NULL;
+    END;
   END IF;
 
   -- 2. Check Expiration
@@ -336,10 +340,15 @@ BEGIN
   END IF;
 
   -- FIX: If expires_at is NULL but duration exists, calculate it from created_at
-  IF v_expires_at IS NULL AND v_duration IS NOT NULL AND v_created_at IS NOT NULL THEN
-    v_expires_at := v_created_at + v_duration::interval;
-    -- Update the DB so next time it's already set
-    UPDATE public.software_keys SET expires_at = v_expires_at WHERE key = p_key;
+  IF v_expires_at IS NULL AND v_duration IS NOT NULL AND v_duration != '' AND v_created_at IS NOT NULL THEN
+    BEGIN
+      v_expires_at := v_created_at + v_duration::interval;
+      -- Update the DB so next time it's already set
+      UPDATE public.software_keys SET expires_at = v_expires_at WHERE key = p_key;
+    EXCEPTION WHEN OTHERS THEN
+      -- If duration format is invalid, keep it NULL (LIFETIME)
+      v_expires_at := NULL;
+    END;
   END IF;
 
   IF v_expires_at IS NULL THEN
@@ -499,6 +508,29 @@ ON CONFLICT DO NOTHING;
 
 -- Fix Owner Permissions
 UPDATE public.profiles SET role = 'owner' WHERE email IN ('n0lex9999@gmail.com');
+
+-- FIX: Auto-calculate expires_at for existing keys that have a duration but NULL expires_at
+UPDATE public.software_keys 
+SET expires_at = created_at + (metadata->>'duration')::interval
+WHERE expires_at IS NULL 
+  AND metadata->>'duration' IS NOT NULL 
+  AND metadata->>'duration' != '';
+
+-- ── RLS for software_categories (Loader reads status from here) ─────────────
+ALTER TABLE public.software_categories ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public can read software status" ON public.software_categories;
+
+-- Anyone can read software status (loader needs this to show UNDETECTED/UPDATING/DETECTED)
+CREATE POLICY "Public can read software status" ON public.software_categories
+  FOR SELECT USING (true);
+
+-- Only admins can manage categories
+DROP POLICY IF EXISTS "Admins can manage software categories" ON public.software_categories;
+CREATE POLICY "Admins can manage software categories" ON public.software_categories
+  FOR ALL USING (
+    (SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'owner')
+  );
 
 -- ── RLS for violation_logs ────────────────────────────────────────────────
 ALTER TABLE public.violation_logs ENABLE ROW LEVEL SECURITY;
