@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
+import r6Logo from '@/assets/R6.jpg';
 
 interface SoftwareFile {
   id: string;
@@ -166,7 +167,8 @@ export default function SoftwareManager() {
           files: (files || []).filter((f: any) => f.category_id === cat.id),
           isOpen: true,
           isKeysOpen: false,
-          keys: []
+          keys: [],
+          logo_url: (cat.name.toLowerCase().includes('rainbow') || cat.name.toLowerCase().includes('siege')) ? r6Logo.src : cat.logo_url
         }));
 
       setCategories(merged);
@@ -439,9 +441,9 @@ export default function SoftwareManager() {
                   <div className="absolute top-0 right-0 h-40 w-40 bg-[var(--accent)]/5 blur-[60px] -translate-y-1/2 translate-x-1/2 opacity-20 group-hover:opacity-40 transition-opacity" />
                   
                   <div className="flex items-center gap-8 relative z-10 w-full md:w-auto">
-                    <div className="h-20 w-20 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center p-4 overflow-hidden shadow-2xl group-hover:scale-105 transition-transform duration-500">
+                    <div className="h-20 w-20 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center p-0 overflow-hidden shadow-2xl group-hover:scale-105 transition-transform duration-500">
                       {cat.logo_url ? (
-                        <img src={cat.logo_url} alt={cat.name} className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
+                        <img src={cat.logo_url} alt={cat.name} className="w-full h-full object-cover filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
                       ) : (
                         <Package className="text-white/10" size={32} />
                       )}
@@ -554,18 +556,7 @@ export default function SoftwareManager() {
                     </div>
                     
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[7px] font-black text-[var(--accent)]/60 uppercase tracking-[0.4em]">Engine v1.0</span>
-                        {(cat.name.toLowerCase().includes('sagitarius') || cat.name.toLowerCase().includes('siege')) && (
-                          <span className="bg-[var(--accent)]/10 text-[var(--accent)] text-[7px] px-2 py-0.5 rounded font-black uppercase tracking-widest border border-[var(--accent)]/20 shadow-[0_0_10px_rgba(197,160,89,0.1)]">
-                            NEW: EFI BOOTKIT
-                          </span>
-                        )}
-                      </div>
                       <h3 className="text-xl font-black text-white uppercase tracking-[0.2em] group-hover:text-[var(--accent)] transition-colors">{cat.name}</h3>
-                      <p className="text-[10px] text-white/20 mt-2 font-medium leading-relaxed">
-                        Precision tracking, pre-boot kernel protection, and hardware-level stealth bypass.
-                      </p>
                     </div>
                   </div>
                 </div>
