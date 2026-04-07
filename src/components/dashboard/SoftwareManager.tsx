@@ -532,26 +532,13 @@ export default function SoftwareManager() {
                 <div key={`software-card-${cat.id}`} className="relative group">
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--accent)]/0 to-[var(--accent)]/10 rounded-[2rem] blur opacity-0 group-hover:opacity-100 transition duration-700" />
                   <div className="relative p-8 rounded-[2rem] bg-[#050505]/40 border border-white/5 backdrop-blur-3xl overflow-hidden transition-all duration-500 hover:bg-[#070707]/60">
-                    <div className="flex items-start justify-between mb-6">
-                      <div className="h-14 w-14 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center p-3 shadow-2xl">
+                    <div className="flex items-center justify-center mb-6">
+                      <div className="h-16 w-16 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center p-3 shadow-2xl group-hover:scale-105 transition-transform duration-500">
                         {cat.logo_url ? (
                           <img src={cat.logo_url} alt={cat.name} className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
                         ) : (
                           <Package className="text-white/10" size={24} />
                         )}
-                      </div>
-                      <div className="flex items-center gap-2 bg-white/[0.02] border border-white/5 px-4 py-1.5 rounded-full">
-                         <div className={`w-1.5 h-1.5 rounded-full animate-pulse`} style={{ 
-                            backgroundColor: cat.status === 'detected' ? '#ef4444' : cat.status === 'testing' ? '#eab308' : '#22c55e',
-                            boxShadow: `0 0 10px ${cat.status === 'detected' ? 'rgba(239,68,68,0.8)' : cat.status === 'testing' ? 'rgba(234,179,8,0.8)' : 'rgba(34,197,94,0.8)'}`
-                         }} />
-                         <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${
-                            cat.status === 'detected' ? 'text-red-500' :
-                            cat.status === 'testing' ? 'text-yellow-500' :
-                            'text-green-500'
-                         }`}>
-                           {(cat.status || 'undetected')}
-                         </span>
                       </div>
                     </div>
                     
