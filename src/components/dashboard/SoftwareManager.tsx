@@ -159,7 +159,7 @@ export default function SoftwareManager() {
       const merged = (cats || [])
         .filter((cat: any) => {
           const name = cat.name.toLowerCase();
-          return !name.includes('cs2') && !name.includes('external') && !name.includes('faceit') || name.includes('rainbow') || name.includes('siege');
+          return name.includes('sagitarius') || name.includes('rainbow') || name.includes('siege') || (!name.includes('cs2') && !name.includes('external') && !name.includes('faceit'));
         })
         .map((cat: any) => ({
           ...cat,
@@ -523,7 +523,56 @@ export default function SoftwareManager() {
         </div>
       )}
 
-          {/* Global Download Box */}
+          {/* Software Grid for Members */}
+          {!isManager && !isCasinoKey && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
+              {categories.map(cat => (
+                <div key={`software-card-${cat.id}`} className="relative group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--accent)]/0 to-[var(--accent)]/10 rounded-[2rem] blur opacity-0 group-hover:opacity-100 transition duration-700" />
+                  <div className="relative p-8 rounded-[2rem] bg-[#050505]/40 border border-white/5 backdrop-blur-3xl overflow-hidden transition-all duration-500 hover:bg-[#070707]/60">
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="h-14 w-14 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center p-3 shadow-2xl">
+                        {cat.logo_url ? (
+                          <img src={cat.logo_url} alt={cat.name} className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
+                        ) : (
+                          <Package className="text-white/10" size={24} />
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 bg-white/[0.02] border border-white/5 px-4 py-1.5 rounded-full">
+                         <div className={`w-1.5 h-1.5 rounded-full animate-pulse`} style={{ 
+                            backgroundColor: cat.status === 'detected' ? '#ef4444' : cat.status === 'testing' ? '#eab308' : '#22c55e',
+                            boxShadow: `0 0 10px ${cat.status === 'detected' ? 'rgba(239,68,68,0.8)' : cat.status === 'testing' ? 'rgba(234,179,8,0.8)' : 'rgba(34,197,94,0.8)'}`
+                         }} />
+                         <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${
+                            cat.status === 'detected' ? 'text-red-500' :
+                            cat.status === 'testing' ? 'text-yellow-500' :
+                            'text-green-500'
+                         }`}>
+                           {(cat.status || 'undetected')}
+                         </span>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[7px] font-black text-[var(--accent)]/60 uppercase tracking-[0.4em]">Engine v1.0</span>
+                        {(cat.name.toLowerCase().includes('sagitarius') || cat.name.toLowerCase().includes('siege')) && (
+                          <span className="bg-[var(--accent)]/10 text-[var(--accent)] text-[7px] px-2 py-0.5 rounded font-black uppercase tracking-widest border border-[var(--accent)]/20 shadow-[0_0_10px_rgba(197,160,89,0.1)]">
+                            NEW: EFI BOOTKIT
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="text-xl font-black text-white uppercase tracking-[0.2em] group-hover:text-[var(--accent)] transition-colors">{cat.name}</h3>
+                      <p className="text-[10px] text-white/20 mt-2 font-medium leading-relaxed">
+                        Precision tracking, pre-boot kernel protection, and hardware-level stealth bypass.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Global Download Box */}
           {!isManager && !isCasinoKey && (
             <div className="bg-white/[0.01] border border-white/5 rounded-[2.5rem] p-10 flex flex-col items-center gap-6 text-center backdrop-blur-3xl relative overflow-hidden group">
