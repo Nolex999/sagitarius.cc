@@ -443,7 +443,7 @@ export default function SoftwareManager() {
                   <div className="flex items-center gap-8 relative z-10 w-full md:w-auto">
                     <div className="h-20 w-20 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center p-0 overflow-hidden shadow-2xl group-hover:scale-105 transition-transform duration-500">
                       {cat.logo_url ? (
-                        <img src={cat.logo_url} alt={cat.name} className="w-full h-full object-cover filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
+                        <img src={cat.logo_url} alt={cat.name} className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
                       ) : (
                         <Package className="text-white/10" size={32} />
                       )}
