@@ -14,40 +14,34 @@ export default async function HomePage() {
       <LandingBackground />
 
       <div className="relative z-10 container mx-auto px-6 h-screen flex flex-col items-center justify-center text-center">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/20 text-[#e2c284] text-xs font-medium tracking-widest uppercase mb-8 animate-fade-in shadow-[0_0_15px_rgba(197,160,89,0.1)]">
-          <ShieldCheck className="w-3 h-3" />
-          Strictly Private
-        </div>
-
         {/* Title */}
-        <h1 className="text-6xl md:text-9xl font-black tracking-tighter mb-6 bg-gradient-to-b from-white via-white to-gray-500 bg-clip-text text-transparent animate-fade-in">
+        <h1 className="text-6xl md:text-9xl font-black tracking-tighter mb-10 bg-gradient-to-b from-white via-white to-gray-500 bg-clip-text text-transparent animate-fade-in drop-shadow-2xl">
           SAGITARIUS<span className="text-[#C5A059]">.CC</span>
         </h1>
         
-        <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mb-12 animate-fade-in [animation-delay:150ms] font-light italic">
+        <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mb-16 animate-fade-in [animation-delay:150ms] font-light italic">
           High-performance private software. 
           Limited slots. Elite performance.
         </p>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 animate-fade-in [animation-delay:300ms]">
+        <div className="flex flex-col sm:flex-row gap-6 animate-fade-in [animation-delay:300ms]">
           {session ? (
-            <Link href="/dashboard" className="group relative px-10 py-5 bg-[#C5A059] text-black font-black rounded-sm overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(197,160,89,0.5)]">
-              <span className="relative z-10 flex items-center gap-2 tracking-widest uppercase">
-                ACCESS <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            <Link href="/dashboard" className="group relative px-12 py-5 bg-[#C5A059] text-black font-black rounded-full overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(197,160,89,0.6)]">
+              <span className="relative z-10 flex items-center gap-2 tracking-[0.2em] uppercase">
+                ACCESS DASHBOARD <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-500" />
             </Link>
           ) : (
             <>
-              <Link href="/auth/login" className="group relative px-12 py-5 bg-[#C5A059] text-black font-black rounded-sm overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(197,160,89,0.5)]">
-                <span className="relative z-10 flex items-center gap-2 tracking-widest uppercase">
-                  LOGIN
+              <Link href="/auth/login" className="group relative px-16 py-6 bg-[#C5A059] text-black font-black rounded-full overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(197,160,89,0.6)]">
+                <span className="relative z-10 flex items-center gap-2 tracking-[0.2em] uppercase">
+                  CLIENT LOGIN
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-500" />
               </Link>
-              <Link href="/auth/register" className="px-12 py-5 bg-white/5 border border-white/10 text-white font-bold rounded-sm transition-all hover:bg-white/10 hover:border-white/20 tracking-widest uppercase">
+              <Link href="/auth/register" className="px-16 py-6 bg-white/5 border border-white/10 text-white font-bold rounded-full transition-all hover:bg-white/10 hover:border-white/20 tracking-[0.2em] uppercase backdrop-blur-sm">
                 REGISTER
               </Link>
             </>
