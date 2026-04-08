@@ -27,7 +27,7 @@ export default async function HomePage() {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-6 animate-fade-in [animation-delay:300ms]">
           {session ? (
-            <Link href="/dashboard" className="group relative px-12 py-5 bg-[#C5A059] text-black font-black rounded-full overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(197,160,89,0.6)]">
+            <Link href="/dashboard/software" className="group relative px-12 py-5 bg-[#C5A059] text-black font-black rounded-full overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(197,160,89,0.6)]">
               <span className="relative z-10 flex items-center gap-2 tracking-[0.2em] uppercase">
                 ACCESS DASHBOARD <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </span>
