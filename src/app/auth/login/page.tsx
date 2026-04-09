@@ -1,6 +1,8 @@
 import LoginForm from '@/components/auth/LoginForm';
 import Image from 'next/image';
 
+import { Suspense } from 'react';
+
 export const dynamic = 'force-dynamic';
 
 export default function LoginPage() {
@@ -25,7 +27,9 @@ export default function LoginPage() {
             Authentication
           </p>
         </div>
-        <LoginForm />
+        <Suspense fallback={<div className="h-64 w-full animate-pulse bg-white/5 rounded-lg" />}>
+          <LoginForm />
+        </Suspense>
       </div>
     </div>
   );

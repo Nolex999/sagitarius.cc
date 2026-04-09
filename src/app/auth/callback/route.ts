@@ -16,5 +16,6 @@ export async function GET(request: Request) {
     }
 
     // return the user to an error page with instructions
-    return NextResponse.redirect(`${origin}/auth/login?error=Could not authenticate user`);
+    const errorMsg = searchParams.get('error_description') || 'Could not authenticate user';
+    return NextResponse.redirect(`${origin}/auth/login?error=${encodeURIComponent(errorMsg)}`);
 }
