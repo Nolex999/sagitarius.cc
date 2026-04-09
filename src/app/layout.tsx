@@ -4,7 +4,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Sagitarius.cc | Private Software',
-  description: 'Premium counter-strike software. Join the elite.',
+  description: 'Private software. Join the elite.',
   metadataBase: new URL('https://sagitarius.cc'),
   openGraph: {
     title: 'Sagitarius.cc',
