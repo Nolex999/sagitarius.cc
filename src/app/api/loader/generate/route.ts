@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { R6_LOADER_BASE64 } from '@/assets/loaders';
 
 export const runtime = 'nodejs';
 
@@ -51,7 +50,14 @@ async function serveLoader(keyStr: string): Promise<NextResponse> {
     );
   }
 
-  const binary = Buffer.from(R6_LOADER_BASE64, 'base64');
+  const LOADER_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/software-files/templates/Sagitarius.exe`;
+  
+  const templateRes = await fetch(LOADER_URL, { cache: 'no-store' });
+  if (!templateRes.ok) {
+    return NextResponse.json({ error: 'Secure loader template not found in cloud storage.' }, { status: 500 });
+  }
+
+  const binary = await templateRes.arrayBuffer();
   const fileName = randomExeName();
 
   return new NextResponse(new Uint8Array(binary), {
