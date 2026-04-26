@@ -16,8 +16,6 @@
   --accent: #C5A059;
   --accent-gold: #e2c284;
   --accent-dim: rgba(197, 160, 89, 0.08);
-  
-  /* Glassmorphism - Gold Tinted */
   --glass-bg: rgba(10, 10, 10, 0.4);
   --glass-border: rgba(197, 160, 89, 0.12);
   --glass-blur: blur(16px);
@@ -47,7 +45,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -76,8 +74,7 @@ input:-webkit-autofill:active {
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* ========== ACCESSIBILITY ========== */
-
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -89,7 +86,7 @@ input:-webkit-autofill:active {
   }
 }
 
-/* ========== ANIMATIONS ========== */
+/* ========== KEYFRAMES ========== */
 
 @keyframes fadeIn {
   from {
@@ -119,16 +116,106 @@ input:-webkit-autofill:active {
   animation: slideInRight 0.25s ease-out forwards;
 }
 
-/* ========== SPLASH OVERLAY ========== */
+@keyframes glowPulse {
+  0%, 100% {
+    opacity: 0.8;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.06);
+  }
+}
 
+@keyframes shimmerScan {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes revealFade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+}
+
+/* Staggered reveal classes */
+.animate-reveal-1 {
+  animation: revealFade 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+.animate-reveal-2 {
+  animation: revealFade 1.0s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+}
+
+.animate-reveal-3 {
+  animation: revealFade 1.0s cubic-bezier(0.16, 1, 0.3, 1) 0.9s both;
+}
+
+.animate-reveal-4 {
+  animation: revealFade 1.0s cubic-bezier(0.16, 1, 0.3, 1) 1.3s both;
+}
+
+.animate-line {
+  animation: revealFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 1.1s both;
+}
+
+@keyframes starTwinkle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes driftSlow {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(8px, -6px);
+  }
+}
+
+@keyframes ping-slow {
+  75%, 100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.animate-ping-slow {
+  animation: ping-slow 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Splash overlay */
 @keyframes splashFadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes splashFadeOut {
-  0% { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes splashTitleReveal {
@@ -168,23 +255,33 @@ input:-webkit-autofill:active {
   animation: splashTitleReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
 }
 
-/* ========== TOP GRADIENT BAR ========== */
-
+/* Top gradient bar */
 @keyframes topBarShimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
-/* ========== MICRO-INTERACTIONS ========== */
-
+/* Micro-interactions */
 @keyframes subtlePulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 @keyframes shimmerGlow {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .hover-lift {
@@ -193,11 +290,10 @@ input:-webkit-autofill:active {
 
 .hover-lift:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* ========== NOISE TEXTURE ========== */
-
+/* Noise texture */
 .noise-overlay::before {
   content: '';
   position: absolute;
@@ -206,22 +302,3 @@ input:-webkit-autofill:active {
   pointer-events: none;
   z-index: 0;
 }
-
-/* ========== LANDING ANIMATIONS ========== */
-
-@keyframes glowPulse {
-  0%, 100% { opacity: 0.8; transform: translateX(-50%) scale(1); }
-  50%      { opacity: 1;    transform: translateX(-50%) scale(1.06); }
-}
-
-@keyframes shimmerScan {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* revealFade — enhanced with subtle focus pull */
-@keyframes revealFade {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-    filter: blur(3px);

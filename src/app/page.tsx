@@ -16,11 +16,8 @@ export default async function HomePage() {
     >
       <LandingBackground />
 
-      {/* ═══════════════════════════════════════
-          AMBIENT ATMOSPHERE
-      ═══════════════════════════════════════ */}
+      {/* Ambient atmosphere */}
       <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
-        {/* Core glow — softer, more diffuse */}
         <div
           className="absolute top-[-14%] left-1/2 -translate-x-1/2 w-[1100px] h-[640px] rounded-full"
           style={{
@@ -29,7 +26,6 @@ export default async function HomePage() {
             animation: 'glowPulse 8s ease-in-out infinite',
           }}
         />
-        {/* Secondary depth glow */}
         <div
           className="absolute top-[20%] right-[-10%] w-[450px] h-[450px] rounded-full opacity-50"
           style={{
@@ -38,7 +34,6 @@ export default async function HomePage() {
             animation: 'glowPulse 11s ease-in-out infinite reverse',
           }}
         />
-        {/* Floor reflection */}
         <div
           className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[700px] h-[300px] rounded-full"
           style={{
@@ -46,14 +41,12 @@ export default async function HomePage() {
             filter: 'blur(45px)',
           }}
         />
-        {/* Vignette — deeper edges */}
         <div
           className="absolute inset-0"
           style={{
             background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.70) 100%)',
           }}
         />
-        {/* Ultra-fine grain */}
         <div
           className="absolute inset-0 opacity-[0.022] mix-blend-overlay"
           style={{
@@ -62,9 +55,7 @@ export default async function HomePage() {
         />
       </div>
 
-      {/* ═══════════════════════════════════════
-          CONSTELLATION
-      ═══════════════════════════════════════ */}
+      {/* Constellation */}
       <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center opacity-[0.08]" aria-hidden="true">
         <svg
           width="900"
@@ -109,9 +100,7 @@ export default async function HomePage() {
         </svg>
       </div>
 
-      {/* ═══════════════════════════════════════
-          FRAME & EDGES
-      ═══════════════════════════════════════ */}
+      {/* Frame corners */}
       <div className="pointer-events-none absolute inset-5 sm:inset-8 z-10 animate-reveal-4" aria-hidden="true">
         <div className="absolute top-0 left-0 w-10 h-10 border-t border-l border-[#C5A059]/20 rounded-tl-sm" />
         <div className="absolute top-0 right-0 w-10 h-10 border-t border-r border-[#C5A059]/20 rounded-tr-sm" />
@@ -124,9 +113,7 @@ export default async function HomePage() {
       {/* Bottom hairline */}
       <div className="absolute bottom-0 left-0 right-0 z-10 h-px bg-gradient-to-r from-transparent via-[#C5A059]/25 to-transparent" aria-hidden="true" />
 
-      {/* ═══════════════════════════════════════
-          HEADER
-      ═══════════════════════════════════════ */}
+      {/* Header */}
       <header className="absolute top-0 left-0 right-0 z-20 px-6 sm:px-10 py-6 sm:py-8 flex items-center justify-between animate-reveal-4">
         <span
           style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.25em' }}
@@ -156,12 +143,9 @@ export default async function HomePage() {
         </span>
       </header>
 
-      {/* ═══════════════════════════════════════
-          MAIN HERO
-      ═══════════════════════════════════════ */}
+      {/* Hero */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen text-center px-6 py-24">
         
-        {/* Series Index */}
         <div className="animate-reveal-1 mb-8">
           <span
             style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.35em' }}
@@ -173,7 +157,6 @@ export default async function HomePage() {
           </span>
         </div>
 
-        {/* Wordmark */}
         <h1 className="animate-reveal-2 mb-1" style={{ lineHeight: 0.9 }}>
           <span
             style={{
@@ -193,7 +176,6 @@ export default async function HomePage() {
           </span>
         </h1>
 
-        {/* Domain suffix */}
         <div
           className="animate-reveal-2 flex items-center gap-4 mb-10"
         >
@@ -217,7 +199,6 @@ export default async function HomePage() {
           <span className="h-px w-10 bg-gradient-to-l from-transparent to-[#C5A059]/30" />
         </div>
 
-        {/* Tagline */}
         <p
           className="animate-reveal-3 max-w-lg mb-12 text-balance"
           style={{
@@ -237,7 +218,6 @@ export default async function HomePage() {
           </span>
         </p>
 
-        {/* Decorative rule */}
         <div
           className="animate-line w-32 sm:w-40 h-px mb-10"
           style={{
@@ -245,7 +225,6 @@ export default async function HomePage() {
           }}
         />
 
-        {/* CTAs */}
         <div className="animate-reveal-3 flex flex-col sm:flex-row gap-4 items-center">
           {session ? (
             <Link
@@ -301,7 +280,6 @@ export default async function HomePage() {
           )}
         </div>
 
-        {/* Scarcity indicator */}
         {!session && (
           <div
             className="animate-reveal-4 mt-12 flex items-center gap-3"
@@ -319,9 +297,7 @@ export default async function HomePage() {
         )}
       </div>
 
-      {/* ═══════════════════════════════════════
-          FOOTER
-      ═══════════════════════════════════════ */}
+      {/* Footer */}
       <footer className="absolute bottom-0 w-full z-20 py-6 sm:py-7">
         <div className="container mx-auto px-6 sm:px-8 flex items-center justify-between">
           <span
