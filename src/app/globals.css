@@ -35,6 +35,7 @@
 html {
   font-size: 13px;
   line-height: 1.6;
+  text-wrap: pretty;
 }
 
 body {
@@ -42,6 +43,8 @@ body {
   color: var(--text-primary);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Custom scrollbar */
@@ -71,6 +74,19 @@ input:-webkit-autofill:active {
   -webkit-text-fill-color: var(--text-primary) !important;
   caret-color: var(--text-primary);
   transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ========== ACCESSIBILITY ========== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ========== ANIMATIONS ========== */
@@ -194,8 +210,8 @@ input:-webkit-autofill:active {
 /* ========== LANDING ANIMATIONS ========== */
 
 @keyframes glowPulse {
-  0%, 100% { opacity: 0.85; transform: translateX(-50%) scale(1); }
-  50%      { opacity: 1;    transform: translateX(-50%) scale(1.05); }
+  0%, 100% { opacity: 0.8; transform: translateX(-50%) scale(1); }
+  50%      { opacity: 1;    transform: translateX(-50%) scale(1.06); }
 }
 
 @keyframes shimmerScan {
@@ -203,27 +219,9 @@ input:-webkit-autofill:active {
   100% { background-position: -200% 0; }
 }
 
+/* revealFade — enhanced with subtle focus pull */
 @keyframes revealFade {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes starTwinkle {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.4; }
-}
-
-@keyframes driftSlow {
-  0%, 100% { transform: translate(0, 0); }
-  50%      { transform: translate(8px, -6px); }
-}
-
-/* Staggered reveal classes */
-.animate-reveal-1 { animation: revealFade 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both; }
-.animate-reveal-2 { animation: revealFade 1.0s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both; }
-.animate-reveal-3 { animation: revealFade 1.0s cubic-bezier(0.16, 1, 0.3, 1) 0.9s both; }
-.animate-reveal-4 { animation: revealFade 1.0s cubic-bezier(0.16, 1, 0.3, 1) 1.3s both; }
-
-.animate-line {
-  animation: revealFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 1.1s both;
-}
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(3px);
