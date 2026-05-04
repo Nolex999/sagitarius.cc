@@ -71,7 +71,7 @@ export default async function HomePage() {
         {/* CTA */}
         {session ? (
           <Link
-            href="/dashboard"
+            href="/dashboard/software"
             className="group flex items-center gap-2.5 px-7 py-3.5 rounded-full text-sm font-medium transition-all duration-300 hover:scale-[1.02]"
             style={{
               background: 'linear-gradient(135deg, #C5A059 0%, #a07840 100%)',
