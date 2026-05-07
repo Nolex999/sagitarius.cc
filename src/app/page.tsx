@@ -35,38 +35,21 @@ export default async function HomePage() {
 
       {/* Center content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 text-center">
-
-        {/* Eyebrow */}
-        <div className="mb-8">
-          <span
-            className="text-[11px] tracking-[0.25em] uppercase"
-            style={{ color: 'rgba(197,160,89,0.5)' }}
-          >
-            Members only
-          </span>
-        </div>
-
         {/* Main title */}
         <h1
           className="text-[clamp(52px,10vw,130px)] font-bold leading-none tracking-tight mb-12"
           style={{
             fontFamily: 'var(--font-display)',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.15) 100%)',
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.8) 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+            paddingBottom: '0.1em'
           }}
         >
           Sagitarius
         </h1>
-
-        {/* Subtle line */}
-        <p
-          className="text-sm tracking-[0.15em] uppercase mb-14"
-          style={{ color: 'rgba(255,255,255,0.18)' }}
-        >
-          Not for everyone.
-        </p>
 
         {/* CTA */}
         {session ? (
@@ -106,13 +89,6 @@ export default async function HomePage() {
           </div>
         )}
       </div>
-
-      {/* Footer */}
-      <footer className="absolute bottom-0 w-full z-20 py-7">
-        <div className="max-w-5xl mx-auto px-8 sm:px-14 flex items-center justify-center">
-          <span className="text-white/10 text-xs">© 2026 Sagitarius</span>
-        </div>
-      </footer>
     </main>
   );
 }
