@@ -100,6 +100,30 @@
       "namedRegex": "^/api/payments/verify(?:/)?$"
     },
     {
+      "page": "/api/reseller/apply",
+      "regex": "^/api/reseller/apply(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reseller/apply(?:/)?$"
+    },
+    {
+      "page": "/api/reseller/review",
+      "regex": "^/api/reseller/review(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reseller/review(?:/)?$"
+    },
+    {
+      "page": "/api/reseller/webhook-approve",
+      "regex": "^/api/reseller/webhook\\-approve(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reseller/webhook\\-approve(?:/)?$"
+    },
+    {
+      "page": "/api/reseller/webhook-reject",
+      "regex": "^/api/reseller/webhook\\-reject(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reseller/webhook\\-reject(?:/)?$"
+    },
+    {
       "page": "/api/webhooks/billgang",
       "regex": "^/api/webhooks/billgang(?:/)?$",
       "routeKeys": {},

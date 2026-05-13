@@ -25,7 +25,7 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import type { User as AuthUser } from '@supabase/supabase-js';
 
-type UserRole = 'owner' | 'admin' | 'super_vip' | 'vip' | 'high_member' | 'member';
+type UserRole = 'owner' | 'admin' | 'super_vip' | 'vip' | 'high_member' | 'member' | 'reseller';
 
 interface NavItem {
   href: string;
@@ -37,7 +37,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: '/dashboard/software', label: 'Downloads', icon: Package },
   { href: '/dashboard/get-key', label: 'Get Key', icon: CreditCard },
-  { href: '/dashboard/bulk', label: 'Bulk Buy', icon: ShoppingCart },
+  { href: '/dashboard/bulk', label: 'Bulk Buy', icon: ShoppingCart, requiredRole: ['reseller', 'admin', 'owner'] },
   { href: '/dashboard/inbox', label: 'Inbox', icon: Inbox },
   { href: '/dashboard/s3', label: 'Bio Page', icon: User, requiredRole: ['owner', 'admin'] },
   { href: '/dashboard/s7', label: 'Analytics', icon: BarChart3, requiredRole: ['owner', 'admin'] },

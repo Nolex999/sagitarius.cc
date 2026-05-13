@@ -565,6 +565,142 @@ CREATE POLICY "Admins can manage loader versions" ON public.loader_versions
   );
 
 -- ============================================================================
+-- RESELLER SYSTEM
+-- ============================================================================
+
+-- Add reseller to role options
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'profiles' AND column_name = 'role'
+    AND column_default LIKE '%reseller%'
+  ) THEN
+    ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
+    ALTER TABLE public.profiles ADD CONSTRAINT profiles_role_check 
+    CHECK (role IN ('member', 'admin', 'owner', 'vip', 'super_vip', 'high_member', 'reseller'));
+  END IF;
+END $$;
+
+-- Whitelist for reseller emails
+CREATE TABLE IF NOT EXISTS public.reseller_whitelist (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  email text NOT NULL UNIQUE,
+  added_by uuid REFERENCES auth.users(id),
+  created_at timestamptz DEFAULT now()
+);
+
+-- Reseller applications (users requesting to become resellers)
+CREATE TABLE IF NOT EXISTS public.reseller_applications (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users(id) NOT NULL,
+  discord text,
+  telegram text,
+  status text DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  notes text,
+  created_at timestamptz DEFAULT now(),
+  reviewed_by uuid REFERENCES auth.users(id),
+  reviewed_at timestamptz
+);
+
+-- Add reseller role to existing data if needed
+UPDATE public.profiles SET role = 'reseller' WHERE email IN (
+  SELECT email FROM public.reseller_whitelist
+);
+
+-- Function to apply for reseller
+CREATE OR REPLACE FUNCTION public.apply_for_reseller(p_discord text, p_telegram text)
+RETURNS json AS $$
+DECLARE
+  v_user_id uuid;
+  v_existing_app record;
+BEGIN
+  v_user_id := auth.uid();
+  
+  -- Check if already a reseller
+  IF (SELECT role FROM public.profiles WHERE id = v_user_id) = 'reseller' THEN
+    RETURN json_build_object('success', false, 'message', 'You are already a reseller');
+  END IF;
+
+  -- Check if already applied
+  SELECT * INTO v_existing_app FROM public.reseller_applications 
+  WHERE user_id = v_user_id AND status = 'pending';
+  
+  IF v_existing_app IS NOT NULL THEN
+    RETURN json_build_object('success', false, 'message', 'You already have a pending application');
+  END IF;
+
+  INSERT INTO public.reseller_applications (user_id, discord, telegram)
+  VALUES (v_user_id, p_discord, p_telegram);
+
+  RETURN json_build_object('success', true, 'message', 'Application submitted successfully');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function for admin to approve/reject reseller application
+CREATE OR REPLACE FUNCTION public.review_reseller_application(p_application_id uuid, p_approved boolean, p_notes text DEFAULT NULL)
+RETURNS json AS $$
+DECLARE
+  v_app record;
+  v_user_id uuid;
+BEGIN
+  SELECT * INTO v_app FROM public.reseller_applications WHERE id = p_application_id;
+  
+  IF v_app IS NULL THEN
+    RETURN json_build_object('success', false, 'message', 'Application not found');
+  END IF;
+
+  IF p_approved THEN
+    UPDATE public.profiles SET role = 'reseller' WHERE id = v_app.user_id;
+  END IF;
+
+  UPDATE public.reseller_applications 
+  SET status = CASE WHEN p_approved THEN 'approved' ELSE 'rejected' END,
+      notes = p_notes,
+      reviewed_by = auth.uid(),
+      reviewed_at = now()
+  WHERE id = p_application_id;
+
+  RETURN json_build_object('success', true, 'message', p_approved THEN 'Application approved' ELSE 'Application rejected' END);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Add email to whitelist (admin only)
+CREATE OR REPLACE FUNCTION public.add_reseller_whitelist(p_email text)
+RETURNS json AS $$
+BEGIN
+  INSERT INTO public.reseller_whitelist (email, added_by)
+  VALUES (lower(p_email), auth.uid())
+  ON CONFLICT (email) DO UPDATE SET added_by = auth.uid();
+  
+  -- Update user role if exists
+  UPDATE public.profiles SET role = 'reseller' WHERE LOWER(email) = lower(p_email);
+
+  RETURN json_build_object('success', true, 'message', 'Email added to whitelist');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- RLS for reseller_whitelist
+ALTER TABLE public.reseller_whitelist ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admins can manage whitelist" ON public.reseller_whitelist;
+CREATE POLICY "Admins can manage whitelist" ON public.reseller_whitelist
+  FOR ALL USING ((SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'owner'));
+
+-- RLS for reseller_applications
+ALTER TABLE public.reseller_applications ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view their applications" ON public.reseller_applications;
+CREATE POLICY "Users can view their applications" ON public.reseller_applications
+  FOR SELECT USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "Users can create applications" ON public.reseller_applications;
+CREATE POLICY "Users can create applications" ON public.reseller_applications
+  FOR INSERT WITH CHECK (user_id = auth.uid());
+DROP POLICY IF EXISTS "Admins can review applications" ON public.reseller_applications;
+CREATE POLICY "Admins can review applications" ON public.reseller_applications
+  FOR ALL USING ((SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'owner'));
+
+NOTIFY pgrst, 'reload schema';
+
+-- ============================================================================
 -- BULK BUY SYSTEM FOR RESELLERS
 -- ============================================================================
 

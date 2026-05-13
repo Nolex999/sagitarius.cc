@@ -1,0 +1,3 @@
+{
+  "/api/reseller/webhook-reject/route": "app/api/reseller/webhook-reject/route.js"
+}

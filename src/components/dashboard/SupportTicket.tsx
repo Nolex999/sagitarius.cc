@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LifeBuoy, 
   Send, 
@@ -9,7 +9,9 @@ import {
   CheckCircle2,
   User,
   Mail,
-  MessageSquare
+  MessageSquare,
+  Store,
+  X
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -17,11 +19,94 @@ export default function SupportTicket() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [showResellerModal, setShowResellerModal] = useState(false);
+  const [resellerLoading, setResellerLoading] = useState(false);
+  const [resellerSuccess, setResellerSuccess] = useState(false);
+  const [userRole, setUserRole] = useState<string>('member');
+  const [discord, setDiscord] = useState('');
+  const [telegram, setTelegram] = useState('');
 
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
 
   const supabase = createClient();
+
+  useEffect(() => {
+    fetchUserRole();
+  }, []);
+
+  const fetchUserRole = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      if (data) setUserRole(data.role);
+    }
+  };
+
+  const handleResellerApply = async () => {
+    setResellerLoading(true);
+    try {
+      const res = await fetch('/api/reseller/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ discord, telegram })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      setResellerSuccess(true);
+      
+      // Fetch user info for webhook
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username, email')
+        .eq('id', user?.id)
+        .single();
+
+      // Send Discord webhook notification
+      const webhookPayload = {
+        embeds: [{
+          title: '📝 New Reseller Application',
+          color: 0xC5A059,
+          fields: [
+            { name: 'User', value: `**${profile?.username || 'Unknown'}**\n${profile?.email}`, inline: true },
+            { name: 'Discord', value: discord || 'Not provided', inline: true },
+            { name: 'Telegram', value: telegram || 'Not provided', inline: true }
+          ],
+          timestamp: new Date().toISOString(),
+          footer: { text: 'Sagitarius.cc Reseller System' },
+          actions: [
+            {
+              type: 2,
+              label: '✅ Approve',
+              style: 5,
+              url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://sagitarius.cc'}/api/reseller/webhook-approve?application_id=${data.application_id}`
+            },
+            {
+              type: 2,
+              label: '❌ Reject',
+              style: 5,
+              url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://sagitarius.cc'}/api/reseller/webhook-reject?application_id=${data.application_id}`
+            }
+          ]
+        }]
+      };
+
+      await fetch(process.env.DISCORD_RESELLER_WEBHOOK || 'https://discord.com/api/webhooks/1484671996305473658/H1olggHdDLVKmxd-8-P7Pl8Gz7MqWkF9GxddorvfRDxupSXm5SDVW3lEnGtz1HHYW8EY', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(webhookPayload)
+      });
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setResellerLoading(false);
+    }
+  };
   const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1484671996305473658/H1olggHdDLVKmxd-8-P7Pl8Gz7MqWkF9GxddorvfRDxupSXm5SDVW3lEnGtz1HHYW8EY";
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -150,6 +235,100 @@ export default function SupportTicket() {
           </p>
         </div>
       </form>
+
+      {userRole !== 'reseller' && userRole !== 'admin' && userRole !== 'owner' && (
+        <div className="mt-8 p-6 rounded-[2rem] bg-gradient-to-r from-[var(--accent)]/5 to-transparent border border-[var(--accent)]/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">
+                <Store size={24} />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-white uppercase tracking-wider">Become a Reseller</h3>
+                <p className="text-[10px] text-white/40">Buy keys in bulk at discounted prices</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowResellerModal(true)}
+              className="px-6 h-10 rounded-xl bg-[var(--accent)] text-black text-[10px] font-black uppercase tracking-widest hover:bg-[var(--accent-gold)] transition-all"
+            >
+              Apply Now
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showResellerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowResellerModal(false)} />
+          <div className="relative w-full max-w-md p-8 rounded-[2rem] bg-[#0a0a0a] border border-white/10">
+            <button
+              onClick={() => setShowResellerModal(false)}
+              className="absolute top-4 right-4 text-white/20 hover:text-white"
+            >
+              <X size={20} />
+            </button>
+
+            {resellerSuccess ? (
+              <div className="text-center space-y-4">
+                <div className="h-16 w-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto text-green-500">
+                  <CheckCircle2 size={32} />
+                </div>
+                <h3 className="text-xl font-black text-white uppercase">Application Submitted!</h3>
+                <p className="text-sm text-white/40">We'll review your request and get back to you soon.</p>
+                <button
+                  onClick={() => setShowResellerModal(false)}
+                  className="px-6 h-10 rounded-xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest"
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="text-center mb-6">
+                  <div className="h-14 w-14 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center mx-auto text-[var(--accent)] mb-3">
+                    <Store size={28} />
+                  </div>
+                  <h3 className="text-xl font-black text-white uppercase">Reseller Application</h3>
+                  <p className="text-[10px] text-white/40 mt-1">Fill in your contact details</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] text-white/30 font-bold uppercase tracking-widest ml-1 block mb-1.5">Discord</label>
+                    <input
+                      type="text"
+                      value={discord}
+                      onChange={(e) => setDiscord(e.target.value)}
+                      placeholder="your#1234"
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-4 text-sm text-white focus:border-[var(--accent)]/50 outline-none placeholder:text-white/10"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-white/30 font-bold uppercase tracking-widest ml-1 block mb-1.5">Telegram</label>
+                    <input
+                      type="text"
+                      value={telegram}
+                      onChange={(e) => setTelegram(e.target.value)}
+                      placeholder="@username"
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-4 text-sm text-white focus:border-[var(--accent)]/50 outline-none placeholder:text-white/10"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleResellerApply}
+                  disabled={resellerLoading}
+                  className="w-full h-12 mt-6 rounded-xl bg-[var(--accent)] text-black text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[var(--accent-gold)] disabled:opacity-50 flex items-center justify-center gap-3"
+                >
+                  {resellerLoading ? <Loader2 size={16} className="animate-spin" /> : null}
+                  Submit Application
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

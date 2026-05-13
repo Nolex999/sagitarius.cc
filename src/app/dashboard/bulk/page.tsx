@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Loader2, Copy, Check, ShoppingCart, Package, CreditCard } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Loader2, Copy, Check, ShoppingCart, Package, CreditCard, Lock } from 'lucide-react';
 
 interface PricingTier {
   duration: string;
@@ -27,6 +28,7 @@ const durations = [
 ];
 
 export default function BulkOrderPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [ordering, setOrdering] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState('1-month');
@@ -34,12 +36,31 @@ export default function BulkOrderPage() {
   const [pricing, setPricing] = useState<PricingTier[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string>('');
   const supabase = createClient();
 
   useEffect(() => {
+    checkRole();
+  }, []);
+
+  const checkRole = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      
+      if (data?.role !== 'reseller' && data?.role !== 'admin' && data?.role !== 'owner') {
+        router.push('/dashboard');
+        return;
+      }
+      setUserRole(data.role);
+    }
     fetchPricing();
     fetchOrders();
-  }, []);
+  };
 
   const fetchPricing = async () => {
     const { data } = await supabase

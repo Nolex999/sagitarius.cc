@@ -299,6 +299,42 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../src/app/api/reseller/apply/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/reseller/apply">> = Specific
+  const handler = {} as typeof import("../../src/app/api/reseller/apply/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/api/reseller/review/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/reseller/review">> = Specific
+  const handler = {} as typeof import("../../src/app/api/reseller/review/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/api/reseller/webhook-approve/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/reseller/webhook-approve">> = Specific
+  const handler = {} as typeof import("../../src/app/api/reseller/webhook-approve/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/api/reseller/webhook-reject/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/reseller/webhook-reject">> = Specific
+  const handler = {} as typeof import("../../src/app/api/reseller/webhook-reject/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../src/app/api/webhooks/billgang/route.ts
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/webhooks/billgang">> = Specific
