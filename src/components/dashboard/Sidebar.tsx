@@ -19,7 +19,8 @@ import {
   Menu,
   X,
   Diamond,
-  Star
+  Star,
+  ShoppingCart
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { User as AuthUser } from '@supabase/supabase-js';
@@ -36,6 +37,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: '/dashboard/software', label: 'Downloads', icon: Package },
   { href: '/dashboard/get-key', label: 'Get Key', icon: CreditCard },
+  { href: '/dashboard/bulk', label: 'Bulk Buy', icon: ShoppingCart },
   { href: '/dashboard/inbox', label: 'Inbox', icon: Inbox },
   { href: '/dashboard/s3', label: 'Bio Page', icon: User, requiredRole: ['owner', 'admin'] },
   { href: '/dashboard/s7', label: 'Analytics', icon: BarChart3, requiredRole: ['owner', 'admin'] },

@@ -101,6 +101,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../src/app/dashboard/bulk/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/dashboard/bulk">> = Specific
+  const handler = {} as typeof import("../../src/app/dashboard/bulk/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../src/app/dashboard/casino/page.tsx
 {
   type __IsExpected<Specific extends AppPageConfig<"/dashboard/casino">> = Specific
@@ -222,6 +231,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 {
   type __IsExpected<Specific extends AppPageConfig<"/">> = Specific
   const handler = {} as typeof import("../../src/app/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/api/bulk-order/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/bulk-order">> = Specific
+  const handler = {} as typeof import("../../src/app/api/bulk-order/route.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check

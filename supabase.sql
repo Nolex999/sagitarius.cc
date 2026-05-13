@@ -564,4 +564,130 @@ CREATE POLICY "Admins can manage loader versions" ON public.loader_versions
     (SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'owner')
   );
 
+-- ============================================================================
+-- BULK BUY SYSTEM FOR RESELLERS
+-- ============================================================================
+
+-- Bulk pricing tiers table
+CREATE TABLE IF NOT EXISTS public.bulk_pricing_tiers (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  duration text NOT NULL,
+  min_quantity int NOT NULL DEFAULT 1,
+  price_per_unit decimal(10,2) NOT NULL,
+  is_active boolean DEFAULT true,
+  created_at timestamptz DEFAULT now()
+);
+
+-- Bulk orders table
+CREATE TABLE IF NOT EXISTS public.bulk_orders (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users(id) NOT NULL,
+  duration text NOT NULL,
+  quantity int NOT NULL,
+  total_price decimal(10,2) NOT NULL,
+  status text DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'completed', 'cancelled')),
+  payment_id text,
+  keys_generated jsonb DEFAULT '[]'::jsonb,
+  created_at timestamptz DEFAULT now(),
+  completed_at timestamptz
+);
+
+INSERT INTO public.bulk_pricing_tiers (duration, min_quantity, price_per_unit) VALUES
+  ('7-days', 1, 4.99),
+  ('7-days', 5, 4.49),
+  ('7-days', 10, 3.99),
+  ('7-days', 25, 3.49),
+  ('7-days', 50, 2.99),
+  ('1-month', 1, 14.99),
+  ('1-month', 5, 13.49),
+  ('1-month', 10, 11.99),
+  ('1-month', 25, 9.99),
+  ('1-month', 50, 7.99),
+  ('3-months', 1, 34.99),
+  ('3-months', 5, 29.99),
+  ('3-months', 10, 24.99),
+  ('3-months', 25, 19.99),
+  ('3-months', 50, 14.99)
+ON CONFLICT DO NOTHING;
+
+CREATE OR REPLACE FUNCTION public.get_bulk_price(p_duration text, p_quantity int)
+RETURNS TABLE (price_per_unit decimal(10,2), total_price decimal(10,2), tier_min int) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT bpt.price_per_unit, bpt.price_per_unit * p_quantity, bpt.min_quantity
+  FROM public.bulk_pricing_tiers bpt
+  WHERE bpt.duration = p_duration AND bpt.is_active = true AND bpt.min_quantity <= p_quantity
+  ORDER BY bpt.min_quantity DESC LIMIT 1;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION public.create_bulk_order(p_duration text, p_quantity int)
+RETURNS json AS $$
+DECLARE
+  v_price record;
+  v_order_id uuid;
+  v_keys text[];
+  v_key text;
+  v_i int;
+  v_duration_interval interval;
+  v_category_id uuid;
+BEGIN
+  SELECT price_per_unit, total_price INTO v_price
+  FROM public.get_bulk_price(p_duration, p_quantity) LIMIT 1;
+
+  IF v_price IS NULL THEN
+    RETURN json_build_object('success', false, 'message', 'Invalid duration or quantity');
+  END IF;
+
+  SELECT id INTO v_category_id FROM public.software_categories WHERE LOWER(name) LIKE '%cs2%' LIMIT 1;
+  IF v_category_id IS NULL THEN
+    RETURN json_build_object('success', false, 'message', 'CS2 category not found');
+  END IF;
+
+  v_duration_interval := CASE WHEN p_duration = '7-days' THEN '7 days' WHEN p_duration = '1-month' THEN '30 days' WHEN p_duration = '3-months' THEN '90 days' END;
+
+  INSERT INTO public.bulk_orders (user_id, duration, quantity, total_price, status)
+  VALUES (auth.uid(), p_duration, p_quantity, v_price.total_price, 'pending')
+  RETURNING id INTO v_order_id;
+
+  v_keys := ARRAY[]::text[];
+  FOR v_i IN 1..p_quantity LOOP
+    v_key := 'SAGI-' || upper(substring(gen_random_uuid()::text, 1, 8));
+    INSERT INTO public.software_keys (key, category_id, max_uses, created_by, metadata, expires_at)
+    VALUES (v_key, v_category_id, 1, auth.uid(), jsonb_build_object('duration', p_duration, 'bulk_order_id', v_order_id::text), now() + v_duration_interval);
+    v_keys := array_append(v_keys, v_key);
+  END LOOP;
+
+  UPDATE public.bulk_orders SET keys_generated = v_keys::jsonb WHERE id = v_order_id;
+
+  RETURN json_build_object('success', true, 'order_id', v_order_id, 'quantity', p_quantity, 'price_per_unit', v_price.price_per_unit, 'total_price', v_price.total_price, 'keys', v_keys);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION public.confirm_bulk_order(p_order_id uuid, p_payment_id text)
+RETURNS json AS $$
+BEGIN
+  UPDATE public.bulk_orders SET status = 'paid', payment_id = p_payment_id, completed_at = now()
+  WHERE id = p_order_id AND status = 'pending';
+  IF NOT FOUND THEN
+    RETURN json_build_object('success', false, 'message', 'Order not found or already processed');
+  END IF;
+  RETURN json_build_object('success', true, 'message', 'Order confirmed');
+END;
+$$ LANGUAGE plpgsql;
+
+ALTER TABLE public.bulk_pricing_tiers ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can read bulk pricing" ON public.bulk_pricing_tiers;
+CREATE POLICY "Anyone can read bulk pricing" ON public.bulk_pricing_tiers FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Admins can manage bulk pricing" ON public.bulk_pricing_tiers;
+CREATE POLICY "Admins can manage bulk pricing" ON public.bulk_pricing_tiers
+  FOR ALL USING ((SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'owner'));
+
+ALTER TABLE public.bulk_orders ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view their bulk orders" ON public.bulk_orders;
+CREATE POLICY "Users can view their bulk orders" ON public.bulk_orders
+  FOR SELECT USING (user_id = auth.uid() OR (SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'owner'));
+DROP POLICY IF EXISTS "Users can create bulk orders" ON public.bulk_orders;
+CREATE POLICY "Users can create bulk orders" ON public.bulk_orders FOR INSERT WITH CHECK (user_id = auth.uid());
+
 NOTIFY pgrst, 'reload schema';

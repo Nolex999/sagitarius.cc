@@ -1,6 +1,7 @@
 {
   "/_global-error/page": "/_global-error",
   "/_not-found/page": "/_not-found",
+  "/api/bulk-order/route": "/api/bulk-order",
   "/api/loader/generate/route": "/api/loader/generate",
   "/api/payments/billgang-plugin/create-charge/route": "/api/payments/billgang-plugin/create-charge",
   "/api/payments/billgang-plugin/validate/route": "/api/payments/billgang-plugin/validate",
@@ -16,6 +17,7 @@
   "/auth/reset-password/page": "/auth/reset-password",
   "/bio/[username]/page": "/bio/[username]",
   "/claim/[code]/page": "/claim/[code]",
+  "/dashboard/bulk/page": "/dashboard/bulk",
   "/dashboard/casino/page": "/dashboard/casino",
   "/dashboard/get-key/page": "/dashboard/get-key",
   "/dashboard/inbox/page": "/dashboard/inbox",

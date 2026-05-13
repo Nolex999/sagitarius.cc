@@ -58,6 +58,12 @@
       "namedRegex": "^/_not\\-found(?:/)?$"
     },
     {
+      "page": "/api/bulk-order",
+      "regex": "^/api/bulk\\-order(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/bulk\\-order(?:/)?$"
+    },
+    {
       "page": "/api/loader/generate",
       "regex": "^/api/loader/generate(?:/)?$",
       "routeKeys": {},
@@ -140,6 +146,12 @@
       "regex": "^/dashboard(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/dashboard(?:/)?$"
+    },
+    {
+      "page": "/dashboard/bulk",
+      "regex": "^/dashboard/bulk(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/bulk(?:/)?$"
     },
     {
       "page": "/dashboard/casino",
