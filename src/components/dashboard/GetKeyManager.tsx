@@ -39,7 +39,7 @@ const pricingOptions = [
       'UNDETECTED',
     ],
     highlight: false,
-    billgangPath: 'product/CS2-7-days'
+    billgangPath: 'CS2-7-days'
   },
   {
     id: '1-month',
@@ -52,7 +52,7 @@ const pricingOptions = [
       'UNDETECTED',
     ],
     highlight: true,
-    billgangPath: 'product/CS2-1-month'
+    billgangPath: 'CS2-1-month'
   },
   {
     id: '3-months',
@@ -65,7 +65,7 @@ const pricingOptions = [
       'UNDETECTED',
     ],
     highlight: false,
-    billgangPath: 'product/CS2-3-months'
+    billgangPath: 'CS2-3-months'
   }
 ];
 
