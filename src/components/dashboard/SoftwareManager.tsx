@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
-import r6Logo from '@/assets/R6.jpg';
+import cs2Logo from '@/assets/cs2.webp';
 
 interface SoftwareFile {
   id: string;
@@ -160,7 +160,7 @@ export default function SoftwareManager() {
       const merged = (cats || [])
         .filter((cat: any) => {
           const name = cat.name.toLowerCase();
-          return name.includes('sagitarius') || name.includes('rainbow') || name.includes('siege') || (!name.includes('cs2') && !name.includes('external') && !name.includes('faceit'));
+          return name.includes('sagitarius') || name.includes('cs2') || name.includes('counter-strike') || (!name.includes('external') && !name.includes('faceit') && !name.includes('rainbow') && !name.includes('siege'));
         })
         .map((cat: any) => ({
           ...cat,
@@ -168,7 +168,7 @@ export default function SoftwareManager() {
           isOpen: true,
           isKeysOpen: false,
           keys: [],
-          logo_url: (cat.name.toLowerCase().includes('rainbow') || cat.name.toLowerCase().includes('siege')) ? r6Logo.src : cat.logo_url
+          logo_url: (cat.name.toLowerCase().includes('cs2') || cat.name.toLowerCase().includes('counter-strike')) ? cs2Logo.src : cat.logo_url
         }));
 
       setCategories(merged);

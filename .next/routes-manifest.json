@@ -136,16 +136,16 @@
       "namedRegex": "^/auth/reset\\-password(?:/)?$"
     },
     {
+      "page": "/dashboard",
+      "regex": "^/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard(?:/)?$"
+    },
+    {
       "page": "/dashboard/casino",
       "regex": "^/dashboard/casino(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/dashboard/casino(?:/)?$"
-    },
-    {
-      "page": "/dashboard/firmware",
-      "regex": "^/dashboard/firmware(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/dashboard/firmware(?:/)?$"
     },
     {
       "page": "/dashboard/get-key",

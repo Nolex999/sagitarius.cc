@@ -35,6 +35,22 @@ export default async function HomePage() {
 
       {/* Center content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 text-center">
+        {/* Tagline */}
+        <div className="mb-6">
+          <p 
+            className="text-[clamp(14px,2vw,18px)] font-bold tracking-[0.3em] uppercase"
+            style={{
+              fontFamily: 'var(--font-display)',
+              background: 'linear-gradient(90deg, rgba(197,160,89,0.9) 0%, rgba(255,255,255,0.95) 50%, rgba(197,160,89,0.9) 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            Make The Competition Ours
+          </p>
+        </div>
+
         {/* Main title */}
         <h1
           className="text-[clamp(52px,10vw,130px)] font-bold leading-none tracking-tight mb-12"

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Script from 'next/script';
 import Image from 'next/image';
-import r6Logo from '@/assets/R6.jpg';
+import cs2Logo from '@/assets/cs2.webp';
 import {
   CreditCard,
   Coins,
@@ -25,50 +25,47 @@ declare global {
   }
 }
 
-const BILLGANG_DOMAIN = 'sagitarius.bgng.io';
+const BILLGANG_DOMAIN = 'https://sagitarius.bgng.io';
 
 const pricingOptions = [
   {
     id: '7-days',
     name: '7 Days',
-    subtitle: 'Rainbow Six Siege',
     description: 'Perfect for testing our software features.',
-    price: '12.00',
+    price: '4.99',
     features: [
       'Full Access for 7 Days',
       'Instant Key Delivery',
       'UNDETECTED',
     ],
     highlight: false,
-    billgangPath: 'R6-7-days'
+    billgangPath: 'product/CS2-7-days'
   },
   {
     id: '1-month',
     name: '1 Month',
-    subtitle: 'Rainbow Six Siege',
     description: 'Most popular choice for gamers.',
-    price: '34.99',
+    price: '14.99',
     features: [
       'Full Access for 30 Days',
       'Instant Key Delivery',
       'UNDETECTED',
     ],
     highlight: true,
-    billgangPath: 'R6-1-month'
+    billgangPath: 'product/CS2-1-month'
   },
   {
     id: '3-months',
     name: '3 Months',
-    subtitle: 'Rainbow Six Siege',
     description: 'Best value for long-term reliability.',
-    price: '79.99',
+    price: '34.99',
     features: [
       'Full Access for 90 Days',
       'Instant Key Delivery',
       'UNDETECTED',
     ],
     highlight: false,
-    billgangPath: 'R6-3-months'
+    billgangPath: 'product/CS2-3-months'
   }
 ];
 
@@ -253,11 +250,11 @@ export default function GetKeyManager() {
             <div className="space-y-1 mb-8">
               <div className="flex items-center gap-3">
                 <div className="relative h-8 w-12 rounded-lg overflow-hidden flex-shrink-0">
-                  <Image src={r6Logo} alt="R6" fill className="object-cover" />
+                  <Image src={cs2Logo} alt="CS2" fill className="object-cover" />
                 </div>
                 <h3 className="text-xl font-bold text-white tracking-tight">{plan.name}</h3>
               </div>
-              <p className="text-xs text-white/30">{plan.subtitle} — {plan.description}</p>
+              <p className="text-xs text-white/30">{plan.description}</p>
             </div>
 
             <div className="mb-8 relative">
