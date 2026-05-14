@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
-const DISCORD_WEBHOOK = process.env.DISCORD_RESELLER_WEBHOOK || 'https://discord.com/api/webhooks/1484671996305473658/H1olggHdDLVKmxd-8-P7Pl8Gz7MqWkF9GxddorvfRDxupSXm5SDVW3lEnGtz1HHYW8EY';
+const DISCORD_WEBHOOK = process.env.DISCORD_RESELLER_WEBHOOK || 'https://discord.com/api/webhooks/1504427515203027068/4htNFpHUZLWiZMin7fJ_iytJJTJd0glG2WdanqxRcZf8BzVoANhHi4SosQIVeg51ot9O';
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://sagitarius.cc';
 
 export async function POST(request: Request) {
@@ -59,7 +59,6 @@ export async function POST(request: Request) {
         fields: [
           { name: 'User', value: `**${app.user?.username || 'Unknown'}**\n${app.user?.email}`, inline: true },
           { name: 'Discord', value: app.discord || 'N/A', inline: true },
-          { name: 'Telegram', value: app.telegram || 'N/A', inline: true },
           { name: 'Notes', value: notes || 'No notes', inline: false },
           { name: 'Reviewed by', value: session.user.email, inline: true }
         ],

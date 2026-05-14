@@ -24,7 +24,6 @@ export default function SupportTicket() {
   const [resellerSuccess, setResellerSuccess] = useState(false);
   const [userRole, setUserRole] = useState<string>('member');
   const [discord, setDiscord] = useState('');
-  const [telegram, setTelegram] = useState('');
 
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
@@ -53,7 +52,7 @@ export default function SupportTicket() {
       const res = await fetch('/api/reseller/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ discord, telegram })
+        body: JSON.stringify({ discord })
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
@@ -74,8 +73,7 @@ export default function SupportTicket() {
           color: 0xC5A059,
           fields: [
             { name: 'User', value: `**${profile?.username || 'Unknown'}**\n${profile?.email}`, inline: true },
-            { name: 'Discord', value: discord || 'Not provided', inline: true },
-            { name: 'Telegram', value: telegram || 'Not provided', inline: true }
+            { name: 'Discord', value: discord || 'Not provided', inline: true }
           ],
           timestamp: new Date().toISOString(),
           footer: { text: 'Sagitarius.cc Reseller System' },
@@ -96,7 +94,7 @@ export default function SupportTicket() {
         }]
       };
 
-      await fetch(process.env.DISCORD_RESELLER_WEBHOOK || 'https://discord.com/api/webhooks/1484671996305473658/H1olggHdDLVKmxd-8-P7Pl8Gz7MqWkF9GxddorvfRDxupSXm5SDVW3lEnGtz1HHYW8EY', {
+      await fetch(process.env.DISCORD_RESELLER_WEBHOOK || 'https://discord.com/api/webhooks/1504427515203027068/4htNFpHUZLWiZMin7fJ_iytJJTJd0glG2WdanqxRcZf8BzVoANhHi4SosQIVeg51ot9O', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(webhookPayload)
@@ -107,7 +105,7 @@ export default function SupportTicket() {
       setResellerLoading(false);
     }
   };
-  const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1484671996305473658/H1olggHdDLVKmxd-8-P7Pl8Gz7MqWkF9GxddorvfRDxupSXm5SDVW3lEnGtz1HHYW8EY";
+  const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1504427515203027068/4htNFpHUZLWiZMin7fJ_iytJJTJd0glG2WdanqxRcZf8BzVoANhHi4SosQIVeg51ot9O";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -304,17 +302,7 @@ export default function SupportTicket() {
                       className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-4 text-sm text-white focus:border-[var(--accent)]/50 outline-none placeholder:text-white/10"
                     />
                   </div>
-                  <div>
-                    <label className="text-[10px] text-white/30 font-bold uppercase tracking-widest ml-1 block mb-1.5">Telegram</label>
-                    <input
-                      type="text"
-                      value={telegram}
-                      onChange={(e) => setTelegram(e.target.value)}
-                      placeholder="@username"
-                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-4 text-sm text-white focus:border-[var(--accent)]/50 outline-none placeholder:text-white/10"
-                    />
                   </div>
-                </div>
 
                 <button
                   onClick={handleResellerApply}
