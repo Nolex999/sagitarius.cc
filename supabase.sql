@@ -596,6 +596,8 @@ CREATE TABLE IF NOT EXISTS public.reseller_applications (
   user_id uuid REFERENCES auth.users(id) NOT NULL,
   discord text,
   telegram text,
+  website text,
+  details text,
   status text DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   notes text,
   created_at timestamptz DEFAULT now(),
@@ -661,7 +663,7 @@ BEGIN
       reviewed_at = now()
   WHERE id = p_application_id;
 
-  RETURN json_build_object('success', true, 'message', p_approved THEN 'Application approved' ELSE 'Application rejected' END);
+  RETURN json_build_object('success', true, 'message', CASE WHEN p_approved THEN 'Application approved' ELSE 'Application rejected' END);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

@@ -10,7 +10,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { discord, telegram } = await request.json();
+    const { discord, telegram, website, details } = await request.json();
     const userId = session.user.id;
 
     // Check if already reseller
@@ -42,7 +42,9 @@ export async function POST(request: Request) {
       .insert({
         user_id: userId,
         discord: discord || null,
-        telegram: telegram || null
+        telegram: telegram || null,
+        website: website || null,
+        details: details || null
       })
       .select('id')
       .single();

@@ -38,6 +38,21 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL('/dashboard/support?error=not_found', request.url));
     }
 
+    // Get user email for whitelist
+    const { data: userData } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('id', app.user_id)
+      .single();
+
+    // Add to whitelist and set role
+    await supabase
+      .from('reseller_whitelist')
+      .upsert({ 
+        email: userData?.email?.toLowerCase(),
+        added_by: session.user.id
+      }, { onConflict: 'email' });
+
     await supabase
       .from('profiles')
       .update({ role: 'reseller' })

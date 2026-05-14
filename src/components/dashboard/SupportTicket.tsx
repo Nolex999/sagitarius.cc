@@ -24,6 +24,9 @@ export default function SupportTicket() {
   const [resellerSuccess, setResellerSuccess] = useState(false);
   const [userRole, setUserRole] = useState<string>('member');
   const [discord, setDiscord] = useState('');
+  const [telegram, setTelegram] = useState('');
+  const [website, setWebsite] = useState('');
+  const [details, setDetails] = useState('');
 
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
@@ -52,13 +55,12 @@ export default function SupportTicket() {
       const res = await fetch('/api/reseller/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ discord })
+        body: JSON.stringify({ discord, telegram, website, details })
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
       setResellerSuccess(true);
       
-      // Fetch user info for webhook
       const { data: { user } } = await supabase.auth.getUser();
       const { data: profile } = await supabase
         .from('profiles')
@@ -66,31 +68,19 @@ export default function SupportTicket() {
         .eq('id', user?.id)
         .single();
 
-      // Send Discord webhook notification
       const webhookPayload = {
         embeds: [{
           title: '📝 New Reseller Application',
           color: 0xC5A059,
           fields: [
             { name: 'User', value: `**${profile?.username || 'Unknown'}**\n${profile?.email}`, inline: true },
-            { name: 'Discord', value: discord || 'Not provided', inline: true }
+            { name: 'Discord', value: discord || 'Not provided', inline: true },
+            { name: 'Telegram', value: telegram || 'Not provided', inline: true },
+            { name: 'Website', value: website || 'Not provided', inline: true },
+            { name: 'Details', value: details || 'Not provided', inline: false }
           ],
           timestamp: new Date().toISOString(),
-          footer: { text: 'Sagitarius.cc Reseller System' },
-          actions: [
-            {
-              type: 2,
-              label: '✅ Approve',
-              style: 5,
-              url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://sagitarius.cc'}/api/reseller/webhook-approve?application_id=${data.application_id}`
-            },
-            {
-              type: 2,
-              label: '❌ Reject',
-              style: 5,
-              url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://sagitarius.cc'}/api/reseller/webhook-reject?application_id=${data.application_id}`
-            }
-          ]
+          footer: { text: 'Sagitarius.cc Reseller System' }
         }]
       };
 
@@ -302,7 +292,40 @@ export default function SupportTicket() {
                       className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-4 text-sm text-white focus:border-[var(--accent)]/50 outline-none placeholder:text-white/10"
                     />
                   </div>
+
+                  <div>
+                    <label className="text-[10px] text-white/30 font-bold uppercase tracking-widest ml-1 block mb-1.5">Telegram</label>
+                    <input
+                      type="text"
+                      value={telegram}
+                      onChange={(e) => setTelegram(e.target.value)}
+                      placeholder="@username"
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-4 text-sm text-white focus:border-[var(--accent)]/50 outline-none placeholder:text-white/10"
+                    />
                   </div>
+
+                  <div>
+                    <label className="text-[10px] text-white/30 font-bold uppercase tracking-widest ml-1 block mb-1.5">Reseller Website</label>
+                    <input
+                      type="url"
+                      value={website}
+                      onChange={(e) => setWebsite(e.target.value)}
+                      placeholder="https://yoursite.com"
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-4 text-sm text-white focus:border-[var(--accent)]/50 outline-none placeholder:text-white/10"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-white/30 font-bold uppercase tracking-widest ml-1 block mb-1.5">Why do you want to become a reseller?</label>
+                    <textarea
+                      value={details}
+                      onChange={(e) => setDetails(e.target.value)}
+                      placeholder="Tell us about your plans..."
+                      rows={3}
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-xl p-4 text-sm text-white focus:border-[var(--accent)]/50 outline-none placeholder:text-white/10 resize-none"
+                    />
+                  </div>
+                </div>
 
                 <button
                   onClick={handleResellerApply}

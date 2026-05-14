@@ -40,6 +40,13 @@ export async function POST(request: Request) {
         .from('profiles')
         .update({ role: 'reseller' })
         .eq('id', app.user_id);
+
+      await supabase
+        .from('reseller_whitelist')
+        .upsert({
+          email: app.user?.email?.toLowerCase(),
+          added_by: session.user.id
+        }, { onConflict: 'email' });
     }
 
     await supabase
@@ -59,6 +66,9 @@ export async function POST(request: Request) {
         fields: [
           { name: 'User', value: `**${app.user?.username || 'Unknown'}**\n${app.user?.email}`, inline: true },
           { name: 'Discord', value: app.discord || 'N/A', inline: true },
+          { name: 'Telegram', value: app.telegram || 'N/A', inline: true },
+          { name: 'Website', value: app.website || 'N/A', inline: true },
+          { name: 'Details', value: app.details || 'N/A', inline: false },
           { name: 'Notes', value: notes || 'No notes', inline: false },
           { name: 'Reviewed by', value: session.user.email, inline: true }
         ],
