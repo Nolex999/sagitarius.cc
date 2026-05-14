@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  User, 
-  Shield, 
-  Calendar, 
-  Ticket, 
-  Copy, 
+import {
+  User,
+  Shield,
+  Calendar,
+  Ticket,
+  Copy,
   ExternalLink,
   ChevronRight,
   Loader2,
@@ -15,7 +15,10 @@ import {
   Hash,
   Crown,
   ShieldCheck,
-  Zap
+  Zap,
+  Key as KeyIcon,
+  Clock,
+  Gift
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -23,6 +26,7 @@ export default function ProfileManager() {
   const [profile, setProfile] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [invites, setInvites] = useState<any[]>([]);
+  const [keys, setKeys] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -36,6 +40,7 @@ export default function ProfileManager() {
   useEffect(() => {
     fetchProfile();
     fetchUserInvites();
+    fetchUserKeys();
 
     if (success || error) {
       const timer = setTimeout(() => {
@@ -143,6 +148,41 @@ export default function ProfileManager() {
     }
   };
 
+  const fetchUserKeys = async () => {
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return;
+
+      const { data, error } = await supabase
+        .from('inbox_messages')
+        .select('*')
+        .eq('user_id', authUser.id)
+        .eq('type', 'key')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setKeys(data || []);
+    } catch (err: any) {
+      console.error('Error fetching keys:', err);
+    }
+  };
+
+  const getTimeRemaining = (key: any) => {
+    if (!key.created_at) return null;
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    const expiresAt = new Date(key.created_at).getTime() + sevenDays;
+    const now = Date.now();
+    const remaining = expiresAt - now;
+
+    if (remaining <= 0) return 'Expired';
+
+    const days = Math.floor(remaining / (24 * 60 * 60 * 1000));
+    const hours = Math.floor((remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+
+    if (days > 0) return `${days}d ${hours}h remaining`;
+    return `${hours}h remaining`;
+  };
+
   const copyToClipboard = (text: string, message: string) => {
     navigator.clipboard.writeText(text);
     setSuccess(message);
@@ -183,196 +223,84 @@ export default function ProfileManager() {
               {uploading && (
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                   <Loader2 className="animate-spin text-[var(--accent)]" size={24} />
-                </div>
-              )}
-            </div>
-            <div className="absolute -bottom-2 -right-2 h-10 w-10 bg-black border border-white/10 rounded-xl flex items-center justify-center shadow-xl">
-              {getRoleIcon(profile?.role)}
-            </div>
-            <input 
-              type="file" 
-              id="avatar-upload" 
-              className="hidden" 
-              accept="image/*" 
-              onChange={handleAvatarUpload}
-              disabled={uploading}
-            />
-          </div>
-          
-          <div className="flex-1 space-y-2">
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-              {isEditingUsername ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={newUsername}
-                    onChange={(e) => setNewUsername(e.target.value)}
-                    className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white font-black focus:outline-none focus:border-[var(--accent)]/50"
-                    placeholder="New username..."
-                    autoFocus
-                  />
-                  <button onClick={handleUpdateUsername} className="p-2 rounded-xl bg-[var(--accent)] text-black hover:bg-[var(--accent-gold)] transition-colors">
-                    <CheckCircle2 size={20} />
-                  </button>
-                  <button onClick={() => setIsEditingUsername(false)} className="p-2 rounded-xl bg-white/5 text-white/40 hover:text-white transition-colors">
-                    <AlertCircle size={20} />
-                  </button>
-                </div>
-              ) : (
-                <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight flex items-center gap-4">
-                  {profile?.username}
-                  <button onClick={() => setIsEditingUsername(true)} className="p-2 rounded-lg bg-white/[0.03] border border-white/10 text-white/20 hover:text-white transition-colors">
-                    <ExternalLink size={14} />
-                  </button>
-                </h1>
-              )}
-              <span className={`text-[10px] font-black uppercase px-4 py-1.5 rounded-full border tracking-[0.2em] shadow-lg ${
-                profile?.role === 'owner' ? 'bg-black border-white/20 text-white' :
-                profile?.role === 'admin' ? 'bg-[var(--accent)]/10 border-[var(--accent)]/20 text-[var(--accent)]' :
-                'bg-white/5 border-white/10 text-white/40'
-              }`}>
-                {profile?.role}
-              </span>
-            </div>
-            <p className="text-white/40 font-mono text-sm tracking-wider">{user?.email}</p>
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-4">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-[10px] text-white/40 font-bold uppercase tracking-[0.1em]">
-                <Calendar size={14} className="text-[var(--accent)]/50" />
-                Joined {profile?.created_at && !isNaN(new Date(profile.created_at).getTime()) ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
-              </div>
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-[10px] text-white/40 font-bold uppercase tracking-[0.1em]">
-                <Zap size={14} className="text-blue-500/50" />
-                ID: {profile?.id?.split('-')[0]}...
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+</div>
+      )}
 
-      {/* HWID MANAGEMENT SECTION */}
+      {/* MY KEYS SECTION */}
       <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.05] relative overflow-hidden group">
         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-          <ShieldCheck size={120} className="text-[var(--accent)]" />
+          <KeyIcon size={120} className="text-[var(--accent)]" />
         </div>
-        
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="space-y-3 flex-1 text-center md:text-left">
             <h2 className="text-xl font-black text-white uppercase tracking-widest flex items-center justify-center md:justify-start gap-3">
-              <ShieldCheck className="text-[var(--accent)]" size={24} fill="currentColor" />
-              Hardware Identity (HWID)
+              <KeyIcon className="text-[var(--accent)]" size={24} />
+              My Keys
             </h2>
             <p className="text-xs text-white/40 max-w-lg leading-relaxed font-bold uppercase tracking-wider">
-              Your software access is locked to your hardware. If you change components or PC, you must request a reset.
-              <span className="block mt-2 text-[var(--accent)]/60 transition-colors group-hover:text-[var(--accent)]">
-                1 Reset allowed every 7 days.
-              </span>
+              View your active keys and their remaining duration. Keys expire automatically.
             </p>
           </div>
+          <span className="px-3 py-1 rounded-md bg-[var(--accent)]/5 border border-[var(--accent)]/10 text-[9px] font-black text-[var(--accent)]/60 uppercase tracking-[0.2em]">
+            {keys.length} Key{keys.length !== 1 ? 's' : ''}
+          </span>
+        </div>
 
-          <div className="flex flex-col gap-4 w-full md:w-auto min-w-[320px]">
-            <div className="p-5 rounded-2xl bg-black/40 border border-white/5 space-y-4 shadow-2xl backdrop-blur-3xl overflow-hidden relative">
-              <div className="absolute inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/10 to-transparent top-0" />
-              
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-white/20 font-black uppercase tracking-widest">Linked HWID</span>
-                <span className="font-mono text-[11px] text-white font-bold tracking-widest">
-                  {profile?.hwid ? `${profile.hwid.substring(0, 8)}...${profile.hwid.substring(profile.hwid.length - 4)}` : 'NOT LINKED'}
-                </span>
-              </div>
-              
-              <div className="h-[1px] bg-white/5" />
-              
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-white/20 font-black uppercase tracking-widest">Last Reset</span>
-                <span className="text-[10px] text-white/60 font-black uppercase tracking-widest">
-                  {profile?.last_hwid_reset ? new Date(profile.last_hwid_reset).toLocaleDateString() : 'NEVER'}
-                </span>
-              </div>
+        <div className="mt-6 space-y-3 relative z-10">
+          {keys.length > 0 ? (
+            keys.map((key) => {
+              const timeRemaining = getTimeRemaining(key);
+              const isExpired = timeRemaining === 'Expired';
 
-              {profile?.hwid_reset_status === 'pending' ? (
-                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-[var(--accent)] text-[10px] font-black uppercase tracking-widest justify-center">
-                   <Loader2 size={14} className="animate-spin" />
-                   Reset Request Pending
+              return (
+                <div key={key.id} className={`p-5 rounded-2xl bg-black/40 border ${isExpired ? 'border-red-500/20' : 'border-white/5'} space-y-3 shadow-xl backdrop-blur-3xl relative overflow-hidden`}>
+                  <div className="absolute inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[var(--accent)]/10 to-transparent top-0" />
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`h-10 w-10 rounded-xl ${isExpired ? 'bg-red-500/10 border border-red-500/20' : 'bg-[var(--accent)]/[0.03] border border-[var(--accent)]/10'} flex items-center justify-center ${isExpired ? 'text-red-400' : 'text-[var(--accent)]/40'}`}>
+                        <KeyIcon size={18} />
+                      </div>
+                      <div>
+                        <h4 className="text-[14px] font-black text-white uppercase tracking-wider">{key.title}</h4>
+                        <p className="text-[9px] text-white/20 font-mono uppercase tracking-widest">{key.reveal_content}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${isExpired ? 'bg-red-500/10 border border-red-500/20' : 'bg-green-500/10 border border-green-500/20'}`}>
+                        <Clock size={12} className={isExpired ? 'text-red-400' : 'text-green-400'} />
+                        <span className={`text-[9px] font-black uppercase tracking-widest ${isExpired ? 'text-red-400' : 'text-green-400'}`}>
+                          {timeRemaining}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="h-[1px] bg-white/5" />
+
+                  <div className="flex items-center justify-between text-[9px]">
+                    <span className="text-white/20 font-black uppercase tracking-widest">
+                      Received: {key.created_at ? new Date(key.created_at).toLocaleDateString() : 'N/A'}
+                    </span>
+                    <button
+                      onClick={() => copyToClipboard(key.reveal_content, 'Key copied!')}
+                      className="h-8 px-4 rounded-lg bg-white/[0.02] border border-white/5 text-white/30 text-[9px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center gap-2"
+                    >
+                      <Copy size={12} />
+                      Copy Key
+                    </button>
+                  </div>
                 </div>
-              ) : (
-                <button
-                  disabled={loading || (profile?.last_hwid_reset && new Date().getTime() - new Date(profile.last_hwid_reset).getTime() < 7 * 24 * 60 * 60 * 1000)}
-                  onClick={async () => {
-                    setLoading(true);
-                    try {
-                      // 1. Set pending status on profile
-                      const { error: profileError } = await supabase
-                        .from('profiles')
-                        .update({ hwid_reset_status: 'pending' })
-                        .eq('id', profile.id);
-                      if (profileError) throw profileError;
-
-                      // 2. Also reset HWID on all software_keys for this user
-                      const { error: keysError } = await supabase.rpc('reset_user_hwid', { p_user_id: profile.id });
-                      if (keysError) console.error('Keys HWID reset error:', keysError);
-
-                      setProfile({ ...profile, hwid_reset_status: 'pending' });
-                      setSuccess('HWID Reset request sent to administrators!');
-                    } catch (err: any) {
-                      setSuccess(null);
-                      setError(err.message);
-                    } finally {
-                      setLoading(false);
-                    }
-                  }}
-                  className="w-full h-11 rounded-xl bg-[var(--accent)] text-black text-[10px] font-black uppercase tracking-widest hover:bg-[var(--accent-gold)] transition-all flex items-center justify-center gap-3 disabled:opacity-30 disabled:grayscale shadow-lg active:scale-95 border border-[var(--accent)]/20 shadow-[var(--accent)]/10"
-                >
-                  <ShieldCheck size={16} />
-                  Request HWID Reset
-                </button>
-              )}
+              );
+            })
+          ) : (
+            <div className="text-center py-16 bg-white/[0.01] rounded-[2rem] border border-white/[0.04] border-dashed">
+              <Gift className="mx-auto mb-4 text-white/5 shadow-2xl" size={48} />
+              <h4 className="text-white/40 font-black uppercase tracking-widest text-xs">No active keys</h4>
+              <p className="text-white/10 text-[10px] mt-2 font-mono uppercase">Purchase a key to see it here</p>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* REFERRAL PROGRAM SECTION */}
-      <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.05] relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-          <Zap size={120} className="text-[var(--accent)]" />
-        </div>
-        
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
-          <div className="space-y-3 flex-1 text-center md:text-left">
-            <h2 className="text-xl font-black text-white uppercase tracking-widest flex items-center justify-center md:justify-start gap-3">
-              <Zap className="text-[var(--accent)]" size={24} fill="currentColor" />
-              Referral Program
-            </h2>
-            <p className="text-xs text-white/40 max-w-lg leading-relaxed font-bold uppercase tracking-wider">
-              Invite your friends to Sagitarius. For every friend who verifies their first purchase, you'll receive a <span className="text-[var(--accent)]">1-Day Free Key</span> in your Inbox!
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3 w-full md:w-auto min-w-[300px]">
-             <div className="bg-black/40 border border-white/10 rounded-2xl p-4 flex items-center justify-between gap-4">
-              <div className="truncate font-mono text-[10px] text-white/30 uppercase tracking-widest">
-                sagitarius.cc/auth/register?ref={profile?.id?.split('-')[0]}
-              </div>
-              <button 
-                onClick={() => copyToClipboard(`https://sagitarius.cc/auth/register?ref=${profile?.id}`, 'Referral link copied!')}
-                className="h-9 px-4 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:bg-white/90 transition-all flex items-center gap-2 shrink-0 shadow-lg active:scale-95 border border-white/10"
-              >
-                <Copy size={14} />
-                Copy Link
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/5 text-center">
-                <span className="block text-2xl font-black text-white">{profile?.referral_count || 0}</span>
-                <span className="text-[8px] text-white/10 font-black uppercase tracking-[0.2em]">Referrals</span>
-              </div>
-              <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/5 text-center">
-                <span className="block text-2xl font-black text-[var(--accent)]">{profile?.referral_rewards || 0}</span>
-                <span className="text-[8px] text-white/10 font-black uppercase tracking-[0.2em]">Rewards Earned</span>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 

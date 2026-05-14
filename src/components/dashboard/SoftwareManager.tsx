@@ -425,6 +425,33 @@ export default function SoftwareManager() {
 
       {activeTab === 'status' ? (
         <div className="space-y-6 animate-fade-in pb-20">
+           {/* CS2 External Coming Soon */}
+           <div className="relative group">
+             <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-500/0 to-yellow-500/20 rounded-[2.5rem] blur opacity-0 group-hover:opacity-100 transition duration-700" />
+             <div className="relative p-10 rounded-[2.5rem] bg-[#050505]/60 border border-yellow-500/20 flex flex-col md:flex-row items-center justify-between gap-10 backdrop-blur-3xl overflow-hidden transition-all duration-500 group-hover:bg-[#070707]/80">
+               <div className="absolute top-0 right-0 h-40 w-40 bg-yellow-500/5 blur-[60px] -translate-y-1/2 translate-x-1/2 opacity-20 group-hover:opacity-40 transition-opacity" />
+               <div className="flex items-center gap-8 relative z-10 w-full md:w-auto">
+                 <div className="h-20 w-20 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center p-0 overflow-hidden shadow-2xl group-hover:scale-105 transition-transform duration-500">
+                   <img src={cs2Logo.src} alt="CS2 External" className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
+                 </div>
+                 <div>
+                   <div className="flex items-center gap-3 mb-1">
+                     <span className="text-[8px] font-black text-yellow-500/60 uppercase tracking-[0.4em]">New Project</span>
+                   </div>
+                   <h3 className="text-2xl font-black text-white uppercase tracking-[0.25em] group-hover:text-yellow-500 transition-colors">CS2 External</h3>
+                 </div>
+               </div>
+               <div className="flex items-center gap-12 relative z-10 w-full md:w-auto justify-between md:justify-end">
+                 <div className="text-right">
+                   <div className="flex items-center gap-4 bg-yellow-500/10 border border-yellow-500/20 px-6 py-2.5 rounded-full">
+                     <div className="w-2 h-2 rounded-full animate-pulse bg-yellow-500" style={{ boxShadow: '0 0 15px rgba(234,179,8,0.8)' }} />
+                     <span className="text-[11px] font-black uppercase tracking-[0.3em] text-yellow-500">Coming Soon</span>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           </div>
+
            {/* Monitoring Detailed View */}
           <div className="grid grid-cols-1 gap-6 pb-20">
             {categories

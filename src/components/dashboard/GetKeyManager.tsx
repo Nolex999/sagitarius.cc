@@ -76,7 +76,6 @@ export default function GetKeyManager() {
   const [verifyResult, setVerifyResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
-  const [testLoading, setTestLoading] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -111,40 +110,6 @@ export default function GetKeyManager() {
       setVerifyResult('Error checking payments.');
     } finally {
       setVerifying(false);
-    }
-  };
-
-  const handleTestWebhook = async () => {
-    if (!user) {
-      setError('You must be logged in to test.');
-      return;
-    }
-    setTestLoading(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/webhooks/billgang', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          order: {
-            id: 'TEST-' + Date.now(),
-            product_name: 'CS2-7-days',
-            customer: { email: user.email }
-          },
-          metadata: { user_id: user.id }
-        })
-      });
-      const data = await res.json();
-      console.log('Test webhook response:', data);
-      setVerifyResult('Test key generated! Check your Inbox.');
-      
-      setTimeout(() => {
-        handleVerify();
-      }, 2000);
-    } catch (err: any) {
-      setError('Test failed: ' + err.message);
-    } finally {
-      setTestLoading(false);
     }
   };
 
@@ -250,29 +215,21 @@ export default function GetKeyManager() {
           Unlock instant access to Sagitarius private software. Secure, anonymous, and high-performance.
         </p>
 
-        <div className="pt-4 flex items-center justify-center gap-4">
+        <div className="pt-4">
           <button
             onClick={handleVerify}
-            disabled={verifying || testLoading}
+            disabled={verifying}
             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[var(--accent)]/30 text-[11px] font-bold text-white uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(255,255,255,0.02)] hover:shadow-[0_0_30px_rgba(197,160,89,0.05)] active:scale-95"
           >
             {verifying ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} className="text-[var(--accent)]" />}
-            Verify Purchase
+            Verify My Purchase
           </button>
-          <button
-            onClick={handleTestWebhook}
-            disabled={testLoading || verifying}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 hover:bg-[var(--accent)]/20 text-[var(--accent)] text-[11px] font-bold uppercase tracking-widest transition-all active:scale-95"
-          >
-            {testLoading ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
-            Test (Simulate Payment)
-          </button>
+          {verifyResult && (
+            <p className="mt-3 text-[10px] text-[var(--accent)] font-bold uppercase tracking-widest animate-pulse">
+              {verifyResult}
+            </p>
+          )}
         </div>
-        {verifyResult && (
-          <p className="mt-3 text-[10px] text-[var(--accent)] font-bold uppercase tracking-widest animate-pulse">
-            {verifyResult}
-          </p>
-        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -292,8 +249,8 @@ export default function GetKeyManager() {
 
             <div className="space-y-1 mb-8">
               <div className="flex items-center gap-3">
-                <div className="relative h-8 w-12 rounded-lg overflow-hidden flex-shrink-0">
-                  <Image src={cs2Logo} alt="CS2" fill className="object-cover" />
+                <div className="relative h-16 w-16 rounded-xl overflow-hidden flex-shrink-0">
+                  <Image src={cs2Logo} alt="CS2" fill className="object-contain" />
                 </div>
                 <h3 className="text-xl font-bold text-white tracking-tight">{plan.name}</h3>
               </div>
