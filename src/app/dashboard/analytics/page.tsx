@@ -2,6 +2,6 @@
 
 import AnalyticsDashboard from '@/components/dashboard/AnalyticsDashboard';
 
-export default function S7Page() {
+export default function AnalyticsPage() {
   return <AnalyticsDashboard />;
 }

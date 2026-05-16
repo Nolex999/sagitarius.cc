@@ -23,6 +23,79 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   created_at timestamptz DEFAULT now()
 );
 
+-- Invite codes table
+CREATE TABLE IF NOT EXISTS public.inv_code (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  code text UNIQUE NOT NULL,
+  created_by uuid REFERENCES auth.users(id),
+  assigned_to uuid REFERENCES auth.users(id),
+  current_uses int DEFAULT 0,
+  max_uses int DEFAULT 1,
+  is_active boolean DEFAULT true,
+  created_at timestamptz DEFAULT now()
+);
+
+-- RLS for inv_code
+ALTER TABLE public.inv_code ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own invites" ON public.inv_code;
+CREATE POLICY "Users can view own invites" ON public.inv_code
+  FOR SELECT USING (created_by = auth.uid() OR assigned_to = auth.uid());
+
+DROP POLICY IF EXISTS "Users can create invites" ON public.inv_code;
+CREATE POLICY "Users can create invites" ON public.inv_code
+  FOR INSERT WITH CHECK (created_by = auth.uid() OR (SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'owner'));
+
+DROP POLICY IF EXISTS "Users can update own invites" ON public.inv_code;
+CREATE POLICY "Users can update own invites" ON public.inv_code
+  FOR UPDATE USING (created_by = auth.uid() OR (SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'owner'));
+
+DROP POLICY IF EXISTS "Users can delete own invites" ON public.inv_code;
+CREATE POLICY "Users can delete own invites" ON public.inv_code
+  FOR DELETE USING (created_by = auth.uid() OR (SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('admin', 'owner'));
+
+DROP FUNCTION IF EXISTS public.validate_invite_code(text);
+DROP FUNCTION IF EXISTS public.use_invite_code(text);
+
+-- Validate invite code function
+CREATE FUNCTION public.validate_invite_code(p_code text)
+RETURNS TABLE(valid boolean, message text)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  IF p_code IS NULL OR p_code = '' THEN
+    RETURN QUERY SELECT false, 'Code is required';
+    RETURN;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.inv_code 
+    WHERE code = p_code 
+    AND is_active = true 
+    AND (max_uses = 0 OR current_uses < max_uses)
+  ) THEN
+    RETURN QUERY SELECT false, 'Invalid or already used code';
+    RETURN;
+  END IF;
+
+  RETURN QUERY SELECT true, 'Valid code';
+END;
+$$;
+
+-- Use invite code function
+CREATE FUNCTION public.use_invite_code(p_code text)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE public.inv_code 
+  SET current_uses = current_uses + 1
+  WHERE code = p_code AND is_active = true;
+END;
+$$;
+
 CREATE TABLE IF NOT EXISTS public.software_categories (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,

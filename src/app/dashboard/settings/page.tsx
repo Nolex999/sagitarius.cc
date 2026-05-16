@@ -2,38 +2,29 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { redirect } from 'next/navigation';
-import AdminPanel from '@/components/dashboard/AdminPanel';
+import OwnerSettings from '@/components/dashboard/OwnerSettings';
 import { Loader2, ShieldAlert } from 'lucide-react';
 
-// Role check emails (same as sidebar)
 const OWNER_EMAILS = ['chris@sagitarius.cc', 'chris@nolex.me', 'n0lex9999@gmail.com'];
-const ADMIN_EMAILS = ['admin@sagitarius.cc'];
 
-function getUserRole(email?: string): 'owner' | 'admin' | 'member' {
-  if (!email) return 'member';
-  const lower = email.toLowerCase();
-  if (OWNER_EMAILS.some(e => lower === e.toLowerCase())) return 'owner';
-  if (ADMIN_EMAILS.some(e => lower === e.toLowerCase())) return 'admin';
-  return 'member';
+function isOwner(email?: string): boolean {
+  if (!email) return false;
+  return OWNER_EMAILS.some(e => email.toLowerCase() === e.toLowerCase());
 }
 
-export default function S4Page() {
-  const [role, setRole] = useState<'owner' | 'admin' | 'member' | null>(null);
-  const [loading, setLoading] = useState(true);
+export default function SettingsPage() {
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
 
   useEffect(() => {
-    async function checkRole() {
+    async function checkOwner() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      const userRole = getUserRole(user?.email);
-      setRole(userRole);
-      setLoading(false);
+      setAuthorized(isOwner(user?.email));
     }
-    checkRole();
+    checkOwner();
   }, []);
 
-  if (loading) {
+  if (authorized === null) {
     return (
       <div className="flex flex-1 items-center justify-center py-24">
         <Loader2 size={20} className="animate-spin text-[var(--text-muted)]" />
@@ -41,7 +32,7 @@ export default function S4Page() {
     );
   }
 
-  if (role !== 'admin' && role !== 'owner') {
+  if (!authorized) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24">
         <ShieldAlert size={24} className="text-red-400/40" />
@@ -49,11 +40,11 @@ export default function S4Page() {
           Access Denied
         </p>
         <p className="text-[10px] text-[var(--text-muted)]">
-          This page is restricted to administrators.
+          This page is restricted to the site owner.
         </p>
       </div>
     );
   }
 
-  return <AdminPanel userRole={role} />;
+  return <OwnerSettings />;
 }

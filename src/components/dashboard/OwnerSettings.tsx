@@ -2,38 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import {
-  Crown, Shield, Users, Trash2, AlertTriangle, Loader2,
-  Settings, Power, RefreshCw, Check,
+  Crown, Settings, AlertTriangle, Loader2,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function OwnerSettings() {
   const [loading, setLoading] = useState(true);
-  const [admins, setAdmins] = useState<{ id: string; username: string; role: string }[]>([]);
   const [confirmDanger, setConfirmDanger] = useState<string | null>(null);
   const [actionDone, setActionDone] = useState<string | null>(null);
 
   const supabase = createClient();
-
-  useEffect(() => {
-    loadAdmins();
-  }, []);
-
-  const loadAdmins = async () => {
-    setLoading(true);
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .in('role', ['admin', 'owner'])
-      .order('role');
-    setAdmins(data || []);
-    setLoading(false);
-  };
-
-  const removeAdmin = async (userId: string) => {
-    await supabase.from('profiles').update({ role: 'member' }).eq('id', userId);
-    await loadAdmins();
-  };
 
   const dangerAction = async (action: string) => {
     if (confirmDanger !== action) {
@@ -56,6 +34,7 @@ export default function OwnerSettings() {
       alert('Error: ' + (err instanceof Error ? err.message : 'Unknown'));
     }
     setConfirmDanger(null);
+    setLoading(false);
   };
 
   if (loading) {
@@ -75,41 +54,8 @@ export default function OwnerSettings() {
           Owner Settings
         </h1>
         <p className="text-[11px] text-[var(--text-muted)] mt-1 uppercase tracking-widest">
-          Full site control — Owner only
+          Configuration globale — Owner uniquement
         </p>
-      </div>
-
-      {/* Admin Management */}
-      <div className="mb-8">
-        <h2 className="text-[9px] uppercase tracking-[0.25em] font-bold text-[var(--text-muted)] mb-4 flex items-center gap-2">
-          <Shield size={12} /> Admin Management
-        </h2>
-        <div className="rounded-2xl border border-white/[0.06] overflow-hidden">
-          {admins.map(admin => (
-            <div key={admin.id} className="flex items-center justify-between px-5 py-4 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.01] transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-sm font-bold text-white/60">
-                  {(admin.username || '?')[0].toUpperCase()}
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-white">{admin.username}</p>
-                  <p className="text-[9px] uppercase tracking-wider text-[var(--text-muted)] font-bold">{admin.role}</p>
-                </div>
-              </div>
-              {admin.role !== 'owner' && (
-                <button
-                  onClick={() => removeAdmin(admin.id)}
-                  className="h-8 px-3 rounded-lg text-[10px] font-bold text-red-400/60 border border-red-400/15 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                >
-                  Remove Admin
-                </button>
-              )}
-            </div>
-          ))}
-          {admins.length === 0 && (
-            <div className="px-5 py-8 text-center text-[11px] text-[var(--text-muted)]">No administrators</div>
-          )}
-        </div>
       </div>
 
       {/* Site Configuration */}
@@ -141,8 +87,8 @@ export default function OwnerSettings() {
         <div className="rounded-2xl border border-red-500/15 p-5 space-y-3">
           <div className="flex items-center justify-between py-2">
             <div>
-              <p className="text-xs font-bold text-white">Purge all invite codes</p>
-              <p className="text-[10px] text-[var(--text-muted)]">Deletes all existing codes</p>
+              <p className="text-xs font-bold text-white">Supprimer tous les codes d'invitation</p>
+              <p className="text-[10px] text-[var(--text-muted)]">Cette action est irréversible</p>
             </div>
             <button
               onClick={() => dangerAction('purge-invites')}
@@ -154,14 +100,14 @@ export default function OwnerSettings() {
                     : 'text-red-400/60 border border-red-400/15 hover:text-red-400 hover:bg-red-500/10'
               }`}
             >
-              {actionDone === 'purge-invites' ? 'Done ✓' : confirmDanger === 'purge-invites' ? 'Confirm?' : 'Purge'}
+              {actionDone === 'purge-invites' ? 'Done ✓' : confirmDanger === 'purge-invites' ? 'Confirmer?' : 'Supprimer'}
             </button>
           </div>
 
           <div className="flex items-center justify-between py-2 border-t border-red-500/10">
             <div>
-              <p className="text-xs font-bold text-white">Reset bio page views</p>
-              <p className="text-[10px] text-[var(--text-muted)]">Resets all views to 0</p>
+              <p className="text-xs font-bold text-white">Réinitialiser les vues des pages bio</p>
+              <p className="text-[10px] text-[var(--text-muted)]">Remet toutes les vues à 0</p>
             </div>
             <button
               onClick={() => dangerAction('reset-views')}
@@ -173,7 +119,7 @@ export default function OwnerSettings() {
                     : 'text-red-400/60 border border-red-400/15 hover:text-red-400 hover:bg-red-500/10'
               }`}
             >
-              {actionDone === 'reset-views' ? 'Done ✓' : confirmDanger === 'reset-views' ? 'Confirm?' : 'Reset'}
+              {actionDone === 'reset-views' ? 'Done ✓' : confirmDanger === 'reset-views' ? 'Confirmer?' : 'Réinitialiser'}
             </button>
           </div>
         </div>

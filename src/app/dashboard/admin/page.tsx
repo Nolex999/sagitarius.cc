@@ -2,29 +2,36 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import OwnerSettings from '@/components/dashboard/OwnerSettings';
+import AdminPanel from '@/components/dashboard/AdminPanel';
 import { Loader2, ShieldAlert } from 'lucide-react';
 
 const OWNER_EMAILS = ['chris@sagitarius.cc', 'chris@nolex.me', 'n0lex9999@gmail.com'];
+const ADMIN_EMAILS = ['admin@sagitarius.cc'];
 
-function isOwner(email?: string): boolean {
-  if (!email) return false;
-  return OWNER_EMAILS.some(e => email.toLowerCase() === e.toLowerCase());
+function getUserRole(email?: string): 'owner' | 'admin' | 'member' {
+  if (!email) return 'member';
+  const lower = email.toLowerCase();
+  if (OWNER_EMAILS.some(e => lower === e.toLowerCase())) return 'owner';
+  if (ADMIN_EMAILS.some(e => lower === e.toLowerCase())) return 'admin';
+  return 'member';
 }
 
-export default function S5Page() {
-  const [authorized, setAuthorized] = useState<boolean | null>(null);
+export default function AdminPage() {
+  const [role, setRole] = useState<'owner' | 'admin' | 'member' | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function checkOwner() {
+    async function checkRole() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      setAuthorized(isOwner(user?.email));
+      const userRole = getUserRole(user?.email);
+      setRole(userRole);
+      setLoading(false);
     }
-    checkOwner();
+    checkRole();
   }, []);
 
-  if (authorized === null) {
+  if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center py-24">
         <Loader2 size={20} className="animate-spin text-[var(--text-muted)]" />
@@ -32,7 +39,7 @@ export default function S5Page() {
     );
   }
 
-  if (!authorized) {
+  if (role !== 'admin' && role !== 'owner') {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24">
         <ShieldAlert size={24} className="text-red-400/40" />
@@ -40,11 +47,11 @@ export default function S5Page() {
           Access Denied
         </p>
         <p className="text-[10px] text-[var(--text-muted)]">
-          This page is restricted to the site owner.
+          This page is restricted to administrators.
         </p>
       </div>
     );
   }
 
-  return <OwnerSettings />;
+  return <AdminPanel userRole={role} />;
 }
