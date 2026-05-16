@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import DiscordLinkModal from './DiscordLinkModal';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -14,7 +15,29 @@ export default function LoginForm() {
   const [error, setError] = useState<string | null>(searchParams.get('error'));
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showDiscordModal, setShowDiscordModal] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
+
+  useEffect(() => {
+    const checkDiscordLink = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('discord_id')
+          .eq('id', user.id)
+          .single();
+        
+        if (!profile?.discord_id) {
+          const hasSeenModal = localStorage.getItem('discord_modal_seen');
+          if (!hasSeenModal) {
+            setShowDiscordModal(true);
+          }
+        }
+      }
+    };
+    checkDiscordLink();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +49,7 @@ export default function LoginForm() {
         password: formData.password,
       });
       if (err) throw err;
+      setShowDiscordModal(false);
       router.push('/dashboard/software');
       router.refresh();
     } catch (err) {
@@ -127,6 +151,18 @@ export default function LoginForm() {
       >
         Need an account?
       </Link>
+
+      <DiscordLinkModal
+        isOpen={showDiscordModal}
+        onClose={() => {
+          localStorage.setItem('discord_modal_seen', 'true');
+          setShowDiscordModal(false);
+        }}
+        onLink={() => {
+          localStorage.setItem('discord_modal_seen', 'true');
+          window.location.href = '/api/auth/discord';
+        }}
+      />
     </form>
   );
 }
