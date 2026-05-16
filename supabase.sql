@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   last_hwid_reset timestamptz,
   hwid_reset_status text,
   last_casino_spin timestamptz,
+  discord_id text,
   created_at timestamptz DEFAULT now()
 );
 

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, Ticket } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import InviteRequestForm from './InviteRequestForm';
+import DiscordLinkModal from './DiscordLinkModal';
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function RegisterForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showDiscordModal, setShowDiscordModal] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -57,8 +59,7 @@ export default function RegisterForm() {
         });
       }
 
-      router.push('/dashboard/software');
-      router.refresh();
+      setShowDiscordModal(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error during registration');
     } finally {
@@ -204,6 +205,18 @@ export default function RegisterForm() {
 
       {/* Invite Request Section */}
       <InviteRequestForm />
+
+      <DiscordLinkModal
+        isOpen={showDiscordModal}
+        onClose={() => {
+          setShowDiscordModal(false);
+          router.push('/dashboard/software');
+          router.refresh();
+        }}
+        onLink={() => {
+          window.location.href = '/api/auth/discord';
+        }}
+      />
     </div>
   );
 }
