@@ -26,7 +26,6 @@ export default function LoginForm() {
         password: formData.password,
       });
       if (err) throw err;
-      setShowDiscordModal(false);
       router.push('/dashboard/software');
       router.refresh();
     } catch (err) {
