@@ -976,4 +976,49 @@ GRANT EXECUTE ON FUNCTION public.authenticate_hwid(text) TO anon;
 GRANT EXECUTE ON FUNCTION public.authenticate_hwid(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.authenticate_hwid(text) TO service_role;
 
+-- ============================================================================
+-- AVATAR STORAGE BUCKET (Public pour que le Loader puisse télécharger les PFP)
+-- ============================================================================
+
+-- Ensure the avatar bucket exists and is publicly accessible
+-- The loader downloads profile pictures via anonymous HTTP GET requests
+INSERT INTO storage.buckets (id, name, public, avif_autodetection, file_size_limit, allowed_mime_types)
+VALUES ('avatar', 'avatar', true, false, 5242880, ARRAY['image/jpeg', 'image/png', 'image/gif', 'image/webp']::text[])
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- Drop existing policies to avoid duplicates
+DROP POLICY IF EXISTS "Avatar images are publicly accessible" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can upload avatar images" ON storage.objects;
+DROP POLICY IF EXISTS "Users can update their own avatar" ON storage.objects;
+DROP POLICY IF EXISTS "Users can delete their own avatar" ON storage.objects;
+
+-- Allow anyone (including the anonymous loader) to read avatar images
+CREATE POLICY "Avatar images are publicly accessible"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'avatar');
+
+-- Allow authenticated users to upload avatar images
+CREATE POLICY "Authenticated users can upload avatar images"
+ON storage.objects FOR INSERT
+WITH CHECK (
+    bucket_id = 'avatar'
+    AND auth.role() = 'authenticated'
+);
+
+-- Allow authenticated users to update any avatar file (ownership handled by app logic)
+CREATE POLICY "Authenticated users can update avatar images"
+ON storage.objects FOR UPDATE
+USING (
+    bucket_id = 'avatar'
+    AND auth.role() = 'authenticated'
+);
+
+-- Allow authenticated users to delete avatar files
+CREATE POLICY "Authenticated users can delete avatar images"
+ON storage.objects FOR DELETE
+USING (
+    bucket_id = 'avatar'
+    AND auth.role() = 'authenticated'
+);
+
 NOTIFY pgrst, 'reload schema';

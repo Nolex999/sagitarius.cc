@@ -100,7 +100,8 @@ export default function ProfileManager() {
 
       const file = event.target.files[0];
       const fileExt = file.name.split('.').pop();
-      const filePath = `${profile.id}-${Math.random()}.${fileExt}`;
+      const ts = Date.now();
+      const filePath = `avatars/${profile.id}/${ts}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatar')

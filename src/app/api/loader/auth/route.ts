@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 6. Get a configured loader URL or return dynamic patcher
+    // 6. Get a configured loader URL or fall back to the file-server
     const { data: fileData } = await supabase
       .from('software_files')
       .select('url')
@@ -167,14 +167,17 @@ export async function POST(req: NextRequest) {
       .limit(1)
       .maybeSingle();
 
-    const loaderUrl = fileData?.url || 'LOCAL_CHEAT_BYPASS';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${req.headers.get('x-forwarded-proto') || 'http'}://${req.headers.get('host') || 'localhost:3000'}`;
+    const sessionToken = authData.session?.access_token || '';
+    const loaderUrl = fileData?.url || `${baseUrl}/api/loader/download?token=${encodeURIComponent(sessionToken)}`;
 
     return NextResponse.json({
       success: true,
       message: `Welcome back, ${profile.username || 'Subscriber'}!`,
       loader_url: loaderUrl,
       session_token: authData.session?.access_token || '',
-      expiry: subscriptionTime
+      expiry: subscriptionTime,
+      avatar_url: profile.avatar_url || ''
     });
 
   } catch (err: unknown) {

@@ -23,6 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 
+# Private directory (protected binaries, not served publicly)
+private/
+
 # Environment variables
 .env
 .env.local
