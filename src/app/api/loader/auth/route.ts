@@ -9,6 +9,7 @@ export async function POST(req: NextRequest) {
     const email = typeof body?.email === 'string' ? body.email.trim() : null;
     const password = typeof body?.password === 'string' ? body.password : null;
     const hwid = typeof body?.hwid === 'string' ? body.hwid.trim() : null;
+    const keyStr = typeof body?.key === 'string' ? body.key.trim() : null;
 
     if (!email || !password || !hwid) {
       return NextResponse.json(
@@ -48,14 +49,60 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Determine if the user has active subscription access
+    // 3. Handle Key Redemption if key parameter is provided
+    if (keyStr && keyStr !== '') {
+      const { data: keyRecord, error: keyErr } = await supabase
+        .from('software_keys')
+        .select('*')
+        .eq('key', keyStr)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (keyErr || !keyRecord) {
+        return NextResponse.json(
+          { success: false, message: 'Invalid or already claimed license key.' },
+          { status: 400 }
+        );
+      }
+
+      if (keyRecord.created_by && keyRecord.created_by !== userId) {
+        return NextResponse.json(
+          { success: false, message: 'This license key has already been claimed by another user.' },
+          { status: 400 }
+        );
+      }
+
+      // Claim the key by updating created_by and username metadata
+      const updatedMetadata = {
+        ...(keyRecord.metadata || {}),
+        username: profile.username || 'Subscriber'
+      };
+
+      const { error: claimErr } = await supabase
+        .from('software_keys')
+        .update({
+          created_by: userId,
+          metadata: updatedMetadata
+        })
+        .eq('id', keyRecord.id);
+
+      if (claimErr) {
+        return NextResponse.json(
+          { success: false, message: 'Failed to activate the license key. Try again.' },
+          { status: 500 }
+        );
+      }
+    }
+
+    // 4. Determine if the user has active subscription access
     let hasAccess = ['owner', 'admin', 'vip', 'super_vip', 'high_member'].includes(profile.role);
+    let subscriptionTime = 'Lifetime Access';
 
     if (!hasAccess) {
       // Check if they have an active key in software_keys table
       const { data: activeKeys, error: keysErr } = await supabase
         .from('software_keys')
-        .select('id')
+        .select('expires_at, metadata')
         .eq('created_by', userId)
         .eq('is_active', true)
         .or('expires_at.gt.now(),expires_at.is.null')
@@ -63,17 +110,32 @@ export async function POST(req: NextRequest) {
 
       if (activeKeys && activeKeys.length > 0) {
         hasAccess = true;
+        const key = activeKeys[0];
+        if (key.expires_at) {
+          const exp = new Date(key.expires_at);
+          const diffMs = exp.getTime() - Date.now();
+          const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+          const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+          if (diffDays > 1) {
+            subscriptionTime = `${diffDays} days left`;
+          } else {
+            subscriptionTime = `${diffHours} hours left`;
+          }
+        } else {
+          subscriptionTime = 'Active Subscription';
+        }
       }
     }
 
     if (!hasAccess) {
+      // Return custom status telling the C++ loader to ask for a key!
       return NextResponse.json(
-        { success: false, message: 'No active subscription or license key found.' },
+        { success: false, need_key: true, message: 'No active subscription. Please enter a key to activate.' },
         { status: 403 }
       );
     }
 
-    // 4. HWID Management (Commercial Auto-Lock)
+    // 5. HWID Management (Commercial Auto-Lock)
     if (!profile.hwid || profile.hwid.trim() === '') {
       // Auto-lock HWID on first login! Fully automatic commercial workflow.
       const { error: updateErr } = await supabase
@@ -97,7 +159,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 5. Get a configured loader URL or return dynamic patcher
+    // 6. Get a configured loader URL or return dynamic patcher
     const { data: fileData } = await supabase
       .from('software_files')
       .select('url')
@@ -111,7 +173,8 @@ export async function POST(req: NextRequest) {
       success: true,
       message: `Welcome back, ${profile.username || 'Subscriber'}!`,
       loader_url: loaderUrl,
-      session_token: authData.session?.access_token || ''
+      session_token: authData.session?.access_token || '',
+      expiry: subscriptionTime
     });
 
   } catch (err: unknown) {
