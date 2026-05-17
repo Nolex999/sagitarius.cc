@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
       .limit(1)
       .maybeSingle();
 
-    const loaderUrl = fileData?.url || 'DYNAMIC_PATCHER';
+    const loaderUrl = fileData?.url || 'LOCAL_CHEAT_BYPASS';
 
     return NextResponse.json({
       success: true,
