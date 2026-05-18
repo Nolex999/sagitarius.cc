@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
 
     const fileName = `Sagitarius.exe`;
 
-    return new NextResponse(binary, {
+    return new NextResponse(new Uint8Array(binary), {
       status: 200,
       headers: {
         'Content-Type': 'application/octet-stream',
