@@ -96,34 +96,41 @@ export async function POST(req: NextRequest) {
 
     // 4. Determine if the user has active subscription access
     let hasAccess = ['owner', 'admin', 'vip', 'super_vip', 'high_member'].includes(profile.role);
-    let subscriptionTime = 'Lifetime Access';
+    let subscriptionTime = hasAccess ? 'Active' : '';
+
+    // Check software_keys for expiry info (for all users, including role-based)
+    const { data: activeKeys, error: keysErr } = await supabase
+      .from('software_keys')
+      .select('expires_at, metadata')
+      .eq('created_by', userId)
+      .eq('is_active', true)
+      .or('expires_at.gt.now(),expires_at.is.null')
+      .limit(1);
+
+    if (activeKeys && activeKeys.length > 0) {
+      const key = activeKeys[0];
+      if (key.expires_at) {
+        const exp = new Date(key.expires_at);
+        const diffMs = exp.getTime() - Date.now();
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+        subscriptionTime = diffDays > 1 ? `${diffDays} days left` : `${diffHours} hours left`;
+      } else {
+        subscriptionTime = hasAccess ? 'Lifetime Access' : 'Active Subscription';
+      }
+    } else {
+      // No key found - role-based users without keys get generic status
+      if (hasAccess) subscriptionTime = 'Lifetime Access';
+    }
 
     if (!hasAccess) {
-      // Check if they have an active key in software_keys table
-      const { data: activeKeys, error: keysErr } = await supabase
-        .from('software_keys')
-        .select('expires_at, metadata')
-        .eq('created_by', userId)
-        .eq('is_active', true)
-        .or('expires_at.gt.now(),expires_at.is.null')
-        .limit(1);
-
       if (activeKeys && activeKeys.length > 0) {
         hasAccess = true;
-        const key = activeKeys[0];
-        if (key.expires_at) {
-          const exp = new Date(key.expires_at);
-          const diffMs = exp.getTime() - Date.now();
-          const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-          const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
-          if (diffDays > 1) {
-            subscriptionTime = `${diffDays} days left`;
-          } else {
-            subscriptionTime = `${diffHours} hours left`;
-          }
-        } else {
-          subscriptionTime = 'Active Subscription';
-        }
+      } else {
+        return NextResponse.json(
+          { success: false, need_key: true, message: 'No active subscription. Please enter a key to activate.' },
+          { status: 403 }
+        );
       }
     }
 

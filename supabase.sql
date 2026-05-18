@@ -989,8 +989,8 @@ ON CONFLICT (id) DO UPDATE SET public = true;
 -- Drop existing policies to avoid duplicates
 DROP POLICY IF EXISTS "Avatar images are publicly accessible" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated users can upload avatar images" ON storage.objects;
-DROP POLICY IF EXISTS "Users can update their own avatar" ON storage.objects;
-DROP POLICY IF EXISTS "Users can delete their own avatar" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can update avatar images" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can delete avatar images" ON storage.objects;
 
 -- Allow anyone (including the anonymous loader) to read avatar images
 CREATE POLICY "Avatar images are publicly accessible"
@@ -1018,6 +1018,47 @@ CREATE POLICY "Authenticated users can delete avatar images"
 ON storage.objects FOR DELETE
 USING (
     bucket_id = 'avatar'
+    AND auth.role() = 'authenticated'
+);
+
+NOTIFY pgrst, 'reload schema';
+
+-- ============================================================================
+-- SOFTWARE-FILES STORAGE BUCKET (loader template pour generate route)
+-- URL attendue: /storage/v1/object/public/software-files/templates/Sagitarius.exe
+-- ============================================================================
+
+INSERT INTO storage.buckets (id, name, public, avif_autodetection, file_size_limit, allowed_mime_types)
+VALUES ('software-files', 'software-files', true, false, 104857600, ARRAY['application/octet-stream', 'application/x-msdownload']::text[])
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+DROP POLICY IF EXISTS "Software files are publicly accessible" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can upload software files" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can update software files" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can delete software files" ON storage.objects;
+
+CREATE POLICY "Software files are publicly accessible"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'software-files');
+
+CREATE POLICY "Authenticated users can upload software files"
+ON storage.objects FOR INSERT
+WITH CHECK (
+    bucket_id = 'software-files'
+    AND auth.role() = 'authenticated'
+);
+
+CREATE POLICY "Authenticated users can update software files"
+ON storage.objects FOR UPDATE
+USING (
+    bucket_id = 'software-files'
+    AND auth.role() = 'authenticated'
+);
+
+CREATE POLICY "Authenticated users can delete software files"
+ON storage.objects FOR DELETE
+USING (
+    bucket_id = 'software-files'
     AND auth.role() = 'authenticated'
 );
 
