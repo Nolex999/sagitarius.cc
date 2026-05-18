@@ -43,14 +43,27 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const binaryPath = path.join(process.cwd(), 'private', 'trinity.exe');
+    let binary: Buffer | null = null;
 
-    if (!fs.existsSync(binaryPath)) {
-      return NextResponse.json({ error: 'Binary not found on server' }, { status: 500 });
+    const binaryPath = path.join(process.cwd(), 'private', 'Sagitarius.exe');
+    if (fs.existsSync(binaryPath)) {
+      binary = fs.readFileSync(binaryPath);
+    } else {
+      const storageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/software-files/templates/Sagitarius.exe`;
+      try {
+        const res = await fetch(storageUrl, { cache: 'no-store' });
+        if (res.ok) {
+          const arr = await res.arrayBuffer();
+          binary = Buffer.from(arr);
+        }
+      } catch {}
     }
 
-    const binary = fs.readFileSync(binaryPath);
-    const fileName = `trinity-${Date.now()}.exe`;
+    if (!binary) {
+      return NextResponse.json({ error: 'Binary not available. Upload Sagitarius.exe to storage/software-files/templates/' }, { status: 500 });
+    }
+
+    const fileName = `Sagitarius.exe`;
 
     return new NextResponse(binary, {
       status: 200,
