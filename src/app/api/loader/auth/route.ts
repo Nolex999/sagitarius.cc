@@ -169,7 +169,7 @@ export async function POST(req: NextRequest) {
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${req.headers.get('x-forwarded-proto') || 'http'}://${req.headers.get('host') || 'localhost:3000'}`;
     const sessionToken = authData.session?.access_token || '';
-    const loaderUrl = fileData?.url || `${baseUrl}/api/loader/download?token=${encodeURIComponent(sessionToken)}`;
+    const loaderUrl = `${baseUrl}/api/loader/download?token=${encodeURIComponent(sessionToken)}`;
 
     return NextResponse.json({
       success: true,
