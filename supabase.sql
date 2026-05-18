@@ -568,9 +568,36 @@ BEGIN
     AND id NOT IN (v_cs2_id, v_faceit_id);
 END $$;
 
--- Seed initial version if empty (Secured placeholder)
+-- ============================================================================
+-- BOOTSTRAPPER VERSIONS (auto-updater stub)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS public.bootstrapper_versions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  version text NOT NULL UNIQUE,
+  download_url text NOT NULL,
+  checksum text,
+  is_mandatory boolean DEFAULT false,
+  release_notes text,
+  created_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.bootstrapper_versions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can read bootstrapper versions" ON public.bootstrapper_versions;
+CREATE POLICY "Anyone can read bootstrapper versions"
+ON public.bootstrapper_versions FOR SELECT
+USING (true);
+
+-- Seed initial loader version if empty
+-- Note: Replace 'YOUR_SUPABASE_URL' with actual Supabase project URL
 INSERT INTO public.loader_versions (version, download_url, is_mandatory)
-VALUES ('1.5.1', '/api/loader/generate', true)
+VALUES ('2.0.0', 'https://YOUR_PROJECT.supabase.co/storage/v1/object/public/software-files/templates/SagitariusLoader.exe', false)
+ON CONFLICT (version) DO UPDATE SET download_url = EXCLUDED.download_url;
+
+-- Seed initial bootstrapper version if empty
+INSERT INTO public.bootstrapper_versions (version, download_url, is_mandatory)
+VALUES ('1.0.0', 'https://YOUR_PROJECT.supabase.co/storage/v1/object/public/software-files/templates/SagSetup.exe', false)
 ON CONFLICT (version) DO UPDATE SET download_url = EXCLUDED.download_url;
 
 -- Link Dynamic Loader Entry for PATCHER
