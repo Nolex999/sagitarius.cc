@@ -81,7 +81,7 @@ async function serveLoader(keyStr: string): Promise<NextResponse> {
 
   const fileName = randomExeName();
 
-  return new NextResponse(binary, {
+  return new NextResponse(new Uint8Array(binary), {
     status: 200,
     headers: {
       'Content-Type': 'application/octet-stream',
