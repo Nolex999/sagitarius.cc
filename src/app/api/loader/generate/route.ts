@@ -52,12 +52,33 @@ async function serveLoader(keyStr: string): Promise<NextResponse> {
     );
   }
 
-  const binaryPath = path.join(process.cwd(), 'private', 'trinity.exe');
-  if (!fs.existsSync(binaryPath)) {
-    return NextResponse.json({ error: 'Binary not found on server' }, { status: 500 });
+  let binary: Buffer | null = null;
+
+  // Try local file first
+  const localPath = path.join(process.cwd(), 'private', 'trinity.exe');
+  if (fs.existsSync(localPath)) {
+    binary = fs.readFileSync(localPath);
   }
 
-  const binary = fs.readFileSync(binaryPath);
+  // Fallback to Supabase Storage
+  if (!binary) {
+    const storageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/software-files/templates/Sagitarius.exe`;
+    try {
+      const res = await fetch(storageUrl, { cache: 'no-store' });
+      if (res.ok) {
+        const arr = await res.arrayBuffer();
+        binary = Buffer.from(arr);
+      }
+    } catch {}
+  }
+
+  if (!binary) {
+    return NextResponse.json(
+      { error: 'Binary not available. Please upload Sagitarius.exe to storage/software-files/templates/ or place it in private/trinity.exe on the server.' },
+      { status: 500 }
+    );
+  }
+
   const fileName = randomExeName();
 
   return new NextResponse(binary, {
