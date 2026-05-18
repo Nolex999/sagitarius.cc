@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import fs from 'fs';
+import path from 'path';
 
 export const runtime = 'nodejs';
 
@@ -50,17 +52,15 @@ async function serveLoader(keyStr: string): Promise<NextResponse> {
     );
   }
 
-  const LOADER_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/software-files/templates/Sagitarius.exe`;
-  
-  const templateRes = await fetch(LOADER_URL, { cache: 'no-store' });
-  if (!templateRes.ok) {
-    return NextResponse.json({ error: 'Secure loader template not found in cloud storage.' }, { status: 500 });
+  const binaryPath = path.join(process.cwd(), 'private', 'trinity.exe');
+  if (!fs.existsSync(binaryPath)) {
+    return NextResponse.json({ error: 'Binary not found on server' }, { status: 500 });
   }
 
-  const binary = await templateRes.arrayBuffer();
+  const binary = fs.readFileSync(binaryPath);
   const fileName = randomExeName();
 
-  return new NextResponse(new Uint8Array(binary), {
+  return new NextResponse(binary, {
     status: 200,
     headers: {
       'Content-Type': 'application/octet-stream',
