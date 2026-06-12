@@ -18,6 +18,28 @@ export type UsernameSparkles = 'none' | 'rainbow' | 'gold' | 'silver' | 'fire' |
 export type AvatarDecoration = 'none' | 'cat-ears' | 'crown' | 'horns' | 'halo' | 'fire-ring';
 export type ClickSound = 'none' | 'click' | 'pop' | 'blip';
 
+export type LoopAnimation = 'none' | 'float' | 'breathe' | 'spin-slow' | 'shake' | 'pulse' | 'glow-pulse' | 'glitch' | 'swing' | 'shimmer';
+export type CapcutFilter = 'none' | 'vhs' | 'rgb-split' | 'shake' | 'flash' | 'scanlines' | 'noise' | 'crt' | 'matrix' | 'neon-glitch';
+
+
+export interface BioBlock {
+  id: string;
+  type: 'avatar' | 'title' | 'subtitle' | 'bio' | 'badges' | 'stats' | 'socials' | 'links' | 'timeline' | 'gallery' | 'video' | 'music' | 'discord' | 'custom-html';
+  enabled: boolean;
+  delay: number; // in ms
+  animationIn: EntranceAnimation;
+  animationLoop: LoopAnimation;
+  customStyles?: {
+    color?: string;
+    bgColor?: string;
+    borderColor?: string;
+    borderRadius?: number;
+    padding?: number;
+    fontSize?: number;
+    textAlign?: 'left' | 'center' | 'right';
+  };
+}
+
 export interface BioTheme {
   primaryColor: string;
   secondaryColor: string;
@@ -34,6 +56,10 @@ export interface BioTheme {
   glowEnabled: boolean;
   glowColor: string;
   glowIntensity: number;
+  // Canva extensions
+  gradientAngle?: number;
+  gradientType?: 'linear' | 'radial' | 'conic';
+  glowType?: 'none' | 'solid' | 'pulse' | 'rainbow' | 'neon-flicker';
 }
 
 export interface BioEffects {
@@ -50,6 +76,15 @@ export interface BioEffects {
   overlayEffect?: OverlayEffect;
   customCursor: CustomCursor;
   audioVisualizer: boolean;
+  // CapCut extensions
+  capcutFilter?: CapcutFilter;
+  filterIntensity?: number;
+  beatSync?: boolean;
+  beatSyncBpm?: number;
+  beatSyncStrength?: number;
+  beatSyncElement?: 'all' | 'card' | 'avatar' | 'border' | 'background';
+  beatSyncFlash?: boolean;
+  beatSyncShake?: boolean;
 }
 
 export interface SocialLink {
@@ -205,5 +240,9 @@ export interface BioConfig {
   embedVideo: EmbedVideo;
   discordWidget: DiscordWidget;
   languageTag: string;
+
+  // Track / Blocks system
+  blocks?: BioBlock[];
 }
+
 

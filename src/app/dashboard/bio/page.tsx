@@ -30,6 +30,9 @@ const defaultConfig: BioConfig = {
     glowEnabled: true,
     glowColor: '#f97316',
     glowIntensity: 50,
+    gradientAngle: 135,
+    gradientType: 'linear',
+    glowType: 'solid',
   },
   effects: {
     bgEffect: 'particles',
@@ -44,6 +47,14 @@ const defaultConfig: BioConfig = {
     hoverEffect: 'none',
     customCursor: 'default',
     audioVisualizer: false,
+    capcutFilter: 'none',
+    filterIntensity: 80,
+    beatSync: false,
+    beatSyncBpm: 120,
+    beatSyncStrength: 30,
+    beatSyncElement: 'card',
+    beatSyncFlash: false,
+    beatSyncShake: false,
   },
   socials: [],
   customLinks: [],
@@ -98,6 +109,21 @@ const defaultConfig: BioConfig = {
   embedVideo: { enabled: false, url: '' },
   discordWidget: { enabled: false, userId: '' },
   languageTag: '',
+  blocks: [
+    { id: 'avatar', type: 'avatar', enabled: true, delay: 100, animationIn: 'fade-up', animationLoop: 'glow-pulse' },
+    { id: 'title', type: 'title', enabled: true, delay: 200, animationIn: 'fade-up', animationLoop: 'none' },
+    { id: 'subtitle', type: 'subtitle', enabled: true, delay: 300, animationIn: 'fade-up', animationLoop: 'none' },
+    { id: 'bio', type: 'bio', enabled: true, delay: 400, animationIn: 'fade-up', animationLoop: 'none' },
+    { id: 'badges', type: 'badges', enabled: true, delay: 500, animationIn: 'fade-up', animationLoop: 'none' },
+    { id: 'stats', type: 'stats', enabled: true, delay: 600, animationIn: 'fade-up', animationLoop: 'none' },
+    { id: 'socials', type: 'socials', enabled: true, delay: 700, animationIn: 'fade-up', animationLoop: 'none' },
+    { id: 'links', type: 'links', enabled: true, delay: 800, animationIn: 'fade-up', animationLoop: 'none' },
+    { id: 'timeline', type: 'timeline', enabled: false, delay: 900, animationIn: 'fade-up', animationLoop: 'none' },
+    { id: 'gallery', type: 'gallery', enabled: false, delay: 1000, animationIn: 'fade-up', animationLoop: 'none' },
+    { id: 'video', type: 'video', enabled: false, delay: 1100, animationIn: 'fade-up', animationLoop: 'none' },
+    { id: 'music', type: 'music', enabled: false, delay: 1200, animationIn: 'fade-up', animationLoop: 'none' },
+    { id: 'discord', type: 'discord', enabled: false, delay: 1300, animationIn: 'fade-up', animationLoop: 'none' },
+  ],
 };
 
 export default function S3Page() {
@@ -121,7 +147,7 @@ export default function S3Page() {
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'layout', label: 'Layout', icon: Layout },
     { id: 'theme', label: 'Theme', icon: Palette },
-    { id: 'effects', label: 'Effects', icon: Zap },
+    { id: 'capcut', label: 'CapCut Edit', icon: Zap },
     { id: 'links', label: 'Links', icon: Layers },
     { id: 'music', label: 'Music', icon: Music },
     { id: 'stats', label: 'Stats', icon: BarChart3 },
@@ -190,8 +216,36 @@ export default function S3Page() {
         if (data) {
           setProfileId(data.id);
           setIsPublished(data.is_published);
+          
+          const rawConfig = data.config as any;
+          
+          // Construct blocks dynamically if missing (migration logic)
+          const blocks = rawConfig.blocks && rawConfig.blocks.length > 0
+            ? rawConfig.blocks
+            : [
+                { id: 'avatar', type: 'avatar', enabled: true, delay: 100, animationIn: rawConfig.effects?.entranceAnimation || 'fade-up', animationLoop: rawConfig.effects?.avatarEffect || 'glow-pulse' },
+                { id: 'title', type: 'title', enabled: true, delay: 200, animationIn: rawConfig.effects?.entranceAnimation || 'fade-up', animationLoop: 'none' },
+                { id: 'subtitle', type: 'subtitle', enabled: true, delay: 300, animationIn: rawConfig.effects?.entranceAnimation || 'fade-up', animationLoop: 'none' },
+                { id: 'bio', type: 'bio', enabled: true, delay: 400, animationIn: rawConfig.effects?.entranceAnimation || 'fade-up', animationLoop: 'none' },
+                { id: 'badges', type: 'badges', enabled: true, delay: 500, animationIn: rawConfig.effects?.entranceAnimation || 'fade-up', animationLoop: 'none' },
+                { id: 'stats', type: 'stats', enabled: true, delay: 600, animationIn: rawConfig.effects?.entranceAnimation || 'fade-up', animationLoop: 'none' },
+                { id: 'socials', type: 'socials', enabled: true, delay: 700, animationIn: rawConfig.effects?.entranceAnimation || 'fade-up', animationLoop: 'none' },
+                { id: 'links', type: 'links', enabled: true, delay: 800, animationIn: rawConfig.effects?.entranceAnimation || 'fade-up', animationLoop: 'none' },
+                { id: 'timeline', type: 'timeline', enabled: rawConfig.timeline?.enabled ?? false, delay: 900, animationIn: rawConfig.effects?.entranceAnimation || 'fade-up', animationLoop: 'none' },
+                { id: 'gallery', type: 'gallery', enabled: rawConfig.imageGallery?.enabled ?? false, delay: 1000, animationIn: rawConfig.effects?.entranceAnimation || 'fade-up', animationLoop: 'none' },
+                { id: 'video', type: 'video', enabled: rawConfig.embedVideo?.enabled ?? false, delay: 1100, animationIn: rawConfig.effects?.entranceAnimation || 'fade-up', animationLoop: 'none' },
+                { id: 'music', type: 'music', enabled: rawConfig.music?.enabled ?? false, delay: 1200, animationIn: rawConfig.effects?.entranceAnimation || 'fade-up', animationLoop: 'none' },
+                { id: 'discord', type: 'discord', enabled: rawConfig.discordWidget?.enabled ?? false, delay: 1300, animationIn: rawConfig.effects?.entranceAnimation || 'fade-up', animationLoop: 'none' },
+              ];
+
           // Merge saved config with defaults to handle new fields
-          const loadedConfig = { ...defaultConfig, ...(data.config as BioConfig) };
+          const loadedConfig = {
+            ...defaultConfig,
+            ...rawConfig,
+            theme: { ...defaultConfig.theme, ...(rawConfig.theme || {}) },
+            effects: { ...defaultConfig.effects, ...(rawConfig.effects || {}) },
+            blocks,
+          };
           setConfig(loadedConfig);
           setHistory([loadedConfig]);
           setHistoryIndex(0);

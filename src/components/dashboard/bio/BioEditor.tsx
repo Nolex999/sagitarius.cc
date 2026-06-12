@@ -11,13 +11,13 @@ import MediaUploader from './MediaUploader';
 import AdvancedColorPicker from './AdvancedColorPicker';
 import PaletteSelector from './PaletteSelector';
 
-type TabId = 'profile' | 'layout' | 'theme' | 'effects' | 'links' | 'music' | 'stats' | 'widgets' | 'seo' | 'advanced';
+type TabId = 'profile' | 'layout' | 'theme' | 'capcut' | 'links' | 'music' | 'stats' | 'widgets' | 'seo' | 'advanced';
 
 const tabs: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'layout', label: 'Layout', icon: Layout },
   { id: 'theme', label: 'Theme', icon: Palette },
-  { id: 'effects', label: 'Effects', icon: Sparkles },
+  { id: 'capcut', label: 'CapCut Edit', icon: Sparkles },
   { id: 'links', label: 'Links', icon: Link2 },
   { id: 'music', label: 'Music', icon: Music },
   { id: 'stats', label: 'Stats', icon: BarChart3 },
@@ -194,6 +194,7 @@ export default function BioEditor({
   activeTab: any;
 }) {
   const [customBadge, setCustomBadge] = useState('');
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   
   // Custom CSS State
   const [cssInput, setCssInput] = useState(config.customCss);
@@ -729,280 +730,687 @@ export default function BioEditor({
     </div>
   );
 
-  const renderEffects = () => (
-    <div className="space-y-4">
-      <SectionTitle>Background Effect</SectionTitle>
-      
-      <div>
-        <FieldLabel>Effect type</FieldLabel>
-        <OptionGrid
-          value={config.effects.bgEffect}
-          onChange={v => updateEffects('bgEffect', v as any)}
-          options={[
-            { value: 'none', label: 'None' },
-            { value: 'particles', label: 'Particles' },
-            { value: 'matrix', label: 'Matrix' },
-            { value: 'stars', label: 'Stars' },
-            { value: 'rain', label: 'Rain' },
-            { value: 'snow', label: 'Snow' },
-            { value: 'fireflies', label: 'Fireflies' },
-          ]}
-        />
-      </div>
+  const renderCapCut = () => {
+    const applyPreset = (preset: 'phonk' | 'hyperpop' | 'cyberpunk' | 'guns') => {
+      let newTheme = { ...config.theme };
+      let newEffects = { ...config.effects };
+      let newBlocks = config.blocks ? [...config.blocks] : [];
+      let newCustomCss = config.customCss;
+      let newBoxTilt = config.boxTilt;
 
-      {config.effects.bgEffect !== 'none' && (
-        <>
+      if (preset === 'phonk') {
+        newTheme = {
+          ...newTheme,
+          primaryColor: '#ef4444',
+          secondaryColor: '#000000',
+          accentColor: '#b91c1c',
+          bgType: 'gradient',
+          bgColor1: '#020202',
+          bgColor2: '#110202',
+          glowEnabled: true,
+          glowColor: '#ef4444',
+          glowIntensity: 65,
+          fontFamily: 'Orbitron',
+        };
+        newEffects = {
+          ...newEffects,
+          bgEffect: 'fireflies',
+          bgEffectColor: '#ef4444',
+          bgEffectIntensity: 80,
+          cursorTrail: 'fire',
+          cursorTrailColor: '#ef4444',
+          avatarEffect: 'glitch',
+          textEffect: 'glitch',
+          capcutFilter: 'matrix',
+          beatSync: true,
+          beatSyncBpm: 130,
+          beatSyncStrength: 45,
+          beatSyncElement: 'all',
+          beatSyncFlash: true,
+          beatSyncShake: true,
+        };
+        newBoxTilt = 'tilt-x';
+        newCustomCss = `.bio-page .profile-card { border-color: rgba(239, 68, 68, 0.3) !important; }\n.bio-page .username { text-shadow: 0 0 10px #ef4444 !important; }`;
+      } else if (preset === 'hyperpop') {
+        newTheme = {
+          ...newTheme,
+          primaryColor: '#f43f5e',
+          secondaryColor: '#d946ef',
+          accentColor: '#3b82f6',
+          bgType: 'gradient',
+          bgColor1: '#1e1b4b',
+          bgColor2: '#311042',
+          glowEnabled: true,
+          glowColor: '#d946ef',
+          glowIntensity: 80,
+          fontFamily: 'Righteous',
+          cardStyle: 'glass',
+        };
+        newEffects = {
+          ...newEffects,
+          bgEffect: 'stars',
+          bgEffectColor: '#d946ef',
+          bgEffectIntensity: 90,
+          cursorTrail: 'sparkle',
+          cursorTrailColor: '#d946ef',
+          avatarEffect: 'breathe',
+          textEffect: 'gradient',
+          capcutFilter: 'rgb-split',
+          beatSync: true,
+          beatSyncBpm: 145,
+          beatSyncStrength: 50,
+          beatSyncElement: 'avatar',
+          beatSyncFlash: false,
+          beatSyncShake: false,
+        };
+        newBoxTilt = 'scale';
+        newCustomCss = `.bio-page .avatar-container { border: 3px dotted #f43f5e !important; }`;
+      } else if (preset === 'cyberpunk') {
+        newTheme = {
+          ...newTheme,
+          primaryColor: '#eab308',
+          secondaryColor: '#06b6d4',
+          accentColor: '#ec4899',
+          bgType: 'pattern',
+          bgPattern: 'grid',
+          bgColor1: '#050505',
+          bgColor2: '#111827',
+          glowEnabled: true,
+          glowColor: '#eab308',
+          glowIntensity: 50,
+          fontFamily: 'Press Start 2P',
+        };
+        newEffects = {
+          ...newEffects,
+          bgEffect: 'matrix',
+          bgEffectColor: '#06b6d4',
+          bgEffectIntensity: 60,
+          cursorTrail: 'glow',
+          cursorTrailColor: '#06b6d4',
+          avatarEffect: 'rotate-border',
+          textEffect: 'neon-flicker',
+          capcutFilter: 'crt',
+          beatSync: true,
+          beatSyncBpm: 120,
+          beatSyncStrength: 25,
+          beatSyncElement: 'border',
+          beatSyncFlash: true,
+          beatSyncShake: false,
+        };
+        newBoxTilt = 'none';
+        newCustomCss = `.bio-page { filter: hue-rotate(5deg); }`;
+      } else if (preset === 'guns') {
+        newTheme = {
+          ...newTheme,
+          primaryColor: '#ffffff',
+          secondaryColor: '#1e293b',
+          accentColor: '#fbbf24',
+          bgType: 'solid',
+          bgColor1: '#09090b',
+          glowEnabled: true,
+          glowColor: '#fbbf24',
+          glowIntensity: 40,
+          fontFamily: 'Space Grotesk',
+          cardStyle: 'solid',
+        };
+        newEffects = {
+          ...newEffects,
+          bgEffect: 'particles',
+          bgEffectColor: '#ffffff',
+          bgEffectIntensity: 50,
+          cursorTrail: 'trail',
+          cursorTrailColor: '#ffffff',
+          avatarEffect: 'float',
+          textEffect: 'none',
+          capcutFilter: 'vhs',
+          beatSync: true,
+          beatSyncBpm: 110,
+          beatSyncStrength: 30,
+          beatSyncElement: 'card',
+          beatSyncFlash: false,
+          beatSyncShake: true,
+        };
+        newBoxTilt = 'reverse-scale';
+        newCustomCss = `.bio-page { background: linear-gradient(180deg, #09090b 0%, #18181b 100%) !important; }`;
+      }
+
+      // Sync loops on preset load
+      newBlocks = newBlocks.map(b => {
+        if (b.type === 'avatar') return { ...b, animationLoop: newEffects.avatarEffect as any };
+        return b;
+      });
+
+      onChange({
+        ...config,
+        theme: newTheme,
+        effects: newEffects,
+        boxTilt: newBoxTilt,
+        customCss: newCustomCss,
+        blocks: newBlocks,
+      });
+    };
+
+    const blocksList = config.blocks || [];
+
+    const moveBlock = (index: number, direction: 'up' | 'down') => {
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= blocksList.length) return;
+      const newList = [...blocksList];
+      const [moved] = newList.splice(index, 1);
+      newList.splice(targetIndex, 0, moved);
+      update('blocks', newList);
+    };
+
+    const toggleBlock = (id: string) => {
+      const newList = blocksList.map(b => b.id === id ? { ...b, enabled: !b.enabled } : b);
+      update('blocks', newList);
+    };
+
+    const selectedBlock = blocksList.find(b => b.id === selectedBlockId);
+
+    return (
+      <div className="space-y-4">
+        <SectionTitle>TikTok / CapCut Presets</SectionTitle>
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <button
+            onClick={() => applyPreset('phonk')}
+            className="flex flex-col items-start justify-center py-2 px-3 rounded-xl bg-white/[0.02] border border-red-500/20 hover:border-red-500/50 hover:bg-white/[0.04] transition-all text-left"
+          >
+            <span className="text-[10px] font-black uppercase text-red-500 tracking-wider">🔥 Phonk Drift</span>
+            <span className="text-[8px] text-white/40 font-mono mt-0.5">Bass sync, shake</span>
+          </button>
+          <button
+            onClick={() => applyPreset('hyperpop')}
+            className="flex flex-col items-start justify-center py-2 px-3 rounded-xl bg-white/[0.02] border border-pink-500/20 hover:border-pink-500/50 hover:bg-white/[0.04] transition-all text-left"
+          >
+            <span className="text-[10px] font-black uppercase text-pink-400 tracking-wider">🦄 Hyperpop</span>
+            <span className="text-[8px] text-white/40 font-mono mt-0.5">Rainbow gradient, bounce</span>
+          </button>
+          <button
+            onClick={() => applyPreset('cyberpunk')}
+            className="flex flex-col items-start justify-center py-2 px-3 rounded-xl bg-white/[0.02] border border-cyan-500/20 hover:border-cyan-500/50 hover:bg-white/[0.04] transition-all text-left"
+          >
+            <span className="text-[10px] font-black uppercase text-cyan-400 tracking-wider">👾 Cyber Grid</span>
+            <span className="text-[8px] text-white/40 font-mono mt-0.5">CRT screen, retro grid</span>
+          </button>
+          <button
+            onClick={() => applyPreset('guns')}
+            className="flex flex-col items-start justify-center py-2 px-3 rounded-xl bg-white/[0.02] border border-white/10 hover:border-white/30 hover:bg-white/[0.04] transition-all text-left"
+          >
+            <span className="text-[10px] font-black uppercase text-white tracking-wider">💀 Guns Sleek</span>
+            <span className="text-[8px] text-white/40 font-mono mt-0.5">Minimalist grey/gold</span>
+          </button>
+        </div>
+
+        <SectionTitle>CapCut Edit Timeline Tracks</SectionTitle>
+        <p className="text-[10px] text-[var(--text-muted)] leading-relaxed mb-3">
+          Toggle visibility, use arrow buttons to reorder, or click on a track block to edit its styles & animation timings.
+        </p>
+
+        <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-1">
+          {blocksList.map((block, idx) => {
+            const isSelected = selectedBlockId === block.id;
+            return (
+              <div
+                key={block.id}
+                onClick={() => setSelectedBlockId(isSelected ? null : block.id)}
+                className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all border ${
+                  isSelected
+                    ? 'bg-[var(--accent)]/15 border-[var(--accent-gold)]/40 shadow-[0_0_10px_rgba(197,160,89,0.05)]'
+                    : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.04]'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleBlock(block.id);
+                    }}
+                    className={`w-10 h-5 rounded flex items-center justify-center transition-all ${
+                      block.enabled ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-red-500/10 text-red-400'
+                    }`}
+                  >
+                    <span className="text-[8px] font-black">{block.enabled ? 'ON' : 'OFF'}</span>
+                  </button>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-white/70">
+                    {block.type} Track
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                  <button
+                    onClick={() => moveBlock(idx, 'up')}
+                    disabled={idx === 0}
+                    className="w-5 h-5 flex items-center justify-center rounded bg-white/5 hover:bg-white/10 text-white/50 hover:text-white disabled:opacity-30 disabled:pointer-events-none text-[8px]"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    onClick={() => moveBlock(idx, 'down')}
+                    disabled={idx === blocksList.length - 1}
+                    className="w-5 h-5 flex items-center justify-center rounded bg-white/5 hover:bg-white/10 text-white/50 hover:text-white disabled:opacity-30 disabled:pointer-events-none text-[8px]"
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {selectedBlock && (
+          <div className="p-3 rounded-xl bg-white/[0.02] border border-[var(--accent-gold)]/20 shadow-xl space-y-3 mt-4 animate-fade-in relative z-10">
+            <div className="flex justify-between items-center pb-2 border-b border-white/5">
+              <span className="text-[10px] font-black uppercase text-[var(--accent-gold)] tracking-wider">
+                Clip Track: {selectedBlock.type}
+              </span>
+              <button
+                onClick={() => setSelectedBlockId(null)}
+                className="text-[9px] uppercase font-bold text-white/40 hover:text-white"
+              >
+                Close Inspector
+              </button>
+            </div>
+
+            <div>
+              <FieldLabel>Entrance In-Transition</FieldLabel>
+              <SelectInput
+                value={selectedBlock.animationIn}
+                onChange={v => {
+                  const newList = blocksList.map(b => b.id === selectedBlock.id ? { ...b, animationIn: v as any } : b);
+                  update('blocks', newList);
+                }}
+                options={[
+                  { value: 'none', label: 'None' },
+                  { value: 'fade-up', label: 'Fade Up' },
+                  { value: 'scale', label: 'Scale' },
+                  { value: 'slide-left', label: 'Slide Left' },
+                  { value: 'slide-right', label: 'Slide Right' },
+                  { value: 'slide-down', label: 'Slide Down' },
+                  { value: 'spin-in', label: 'Spin' },
+                  { value: 'flip-x', label: 'Flip X' },
+                  { value: 'bounce-in', label: 'Bounce' },
+                  { value: 'glitch-in', label: 'Glitch' },
+                  { value: 'zoom-rotate', label: 'Zoom Rotate' },
+                  { value: 'elastic', label: 'Elastic' },
+                  { value: 'blur-in', label: 'Blur' },
+                  { value: 'drop-in', label: 'Drop' },
+                ]}
+              />
+            </div>
+
+            <div>
+              <FieldLabel>Loop animation</FieldLabel>
+              <SelectInput
+                value={selectedBlock.animationLoop}
+                onChange={v => {
+                  const newList = blocksList.map(b => b.id === selectedBlock.id ? { ...b, animationLoop: v as any } : b);
+                  update('blocks', newList);
+                }}
+                options={[
+                  { value: 'none', label: 'None' },
+                  { value: 'float', label: 'Float' },
+                  { value: 'breathe', label: 'Breathe' },
+                  { value: 'spin-slow', label: 'Spin Slow' },
+                  { value: 'shake', label: 'Shake' },
+                  { value: 'pulse', label: 'Pulse' },
+                  { value: 'glow-pulse', label: 'Glow Pulse' },
+                  { value: 'glitch', label: 'Glitch' },
+                  { value: 'swing', label: 'Swing' },
+                  { value: 'shimmer', label: 'Shimmer' },
+                ]}
+              />
+            </div>
+
+            <div>
+              <FieldLabel>Clip Delay Track — {selectedBlock.delay || 0}ms</FieldLabel>
+              <SliderInput
+                value={selectedBlock.delay || 0}
+                onChange={v => {
+                  const newList = blocksList.map(b => b.id === selectedBlock.id ? { ...b, delay: v } : b);
+                  update('blocks', newList);
+                }}
+                min={0}
+                max={2000}
+                label="ms"
+              />
+            </div>
+
+            <div className="pt-2 border-t border-white/5 space-y-3">
+              <span className="text-[9px] uppercase tracking-widest text-white/30 font-bold block">Canva Styling Inspector</span>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <FieldLabel>Text Color</FieldLabel>
+                  <AdvancedColorPicker
+                    value={selectedBlock.customStyles?.color || '#ffffff'}
+                    onChange={v => {
+                      const newList = blocksList.map(b => b.id === selectedBlock.id ? { ...b, customStyles: { ...b.customStyles, color: v } } : b);
+                      update('blocks', newList);
+                    }}
+                  />
+                </div>
+                <div>
+                  <FieldLabel>BG Color</FieldLabel>
+                  <AdvancedColorPicker
+                    value={selectedBlock.customStyles?.bgColor || '#00000000'}
+                    onChange={v => {
+                      const newList = blocksList.map(b => b.id === selectedBlock.id ? { ...b, customStyles: { ...b.customStyles, bgColor: v } } : b);
+                      update('blocks', newList);
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <FieldLabel>Border Color</FieldLabel>
+                  <AdvancedColorPicker
+                    value={selectedBlock.customStyles?.borderColor || '#00000000'}
+                    onChange={v => {
+                      const newList = blocksList.map(b => b.id === selectedBlock.id ? { ...b, customStyles: { ...b.customStyles, borderColor: v } } : b);
+                      update('blocks', newList);
+                    }}
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Text Align</FieldLabel>
+                  <SelectInput
+                    value={selectedBlock.customStyles?.textAlign || 'center'}
+                    onChange={v => {
+                      const newList = blocksList.map(b => b.id === selectedBlock.id ? { ...b, customStyles: { ...b.customStyles, textAlign: v as any } } : b);
+                      update('blocks', newList);
+                    }}
+                    options={[
+                      { value: 'left', label: 'Left' },
+                      { value: 'center', label: 'Center' },
+                      { value: 'right', label: 'Right' },
+                    ]}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <FieldLabel>Padding — {selectedBlock.customStyles?.padding || 0}px</FieldLabel>
+                  <SliderInput
+                    value={selectedBlock.customStyles?.padding || 0}
+                    onChange={v => {
+                      const newList = blocksList.map(b => b.id === selectedBlock.id ? { ...b, customStyles: { ...b.customStyles, padding: v } } : b);
+                      update('blocks', newList);
+                    }}
+                    min={0}
+                    max={32}
+                    label="px"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Radius — {selectedBlock.customStyles?.borderRadius || 0}px</FieldLabel>
+                  <SliderInput
+                    value={selectedBlock.customStyles?.borderRadius || 0}
+                    onChange={v => {
+                      const newList = blocksList.map(b => b.id === selectedBlock.id ? { ...b, customStyles: { ...b.customStyles, borderRadius: v } } : b);
+                      update('blocks', newList);
+                    }}
+                    min={0}
+                    max={24}
+                    label="px"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <SectionTitle>CapCut Video Filters & Overlays</SectionTitle>
+        <div>
+          <FieldLabel>Overlay Video Effect</FieldLabel>
+          <OptionGrid
+            value={config.effects.capcutFilter || 'none'}
+            onChange={v => updateEffects('capcutFilter', v as any)}
+            options={[
+              { value: 'none', label: 'None' },
+              { value: 'vhs', label: 'VHS Film' },
+              { value: 'crt', label: 'CRT Screen' },
+              { value: 'rgb-split', label: 'RGB Split' },
+              { value: 'shake', label: 'Shake Effect' },
+              { value: 'matrix', label: 'Glitch Overlay' },
+              { value: 'neon-glitch', label: 'Neon Borders' },
+            ]}
+            cols={2}
+          />
+        </div>
+
+        <SectionTitle>CapCut Beat-Sync Engine</SectionTitle>
+        <ToggleRow
+          label="Pulse to Music Beat"
+          value={config.effects.beatSync || false}
+          onChange={v => updateEffects('beatSync', v)}
+        />
+
+        {config.effects.beatSync && (
+          <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.05] space-y-3 animate-fade-in relative z-10">
+            <div>
+              <FieldLabel>Sync Target Element</FieldLabel>
+              <SelectInput
+                value={config.effects.beatSyncElement || 'card'}
+                onChange={v => updateEffects('beatSyncElement', v as any)}
+                options={[
+                  { value: 'card', label: 'Entire Card Container' },
+                  { value: 'avatar', label: 'Profile Picture / Avatar' },
+                  { value: 'border', label: 'Card Borders Glow' },
+                  { value: 'background', label: 'Background Zoom' },
+                  { value: 'all', label: 'Sync All Elements' },
+                ]}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <FieldLabel>Song BPM — {config.effects.beatSyncBpm || 120}</FieldLabel>
+                <SliderInput
+                  value={config.effects.beatSyncBpm || 120}
+                  onChange={v => updateEffects('beatSyncBpm', v)}
+                  min={60}
+                  max={200}
+                  label="bpm"
+                />
+              </div>
+              <div>
+                <FieldLabel>Pulse Strength — {config.effects.beatSyncStrength || 30}%</FieldLabel>
+                <SliderInput
+                  value={config.effects.beatSyncStrength || 30}
+                  onChange={v => updateEffects('beatSyncStrength', v)}
+                  min={10}
+                  max={100}
+                  label="%"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <ToggleRow
+                label="Screen Flash"
+                value={config.effects.beatSyncFlash || false}
+                onChange={v => updateEffects('beatSyncFlash', v)}
+              />
+              <ToggleRow
+                label="Card Shake"
+                value={config.effects.beatSyncShake || false}
+                onChange={v => updateEffects('beatSyncShake', v)}
+              />
+            </div>
+          </div>
+        )}
+
+        <SectionTitle>Background Particle Effect</SectionTitle>
+        <div>
+          <FieldLabel>Particle type</FieldLabel>
+          <OptionGrid
+            value={config.effects.bgEffect}
+            onChange={v => updateEffects('bgEffect', v as any)}
+            options={[
+              { value: 'none', label: 'None' },
+              { value: 'particles', label: 'Particles' },
+              { value: 'matrix', label: 'Matrix' },
+              { value: 'stars', label: 'Stars' },
+              { value: 'rain', label: 'Rain' },
+              { value: 'snow', label: 'Snow' },
+              { value: 'fireflies', label: 'Fireflies' },
+            ]}
+          />
+        </div>
+
+        {config.effects.bgEffect !== 'none' && (
+          <div className="space-y-3 pt-2">
+            <div>
+              <FieldLabel>Intensity — {config.effects.bgEffectIntensity}%</FieldLabel>
+              <SliderInput value={config.effects.bgEffectIntensity} onChange={v => updateEffects('bgEffectIntensity', v)} label="%" />
+            </div>
+            <div className="z-10 relative">
+              <AdvancedColorPicker label="Effect color" value={config.effects.bgEffectColor} onChange={v => updateEffects('bgEffectColor', v)} />
+            </div>
+          </div>
+        )}
+
+        <SectionTitle>Audio & Custom Trails</SectionTitle>
+        <div className="grid grid-cols-2 gap-4">
+          <ToggleRow label="Audio Visualizer" value={config.effects.audioVisualizer} onChange={v => updateEffects('audioVisualizer', v)} />
           <div>
-            <FieldLabel>Intensity — {config.effects.bgEffectIntensity}%</FieldLabel>
-            <SliderInput value={config.effects.bgEffectIntensity} onChange={v => updateEffects('bgEffectIntensity', v)} label="%" />
+            <FieldLabel>Cursor Trail</FieldLabel>
+            <SelectInput
+              value={config.effects.cursorTrail}
+              onChange={v => updateEffects('cursorTrail', v as any)}
+              options={[
+                { value: 'none', label: 'None' },
+                { value: 'glow', label: 'Glow' },
+                { value: 'sparkle', label: 'Sparkle' },
+                { value: 'trail', label: 'Trail' },
+                { value: 'fire', label: 'Fire' },
+              ]}
+            />
           </div>
-          <div className="z-10 relative">
-            <AdvancedColorPicker label="Effect color" value={config.effects.bgEffectColor} onChange={v => updateEffects('bgEffectColor', v)} />
-          </div>
-        </>
-      )}
-
-      <SectionTitle>Foreground Overlay</SectionTitle>
-      
-      <div>
-        <FieldLabel>Overlay type</FieldLabel>
-        <OptionGrid
-          value={config.effects.overlayEffect || 'none'}
-          onChange={v => updateEffects('overlayEffect', v as any)}
-          options={[
-            { value: 'none', label: 'None' },
-            { value: 'vhs', label: 'VHS' },
-            { value: 'scanlines', label: 'Scanline' },
-            { value: 'noise', label: 'Noise' },
-            { value: 'cyberpunk-glitch', label: 'Cyber' },
-          ]}
-          cols={3}
-        />
-      </div>
-
-      <SectionTitle>Cursor Trail</SectionTitle>
-      
-      <div>
-        <FieldLabel>Trail type</FieldLabel>
-        <OptionGrid
-          value={config.effects.cursorTrail}
-          onChange={v => updateEffects('cursorTrail', v as any)}
-          options={[
-            { value: 'none', label: 'None' },
-            { value: 'glow', label: 'Glow' },
-            { value: 'sparkle', label: 'Sparkle' },
-            { value: 'trail', label: 'Trail' },
-            { value: 'fire', label: 'Fire' },
-          ]}
-        />
-      </div>
-
-        <div className="z-10 relative mt-4">
+        </div>
+        
+        <div className="z-10 relative mt-3">
           <AdvancedColorPicker label="Trail color" value={config.effects.cursorTrailColor} onChange={v => updateEffects('cursorTrailColor', v)} />
         </div>
 
-      <SectionTitle>Avatar Effect</SectionTitle>
-      
-      <div>
-        <FieldLabel>Effect type</FieldLabel>
-        <OptionGrid
-          value={config.effects.avatarEffect}
-          onChange={v => updateEffects('avatarEffect', v as any)}
-          options={[
-            { value: 'none', label: 'None' },
-            { value: 'glow-pulse', label: 'Glow Pulse' },
-            { value: 'rotate-border', label: 'Rotate' },
-            { value: 'glitch', label: 'Glitch' },
-            { value: 'breathe', label: 'Breathe' },
-            { value: 'float', label: 'Float' },
-            { value: 'spin-slow', label: 'Spin Slow' },
-            { value: 'pulse-ring', label: 'Pulse Ring' },
-            { value: 'shadow-dance', label: 'Shadow' },
-          ]}
-          cols={3}
-        />
-      </div>
+        <SectionTitle>Avatar Decoration</SectionTitle>
+        <div>
+          <FieldLabel>Decoration</FieldLabel>
+          <OptionGrid
+            value={config.avatarDecoration || 'none'}
+            onChange={v => update('avatarDecoration', v as any)}
+            options={[
+              { value: 'none', label: 'None' },
+              { value: 'cat-ears', label: '🐱 Cat Ears' },
+              { value: 'crown', label: '👑 Crown' },
+              { value: 'horns', label: '😈 Horns' },
+              { value: 'halo', label: '😇 Halo' },
+              { value: 'fire-ring', label: '🔥 Fire' },
+            ]}
+            cols={3}
+          />
+        </div>
 
-      <SectionTitle>Text Effect</SectionTitle>
-      
-      <div>
-        <FieldLabel>Effect type</FieldLabel>
-        <OptionGrid
-          value={config.effects.textEffect}
-          onChange={v => updateEffects('textEffect', v as any)}
-          options={[
-            { value: 'none', label: 'None' },
-            { value: 'gradient', label: 'Gradient' },
-            { value: 'glitch', label: 'Glitch' },
-            { value: 'typewriter', label: 'Typewriter' },
-            { value: 'neon-flicker', label: 'Neon' },
-          ]}
-        />
-      </div>
+        <SectionTitle>Username Sparkles</SectionTitle>
+        <div>
+          <FieldLabel>Sparkle type</FieldLabel>
+          <OptionGrid
+            value={config.usernameSparkles || 'none'}
+            onChange={v => update('usernameSparkles', v as any)}
+            options={[
+              { value: 'none', label: 'None' },
+              { value: 'rainbow', label: '🌈 Rainbow' },
+              { value: 'gold', label: '✨ Gold' },
+              { value: 'silver', label: '🤍 Silver' },
+              { value: 'fire', label: '🔥 Fire' },
+              { value: 'ice', label: '❄️ Ice' },
+            ]}
+            cols={3}
+          />
+        </div>
 
-      <SectionTitle>Entrance Animation</SectionTitle>
-      
-      <div>
-        <FieldLabel>Entrance style</FieldLabel>
-        <OptionGrid
-          value={config.effects.entranceAnimation}
-          onChange={v => updateEffects('entranceAnimation', v as any)}
-          options={[
-            { value: 'none', label: 'None' },
-            { value: 'fade-up', label: 'Fade Up' },
-            { value: 'scale', label: 'Scale' },
-            { value: 'slide-left', label: 'Slide L' },
-            { value: 'slide-right', label: 'Slide R' },
-            { value: 'slide-down', label: 'Slide Dn' },
-            { value: 'spin-in', label: 'Spin' },
-            { value: 'flip-x', label: 'Flip X' },
-            { value: 'bounce-in', label: 'Bounce' },
-            { value: 'glitch-in', label: 'Glitch' },
-            { value: 'zoom-rotate', label: 'Zoom Rot' },
-            { value: 'elastic', label: 'Elastic' },
-            { value: 'blur-in', label: 'Blur In' },
-            { value: 'drop-in', label: 'Drop In' },
-          ]}
-          cols={3}
-        />
-      </div>
-
-      <SectionTitle>Link Hover Effect</SectionTitle>
-      
-      <div>
-        <FieldLabel>Hover Animation</FieldLabel>
-        <OptionGrid
-          value={config.effects.hoverEffect || 'none'}
-          onChange={v => updateEffects('hoverEffect', v as any)}
-          options={[
-            { value: 'none', label: 'None' },
-            { value: 'lift', label: 'Lift' },
-            { value: 'glow', label: 'Glow' },
-            { value: 'scale', label: 'Scale' },
-            { value: 'neon', label: 'Neon' },
-            { value: 'shake', label: 'Shake' },
-            { value: 'underline-slide', label: 'Underline' },
-            { value: 'border-glow', label: 'Brd Glow' },
-            { value: 'tilt-3d', label: 'Tilt 3D' },
-            { value: 'haul', label: 'Haul' },
-          ]}
-          cols={3}
-        />
-      </div>
-
-      <SectionTitle>Click Effect</SectionTitle>
-      
-      <div>
-        <FieldLabel>Click effect</FieldLabel>
-        <OptionGrid
-          value={config.effects.clickEffect}
-          onChange={v => updateEffects('clickEffect', v as any)}
-          options={[
-            { value: 'none', label: 'None' },
-            { value: 'ripple', label: 'Ripple' },
-            { value: 'confetti', label: 'Confetti' },
-            { value: 'sparkle', label: 'Sparkle' },
-          ]}
-        />
-      </div>
-      <SectionTitle>Username Sparkles</SectionTitle>
-
-      <div>
-        <FieldLabel>Sparkle type</FieldLabel>
-        <OptionGrid
-          value={config.usernameSparkles || 'none'}
-          onChange={v => update('usernameSparkles', v as any)}
-          options={[
-            { value: 'none', label: 'None' },
-            { value: 'rainbow', label: '🌈 Rainbow' },
-            { value: 'gold', label: '✨ Gold' },
-            { value: 'silver', label: '🤍 Silver' },
-            { value: 'fire', label: '🔥 Fire' },
-            { value: 'ice', label: '❄️ Ice' },
-          ]}
-          cols={3}
-        />
-      </div>
-
-      <SectionTitle>Avatar Decoration</SectionTitle>
-
-      <div>
-        <FieldLabel>Decoration</FieldLabel>
-        <OptionGrid
-          value={config.avatarDecoration || 'none'}
-          onChange={v => update('avatarDecoration', v as any)}
-          options={[
-            { value: 'none', label: 'None' },
-            { value: 'cat-ears', label: '🐱 Cat Ears' },
-            { value: 'crown', label: '👑 Crown' },
-            { value: 'horns', label: '😈 Horns' },
-            { value: 'halo', label: '😇 Halo' },
-            { value: 'fire-ring', label: '🔥 Fire' },
-          ]}
-          cols={3}
-        />
-      </div>
-
-      <SectionTitle>Animation Speed</SectionTitle>
-
-      <div>
-        <FieldLabel>Entrance Speed — {config.entranceSpeed ?? 200}ms</FieldLabel>
-        <SliderInput value={config.entranceSpeed ?? 200} onChange={v => update('entranceSpeed', v)} min={50} max={500} label="ms" />
-      </div>
-
-      <SectionTitle>Click Sound</SectionTitle>
-
-      <div>
-        <FieldLabel>Sound on click</FieldLabel>
-        <OptionGrid
-          value={config.clickSound || 'none'}
-          onChange={v => update('clickSound', v as any)}
-          options={[
-            { value: 'none', label: 'None' },
-            { value: 'click', label: 'Click' },
-            { value: 'pop', label: 'Pop' },
-            { value: 'blip', label: 'Blip' },
-          ]}
-        />
-      </div>
-
-      <SectionTitle>Reveal Screen</SectionTitle>
-
-      <ToggleRow label="Show reveal screen" value={config.revealScreen?.enabled ?? false} onChange={v => update('revealScreen', { ...(config.revealScreen || { enabled: false, text: 'Click to enter', blur: 15 }), enabled: v })} />
-
-      {config.revealScreen?.enabled && (
-        <>
+        <SectionTitle>Entrance Animations</SectionTitle>
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <FieldLabel>Reveal text</FieldLabel>
-            <TextInput value={config.revealScreen.text} onChange={v => update('revealScreen', { ...config.revealScreen, text: v })} placeholder="Click to enter..." />
+            <FieldLabel>Animation style</FieldLabel>
+            <SelectInput
+              value={config.effects.entranceAnimation}
+              onChange={v => updateEffects('entranceAnimation', v as any)}
+              options={[
+                { value: 'none', label: 'None' },
+                { value: 'fade-up', label: 'Fade Up' },
+                { value: 'scale', label: 'Scale' },
+                { value: 'slide-left', label: 'Slide Left' },
+                { value: 'slide-right', label: 'Slide Right' },
+                { value: 'slide-down', label: 'Slide Down' },
+                { value: 'spin-in', label: 'Spin' },
+                { value: 'flip-x', label: 'Flip X' },
+                { value: 'bounce-in', label: 'Bounce' },
+                { value: 'glitch-in', label: 'Glitch' },
+                { value: 'zoom-rotate', label: 'Zoom Rotate' },
+                { value: 'elastic', label: 'Elastic' },
+                { value: 'blur-in', label: 'Blur' },
+                { value: 'drop-in', label: 'Drop' },
+              ]}
+            />
           </div>
           <div>
-            <FieldLabel>Blur — {config.revealScreen.blur}px</FieldLabel>
-            <SliderInput value={config.revealScreen.blur} onChange={v => update('revealScreen', { ...config.revealScreen, blur: v })} min={0} max={50} label="px" />
+            <FieldLabel>Speed — {config.entranceSpeed ?? 200}ms</FieldLabel>
+            <SliderInput value={config.entranceSpeed ?? 200} onChange={v => update('entranceSpeed', v)} min={50} max={500} label="ms" />
           </div>
-        </>
-      )}
+        </div>
 
-      <SectionTitle>Cursor</SectionTitle>
-      
-      <div>
-        <FieldLabel>Cursor style</FieldLabel>
-        <OptionGrid
-          value={config.effects.customCursor}
-          onChange={v => updateEffects('customCursor', v as any)}
-          options={[
-            { value: 'default', label: 'Default' },
-            { value: 'crosshair', label: 'Crosshair' },
-            { value: 'pointer', label: 'Pointer' },
-            { value: 'custom', label: 'Custom' },
-          ]}
-        />
+        <SectionTitle>Click Sounds & Custom Cursor</SectionTitle>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <FieldLabel>Sound on click</FieldLabel>
+            <OptionGrid
+              value={config.clickSound || 'none'}
+              onChange={v => update('clickSound', v as any)}
+              options={[
+                { value: 'none', label: 'None' },
+                { value: 'click', label: 'Click' },
+                { value: 'pop', label: 'Pop' },
+                { value: 'blip', label: 'Blip' },
+              ]}
+            />
+          </div>
+          <div>
+            <FieldLabel>Cursor Style</FieldLabel>
+            <OptionGrid
+              value={config.effects.customCursor}
+              onChange={v => updateEffects('customCursor', v as any)}
+              options={[
+                { value: 'default', label: 'Default' },
+                { value: 'crosshair', label: 'Crosshair' },
+                { value: 'pointer', label: 'Pointer' },
+                { value: 'custom', label: 'Custom' },
+              ]}
+            />
+          </div>
+        </div>
+
+        <SectionTitle>Reveal Screen</SectionTitle>
+        <ToggleRow label="Show reveal screen" value={config.revealScreen?.enabled ?? false} onChange={v => update('revealScreen', { ...(config.revealScreen || { enabled: false, text: 'Click to enter', blur: 15 }), enabled: v })} />
+
+        {config.revealScreen?.enabled && (
+          <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.05] space-y-3">
+            <div>
+              <FieldLabel>Reveal text</FieldLabel>
+              <TextInput value={config.revealScreen.text} onChange={v => update('revealScreen', { ...config.revealScreen, text: v })} placeholder="Click to enter..." />
+            </div>
+            <div>
+              <FieldLabel>Blur — {config.revealScreen.blur}px</FieldLabel>
+              <SliderInput value={config.revealScreen.blur} onChange={v => update('revealScreen', { ...config.revealScreen, blur: v })} min={0} max={50} label="px" />
+            </div>
+          </div>
+        )}
       </div>
-
-      <SectionTitle>Audio</SectionTitle>
-      <ToggleRow label="Audio visualizer" value={config.effects.audioVisualizer} onChange={v => updateEffects('audioVisualizer', v)} />
-    </div>
-  );
+    );
+  };
 
   const renderLinks = () => (
     <div className="space-y-4">
@@ -1432,7 +1840,7 @@ export default function BioEditor({
     profile: renderProfile,
     layout: renderLayout,
     theme: renderTheme,
-    effects: renderEffects,
+    capcut: renderCapCut,
     links: renderLinks,
     music: renderMusic,
     stats: renderStats,

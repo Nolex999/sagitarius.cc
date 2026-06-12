@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, memo, useMemo } from 'react';
+import { useEffect, useRef, memo, useMemo, useState } from 'react';
 import {
   ExternalLink, Eye, Calendar, MessageCircle,
   Send, Github, Youtube, Twitch, Music, Gamepad2, Camera,
@@ -372,12 +372,102 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
   // Font import
   const fontUrl = `https://fonts.googleapis.com/css2?family=${theme.fontFamily.replace(/ /g, '+')}:wght@300;400;500;600;700;900&display=swap`;
 
+  // States for reveal and audio control
+  const [revealed, setRevealed] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [beatActive, setBeatActive] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  // Sync state with config changes (e.g. in editor)
+  useEffect(() => {
+    setRevealed(!config.revealScreen?.enabled);
+  }, [config.revealScreen?.enabled]);
+
+  // Autoplay/play audio when revealed
+  useEffect(() => {
+    if (music.enabled && music.url && music.type === 'custom' && revealed) {
+      if (music.autoplay) {
+        audioRef.current?.play()
+          .then(() => setIsPlaying(true))
+          .catch(err => console.log('Audio play blocked:', err));
+      }
+    } else {
+      audioRef.current?.pause();
+      setIsPlaying(false);
+    }
+  }, [music.enabled, music.url, music.type, revealed, music.autoplay]);
+
+  // Beat simulator based on BPM
+  useEffect(() => {
+    if (!effects.beatSync || !revealed) {
+      setBeatActive(false);
+      return;
+    }
+    const bpm = effects.beatSyncBpm || 120;
+    const intervalMs = (60 / bpm) * 1000;
+    
+    const triggerBeat = () => {
+      setBeatActive(true);
+      setTimeout(() => setBeatActive(false), 150);
+    };
+
+    triggerBeat();
+    const interval = setInterval(triggerBeat, intervalMs);
+    return () => clearInterval(interval);
+  }, [effects.beatSync, [effects.beatSyncBpm], revealed]);
+
+  // Real-time audio analyser (bass sync)
+  useEffect(() => {
+    if (!effects.beatSync || music.type !== 'custom' || !music.enabled || !music.url || !revealed || !isPlaying) return;
+
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    let animId: number;
+    let audioCtx: AudioContext | null = null;
+    
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      audioCtx = new AudioContextClass();
+      const analyser = audioCtx.createAnalyser();
+      
+      const source = audioCtx.createMediaElementSource(audio);
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+
+      analyser.fftSize = 64;
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      const checkBeat = () => {
+        analyser.getByteFrequencyData(dataArray);
+        let bassSum = 0;
+        for (let i = 0; i < 4; i++) bassSum += dataArray[i];
+        const bassAvg = bassSum / 4;
+        
+        if (bassAvg > 160) {
+          setBeatActive(true);
+          setTimeout(() => setBeatActive(false), 120);
+        }
+        animId = requestAnimationFrame(checkBeat);
+      };
+      animId = requestAnimationFrame(checkBeat);
+    } catch (e) {
+      // Quietly catch connection errors
+    }
+
+    return () => {
+      if (animId) cancelAnimationFrame(animId);
+      if (audioCtx) audioCtx.close();
+    };
+  }, [effects.beatSync, music.type, music.enabled, music.url, revealed, isPlaying]);
+
   // Background style
   const bgStyle: React.CSSProperties = {};
   if (theme.bgType === 'solid') {
     bgStyle.backgroundColor = theme.bgColor1;
   } else if (theme.bgType === 'gradient') {
-    bgStyle.background = `linear-gradient(135deg, ${theme.bgColor1} 0%, ${theme.bgColor2} 100%)`;
+    bgStyle.background = `linear-gradient(${theme.gradientAngle || 135}deg, ${theme.bgColor1} 0%, ${theme.bgColor2} 100%)`;
   } else if (theme.bgType === 'image') {
     bgStyle.backgroundImage = `url(${theme.bgImageUrl})`;
     bgStyle.backgroundSize = 'cover';
@@ -406,18 +496,15 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
     }
   }
 
-  // Entrance animation
-  const getEntranceClass = () => {
-    const anim = effects.entranceAnimation;
-    if (anim === 'none') return '';
-    return `bio-entrance-${anim}`;
+  // Entrance animation delay track builder
+  const getEntranceDelay = (index: number, customDelay?: number) => {
+    const delay = customDelay !== undefined ? customDelay : index * (config.entranceSpeed ?? 200);
+    return {
+      animationDelay: `${delay}ms`,
+      animationFillMode: 'both' as const,
+      animationDuration: `${(config.entranceSpeed ?? 200) * 2}ms`,
+    };
   };
-
-  const getEntranceDelay = (index: number) => ({
-    animationDelay: `${index * ((config.entranceSpeed ?? 200) / 2000)}s`,
-    animationFillMode: 'both' as const,
-    animationDuration: `${(config.entranceSpeed ?? 200) * 2}ms`,
-  });
 
   // Glow shadow
   const glowShadow = theme.glowEnabled
@@ -484,6 +571,48 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
 
   // Cursor style
   const cursorStyle = effects.customCursor !== 'default' ? { cursor: effects.customCursor } : {};
+
+  // CapCut active filter class
+  const filterClass = effects.capcutFilter && effects.capcutFilter !== 'none' ? `capcut-${effects.capcutFilter}` : '';
+
+  // Beat sync checks
+  const isCardBeat = effects.beatSync && (effects.beatSyncElement === 'card' || effects.beatSyncElement === 'all') && beatActive;
+  const isBorderBeat = effects.beatSync && (effects.beatSyncElement === 'border' || Math.round(effects.beatSyncStrength || 0) > 0) && beatActive;
+  const isBackgroundBeat = effects.beatSync && (effects.beatSyncElement === 'background' || effects.beatSyncElement === 'all') && beatActive;
+  const isAvatarBeat = effects.beatSync && (effects.beatSyncElement === 'avatar' || effects.beatSyncElement === 'all') && beatActive;
+
+  // Entrance animations
+  const getEntranceClass = () => {
+    const anim = effects.entranceAnimation;
+    if (anim === 'none') return '';
+    return `bio-entrance-${anim}`;
+  };
+
+  // Avatar effects
+  const getAvatarStyle = (effect: string): string => {
+    switch (effect) {
+      case 'glow-pulse': return 'bio-avatar-glow-pulse';
+      case 'rotate-border': return 'bio-avatar-rotate-border';
+      case 'glitch': return 'bio-avatar-glitch';
+      case 'breathe': return 'bio-avatar-breathe';
+      case 'float': return 'bio-avatar-float';
+      case 'spin-slow': return 'bio-avatar-spin-slow';
+      case 'pulse-ring': return 'bio-avatar-pulse-ring';
+      case 'shadow-dance': return 'bio-avatar-shadow-dance';
+      default: return '';
+    }
+  };
+
+  // Text effects
+  const getTextClass = (effect: string): string => {
+    switch (effect) {
+      case 'gradient': return 'bio-text-gradient';
+      case 'glitch': return 'bio-text-glitch';
+      case 'typewriter': return 'bio-text-typewriter';
+      case 'neon-flicker': return 'bio-text-neon';
+      default: return '';
+    }
+  };
 
   return (
     <>
@@ -604,12 +733,12 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           70% { transform: scale(0.9); }
           100% { transform: scale(1); }
         }
-
+ 
         @keyframes bio-border-pulse {
           0%, 100% { border-color: ${theme.primaryColor}40; }
           50% { border-color: ${theme.primaryColor}80; }
         }
-
+ 
         @keyframes bio-diamond-spin {
           from { transform: rotateY(0deg); }
           to { transform: rotateY(360deg); }
@@ -787,7 +916,7 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
             border-color: ${theme.primaryColor}80 !important;
           }
         ` : ''}
-
+ 
         /* OVERLAYS */
         .bio-overlay {
           position: fixed;
@@ -809,13 +938,13 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
           background-size: 100% 4px;
         }
-
+ 
         .bio-overlay-noise {
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
           opacity: 0.15;
           mix-blend-mode: overlay;
         }
-
+ 
         @keyframes cyber-glitch-overlay {
           0% { background-color: transparent; }
           1% { background-color: ${theme.primaryColor}20; mix-blend-mode: color-dodge; }
@@ -825,12 +954,12 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           17% { background-color: transparent; transform: translateX(0); }
           100% { background-color: transparent; }
         }
-
+ 
         .bio-overlay-cyberpunk-glitch {
           animation: cyber-glitch-overlay 3s infinite;
           background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);
         }
-
+ 
         /* USERNAME SPARKLES */
         @keyframes bio-sparkle-shimmer {
           0% { background-position: 0% 50%; }
@@ -862,27 +991,161 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           background-clip: text; animation: bio-sparkle-shimmer 3s linear infinite;
         }
-
+ 
         /* BOX TILT */
         ${config.boxTilt === 'scale' ? `.bio-box-tilt { transition: transform 0.3s ease; } .bio-box-tilt:hover { transform: scale(1.02); }` : ''}
         ${config.boxTilt === 'reverse-scale' ? `.bio-box-tilt { transition: transform 0.3s ease; } .bio-box-tilt:hover { transform: scale(0.98); }` : ''}
         ${config.boxTilt === 'tilt-x' ? `.bio-box-tilt { transition: transform 0.3s ease; } .bio-box-tilt:hover { transform: perspective(800px) rotateX(-3deg); }` : ''}
         ${config.boxTilt === 'tilt-y' ? `.bio-box-tilt { transition: transform 0.3s ease; } .bio-box-tilt:hover { transform: perspective(800px) rotateY(3deg); }` : ''}
-
+ 
         /* AVATAR DECO */
         @keyframes bio-deco-bounce { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -4px); } }
         .bio-avatar-deco { animation: bio-deco-bounce 2s ease-in-out infinite; }
+
+        /* CAPCUT & CANVA ADVANCED EFFECTS */
+        
+        /* Loop Animations */
+        @keyframes bio-loop-float-key {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+        .bio-loop-float { animation: bio-loop-float-key 3s ease-in-out infinite; }
+        
+        @keyframes bio-loop-breathe-key {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.04); }
+        }
+        .bio-loop-breathe { animation: bio-loop-breathe-key 2.5s ease-in-out infinite; }
+        
+        @keyframes bio-loop-spin-slow-key {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .bio-loop-spin-slow { animation: bio-loop-spin-slow-key 12s linear infinite; }
+        
+        @keyframes bio-loop-shake-key {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          20% { transform: translate(-2px, 1px) rotate(-1deg); }
+          40% { transform: translate(1px, -1px) rotate(1deg); }
+          60% { transform: translate(-1px, -1px) rotate(0deg); }
+          80% { transform: translate(2px, 1px) rotate(1deg); }
+        }
+        .bio-loop-shake { animation: bio-loop-shake-key 0.6s ease-in-out infinite; }
+        
+        @keyframes bio-loop-pulse-key {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(0.97); opacity: 0.85; }
+        }
+        .bio-loop-pulse { animation: bio-loop-pulse-key 2s ease-in-out infinite; }
+        
+        .bio-loop-glow-pulse {
+          animation: bio-glow-pulse 2.5s ease-in-out infinite;
+        }
+        
+        .bio-loop-glitch {
+          animation: bio-glitch 2s ease-in-out infinite;
+        }
+        
+        @keyframes bio-loop-swing-key {
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(4deg); }
+          75% { transform: rotate(-4deg); }
+        }
+        .bio-loop-swing { animation: bio-loop-swing-key 2s ease-in-out infinite; transform-origin: top center; }
+        
+        @keyframes bio-loop-shimmer-key {
+          0% { filter: brightness(1) contrast(1); }
+          50% { filter: brightness(1.25) contrast(1.15) saturate(1.1); }
+          100% { filter: brightness(1) contrast(1); }
+        }
+        .bio-loop-shimmer { animation: bio-loop-shimmer-key 2s ease-in-out infinite; }
+
+        /* CapCut Filters & Warp */
+        .capcut-crt::after {
+          content: " ";
+          display: block;
+          position: absolute;
+          top: 0; left: 0; bottom: 0; right: 0;
+          background: radial-gradient(circle, transparent 65%, rgba(0, 0, 0, 0.45) 100%),
+                      linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%),
+                      linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+          background-size: 100% 100%, 100% 4px, 6px 100%;
+          z-index: 99;
+          pointer-events: none;
+          opacity: 0.8;
+        }
+
+        @keyframes capcut-rgb-split-key {
+          0%, 100% { text-shadow: 1px 0 0 red, -1px 0 0 cyan; filter: hue-rotate(0deg); }
+          50% { text-shadow: -2px 0 0 red, 2px 0 0 cyan; filter: hue-rotate(180deg); }
+        }
+        .capcut-rgb-split {
+          animation: capcut-rgb-split-key 0.2s infinite;
+        }
+
+        @keyframes capcut-shake-key {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          25% { transform: translate(-3px, 2px) rotate(-1deg); }
+          75% { transform: translate(3px, -2px) rotate(1deg); }
+        }
+        .capcut-shake {
+          animation: capcut-shake-key 0.15s infinite;
+        }
+
+        @keyframes capcut-flash-key {
+          0% { opacity: 0.4; background-color: #ffffff; }
+          100% { opacity: 0; background-color: transparent; }
+        }
+        .capcut-flash-overlay {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 98;
+          animation: capcut-flash-key 0.25s ease-out forwards;
+        }
+
+        /* Beat Hit pulse animation */
+        @keyframes beat-hit-zoom {
+          0% { transform: scale(1); }
+          10% { transform: scale(1.05); filter: brightness(1.1); }
+          100% { transform: scale(1); }
+        }
+        .beat-hit-card {
+          animation: beat-hit-zoom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes beat-hit-glow-anim {
+          0% { box-shadow: 0 0 10px rgba(255,255,255,0.05); }
+          10% { box-shadow: 0 0 35px ${theme.primaryColor}, inset 0 0 20px ${theme.primaryColor}; }
+          100% { box-shadow: 0 0 10px rgba(255,255,255,0.05); }
+        }
+        .beat-hit-border {
+          animation: beat-hit-glow-anim 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        /* Animated Gradient running borders (Canva extension) */
+        @keyframes running-gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .border-running-gradient {
+          background-size: 200% 200% !important;
+          animation: running-gradient 4s ease infinite !important;
+        }
         
         ${config.customCss}
       `}</style>
 
       <div
-        className="bio-page relative w-full h-full overflow-y-auto overflow-x-hidden"
+        className={`bio-page relative w-full h-full overflow-y-auto overflow-x-hidden ${filterClass}`}
         style={{
           ...bgStyle,
           ...cursorStyle,
           fontFamily: `'${theme.fontFamily}', system-ui, sans-serif`,
           opacity: (config.bgOpacity ?? 100) / 100,
+          transform: isBackgroundBeat ? `scale(${(1 + (effects.beatSyncStrength || 30) / 1000)})` : 'scale(1)',
+          transition: isBackgroundBeat ? 'transform 0.05s ease-out' : 'transform 0.3s ease-out',
         }}
       >
         {/* BG Blur Layer */}
@@ -923,12 +1186,17 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           />
         )}
 
+        {/* Beat Flash overlay */}
+        {effects.beatSync && effects.beatSyncFlash && beatActive && (
+          <div className="capcut-flash-overlay" />
+        )}
+
         {/* Banner */}
         {config.bannerUrl && (
           <div
             className={`w-full overflow-hidden ${getEntranceClass()}`}
             style={{
-              ...getEntranceDelay(0),
+              ...getEntranceDelay(0, 0),
               height: `${config.bannerHeight || 200}px`,
               flexShrink: 0,
               position: 'relative',
@@ -949,11 +1217,18 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           </div>
         )}
 
-        {/* Content */}
+        {/* Content Box */}
         <div
+          id="bio-preview-container"
           className={`relative z-10 flex flex-col ${getLayoutClasses()} my-8 mx-auto h-fit ${
             config.borderStyle === 'animated' ? 'bio-animated-border' : ''
-          } ${config.boxTilt && config.boxTilt !== 'none' ? 'bio-box-tilt' : ''}`}
+          } ${config.boxTilt && config.boxTilt !== 'none' ? 'bio-box-tilt' : ''} ${
+            isCardBeat ? 'beat-hit-card' : ''
+          } ${
+            isBorderBeat ? 'beat-hit-border' : ''
+          } ${
+            effects.beatSync && effects.beatSyncShake && beatActive ? 'capcut-shake' : ''
+          }`}
           style={glassCardStyle}
         >
           {/* Status Indicator */}
@@ -961,7 +1236,7 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
             <div
               className={`flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full ${getEntranceClass()}`}
               style={{
-                ...getEntranceDelay(0),
+                ...getEntranceDelay(0, 0),
                 backgroundColor: `${config.statusIndicator.color}15`,
                 border: `1px solid ${config.statusIndicator.color}30`,
               }}
@@ -976,7 +1251,7 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
             <div
               className={`mb-3 px-2 py-0.5 rounded text-[8px] uppercase tracking-[0.3em] font-bold ${getEntranceClass()}`}
               style={{
-                ...getEntranceDelay(0),
+                ...getEntranceDelay(0, 0),
                 backgroundColor: `${theme.primaryColor}10`,
                 border: `1px solid ${theme.primaryColor}20`,
                 color: theme.primaryColor,
@@ -986,341 +1261,375 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
             </div>
           )}
 
-          {/* Avatar */}
-          <div
-            className={`${getEntranceClass()} ${getAvatarStyle(effects.avatarEffect)} mb-5 relative`}
-            style={getEntranceDelay(1)}
-          >
-            <div
-              className="w-24 h-24 overflow-hidden flex items-center justify-center text-3xl font-bold"
-              style={{
-                ...getProfileShapeStyle(config.profileShape),
-                borderRadius: config.profileShape === 'circle' ? `${config.avatarRadius ?? 50}%` : config.profileShape === 'rounded-square' ? `${(config.avatarRadius ?? 50) / 4}px` : undefined,
-                border: `2px solid ${theme.primaryColor}60`,
-                boxShadow: theme.glowEnabled ? `0 0 25px ${theme.glowColor}44` : 'none',
-                backgroundColor: `${theme.primaryColor}15`,
-                color: theme.primaryColor,
-              }}
-            >
-              {config.avatarUrl ? (
-                <img src={config.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
-              ) : (
-                config.displayName?.[0]?.toUpperCase() || '?'
-              )}
-            </div>
-            {/* Avatar Decoration */}
-            {config.avatarDecoration && config.avatarDecoration !== 'none' && (
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl pointer-events-none bio-avatar-deco" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>
-                {config.avatarDecoration === 'cat-ears' ? '🐱' : config.avatarDecoration === 'crown' ? '👑' : config.avatarDecoration === 'horns' ? '😈' : config.avatarDecoration === 'halo' ? '😇' : '🔥'}
-              </span>
-            )}
-          </div>
+          {/* Blocks rendering loop */}
+          {(config.blocks || []).map((block, index) => {
+            if (!block.enabled) return null;
 
-          {/* Display Name */}
-          <h1
-            className={`text-2xl font-bold mb-1 ${getEntranceClass()} ${getTextClass(effects.textEffect)}`}
-            style={{
-              ...getEntranceDelay(2),
-              ...(effects.textEffect === 'gradient' ? {} : effects.textEffect === 'neon-flicker' ? { color: theme.primaryColor } : { color: 'white' }),
-            }}
-          >
-            {config.displayName || 'Username'}
-          </h1>
+            const blockStyle: React.CSSProperties = {
+              color: block.customStyles?.color,
+              backgroundColor: block.customStyles?.bgColor,
+              borderColor: block.customStyles?.borderColor,
+              borderRadius: block.customStyles?.borderRadius !== undefined ? `${block.customStyles.borderRadius}px` : undefined,
+              padding: block.customStyles?.padding !== undefined ? `${block.customStyles.padding}px` : undefined,
+              fontSize: block.customStyles?.fontSize !== undefined ? `${block.customStyles.fontSize}px` : undefined,
+              textAlign: block.customStyles?.textAlign || (config.layoutPreset === 'left-aligned' ? 'left' : 'center'),
+              width: '100%',
+              ...getEntranceDelay(index, block.delay),
+            };
 
-          {/* Username & Pronouns & Location */}
-          <p
-            className={`text-sm mb-2 ${getEntranceClass()} ${config.usernameSparkles && config.usernameSparkles !== 'none' ? `bio-sparkle-${config.usernameSparkles}` : ''}`}
-            style={{
-              ...getEntranceDelay(3),
-              color: `${theme.primaryColor}aa`,
-            }}
-          >
-            @{config.username || 'username'}
-            {config.pronouns && (
-              <span className="ml-2 opacity-50">• {config.pronouns}</span>
-            )}
-          </p>
-          {config.location && (
-            <p
-              className={`text-xs mb-2 ${getEntranceClass()}`}
-              style={{
-                ...getEntranceDelay(3),
-                color: `${theme.primaryColor}66`,
-              }}
-            >
-              📍 {config.location}
-            </p>
-          )}
+            const animInClass = block.animationIn !== 'none' ? `bio-entrance-${block.animationIn}` : '';
+            const animLoopClass = block.animationLoop !== 'none' ? `bio-loop-${block.animationLoop}` : '';
+            const isAvatarBlockBeat = block.type === 'avatar' && isAvatarBeat;
 
-          {/* Badges */}
-          {config.badges.length > 0 && (
-            <div
-              className={`flex flex-wrap ${config.layoutPreset === 'left-aligned' ? 'justify-start' : 'justify-center'} gap-1.5 mb-4 ${getEntranceClass()}`}
-              style={getEntranceDelay(4)}
-            >
-               {config.badges.map((badge, i) => (
-                <span
-                  key={i}
-                  className="px-2.5 py-0.5 text-[9px] uppercase tracking-widest font-bold flex items-center gap-1.5"
-                  style={{
-                    borderRadius: `${theme.borderRadius / 2}px`,
-                    backgroundColor: badge === 'VIP' ? 'rgba(255, 215, 0, 0.15)' : `${theme.primaryColor}15`,
-                    border: `1px solid ${badge === 'VIP' ? 'rgba(255, 215, 0, 0.4)' : `${theme.primaryColor}30`}`,
-                    color: badge === 'VIP' ? '#ffd700' : theme.primaryColor,
-                    boxShadow: badge === 'VIP' ? '0 0 10px rgba(255, 215, 0, 0.1)' : 'none',
-                  }}
-                >
-                  {badge === 'VIP' && (
-                    <span className="bio-diamond-spin">
-                      <Diamond size={10} fill="currentColor" />
-                    </span>
-                  )}
-                  {badge}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Bio */}
-          <p
-            className={`${config.layoutPreset === 'left-aligned' ? 'text-left' : 'text-center'} text-sm mb-6 max-w-[280px] ${getEntranceClass()} ${config.typingBio ? 'bio-text-typewriter' : ''}`}
-            style={{
-              ...getEntranceDelay(5),
-              color: 'rgba(255,255,255,0.5)',
-              lineHeight: '1.6',
-            }}
-          >
-            {config.bio || 'Your bio goes here...'}
-          </p>
-
-          {/* Stats */}
-          {(stats.showViews || stats.showJoinDate || stats.customStats.length > 0) && (
-            <div
-              className={`flex flex-wrap ${config.layoutPreset === 'left-aligned' ? 'justify-start' : 'justify-center'} gap-6 mb-8 ${getEntranceClass()}`}
-              style={getEntranceDelay(6)}
-            >
-              {stats.showViews && (
-                <div className="flex items-center gap-1.5">
-                  <Eye size={13} style={{ color: theme.primaryColor }} />
-                  <span className="text-xs font-semibold text-white/70">{realViews !== undefined ? realViews.toLocaleString() : '0'}</span>
-                  <span className="text-[9px] uppercase tracking-wider text-white/30">views</span>
-                </div>
-              )}
-              {stats.showJoinDate && (
-                <div className="flex items-center gap-1.5">
-                  <Calendar size={13} style={{ color: theme.primaryColor }} />
-                  <span className="text-xs font-semibold text-white/70">Mar 2026</span>
-                </div>
-              )}
-              {stats.customStats.filter(s => s.label && s.value).map((stat, i) => (
-                <div key={i} className="text-center">
-                  <div className="text-sm font-bold text-white/80">{stat.value}</div>
-                  <div className="text-[9px] uppercase tracking-wider text-white/30">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Social Icons */}
-          {socials.filter(s => s.url).length > 0 && (
-            <div
-              className={`flex flex-wrap ${config.layoutPreset === 'left-aligned' ? 'justify-start' : 'justify-center'} gap-3 mb-8 ${getEntranceClass()}`}
-              style={getEntranceDelay(7)}
-            >
-              {socials.filter(s => s.url).map((social, i) => (
-                <a
-                  key={i}
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-300 hover:scale-110"
-                  style={{
-                    backgroundColor: `${theme.primaryColor}10`,
-                    border: `1px solid ${theme.primaryColor}25`,
-                    color: theme.primaryColor,
-                  }}
-                >
-                  <PlatformIcon platform={social.platform} size={16} />
-                </a>
-              ))}
-            </div>
-          )}
-
-          {/* Custom Links */}
-          {customLinks.filter(l => l.enabled && l.title).length > 0 && (
-            <div
-              className={`w-full space-y-3 mb-8 ${getEntranceClass()}`}
-              style={getEntranceDelay(8)}
-            >
-              {customLinks.filter(l => l.enabled && l.title).map((link, i) => (
-                <a
-                  key={i}
-                  href={link.url || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bio-link-hover flex items-center justify-between w-full p-4 transition-all duration-300 cursor-pointer group"
-                  style={{
-                    borderRadius: `${theme.borderRadius}px`,
-                    backgroundColor: theme.cardStyle === 'glass' ? 'rgba(255,255,255,0.04)' :
-                                     theme.cardStyle === 'solid' ? 'rgba(255,255,255,0.06)' :
-                                     'transparent',
-                    border: theme.cardStyle === 'neon'
-                      ? `1px solid ${theme.primaryColor}40`
-                      : theme.cardStyle === 'outline'
-                        ? '2px solid rgba(255,255,255,0.12)'
-                        : '1px solid rgba(255,255,255,0.08)',
-                    backdropFilter: theme.cardStyle === 'glass' ? 'blur(12px)' : 'none',
-                    boxShadow: theme.cardStyle === 'neon' ? `0 0 15px ${theme.primaryColor}15` : 'none',
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: `${theme.primaryColor}15`, color: theme.primaryColor }}
-                    >
-                      <Link2 size={14} />
-                    </div>
-                    <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">
-                      {link.title}
-                    </span>
-                  </div>
-                  <ExternalLink size={14} className="text-white/20 group-hover:text-white/50 transition-colors" />
-                </a>
-              ))}
-            </div>
-          )}
-
-          {/* Timeline */}
-          {config.timeline?.enabled && (config.timeline.items || []).filter(t => t.title).length > 0 && (
-            <div
-              className={`w-full mb-8 ${getEntranceClass()}`}
-              style={getEntranceDelay(9)}
-            >
-              <h3 className="text-[9px] uppercase tracking-[0.25em] font-bold mb-4" style={{ color: `${theme.primaryColor}80` }}>
-                Timeline
-              </h3>
-              <div className="relative pl-6">
-                <div className="absolute left-2 top-0 bottom-0 w-px" style={{ backgroundColor: `${theme.primaryColor}20` }} />
-                {(config.timeline.items || []).filter(t => t.title).map((item, i) => (
-                  <div key={i} className="relative mb-6 last:mb-0">
-                    <div
-                      className="absolute left-[-18px] top-1 w-3 h-3 rounded-full border-2"
-                      style={{ borderColor: theme.primaryColor, backgroundColor: `${theme.primaryColor}30` }}
-                    />
-                    {item.date && (
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <Clock size={10} style={{ color: `${theme.primaryColor}60` }} />
-                        <span className="text-[10px] font-mono" style={{ color: `${theme.primaryColor}60` }}>{item.date}</span>
-                      </div>
-                    )}
-                    <h4 className="text-sm font-semibold text-white/80">{item.title}</h4>
-                    {item.description && (
-                      <p className="text-xs text-white/40 mt-0.5">{item.description}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Image Gallery */}
-          {config.imageGallery?.enabled && (config.imageGallery.images || []).filter(img => img.url).length > 0 && (
-            <div
-              className={`w-full mb-8 ${getEntranceClass()}`}
-              style={getEntranceDelay(10)}
-            >
-              <h3 className="text-[9px] uppercase tracking-[0.25em] font-bold mb-4" style={{ color: `${theme.primaryColor}80` }}>
-                Gallery
-              </h3>
-              <div className="grid grid-cols-2 gap-2">
-                {(config.imageGallery.images || []).filter(img => img.url).map((img, i) => (
-                  <div key={i} className="relative group rounded-xl overflow-hidden aspect-square">
-                    <img src={img.url} alt={img.caption || ''} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                    {img.caption && (
-                      <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-[10px] text-white/80">{img.caption}</span>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Video Embed */}
-          {config.embedVideo?.enabled && config.embedVideo.url && (
-            <div
-              className={`w-full mb-8 ${getEntranceClass()}`}
-              style={getEntranceDelay(11)}
-            >
-              <div className="w-full aspect-video rounded-xl overflow-hidden border border-white/[0.06]">
-                <iframe
-                  src={config.embedVideo.url.replace('watch?v=', 'embed/').split('&')[0]}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Music Player */}
-          {music.enabled && music.url && (
-            <div
-              className={`w-full mb-8 ${getEntranceClass()}`}
-              style={getEntranceDelay(12)}
-            >
-              {music.type === 'spotify' && getSpotifyEmbedUrl(music.url) && (
-                <iframe
-                  src={getSpotifyEmbedUrl(music.url, 0) || ''}
-                  width="100%"
-                  height="152"
-                  frameBorder="0"
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                  loading="lazy"
-                  className="rounded-xl opacity-90 transition-all hover:opacity-100"
-                />
-              )}
-              {music.type === 'custom' && (
-                <div
-                  className="flex items-center gap-3 p-4"
-                  style={{
-                    borderRadius: `${theme.borderRadius}px`,
-                    backgroundColor: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                  }}
-                >
+            return (
+              <div
+                key={block.id}
+                className={`w-full flex flex-col ${getLayoutClasses()} ${animInClass} ${animLoopClass} mb-6 last:mb-0 ${isAvatarBlockBeat ? 'beat-hit-card' : ''}`}
+                style={blockStyle}
+              >
+                {block.type === 'avatar' && (
                   <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: `${theme.primaryColor}15`, color: theme.primaryColor }}
+                    className={`${getAvatarStyle(effects.avatarEffect)} relative`}
                   >
-                    <Music size={16} />
+                    <div
+                      className="w-24 h-24 overflow-hidden flex items-center justify-center text-3xl font-bold"
+                      style={{
+                        ...getProfileShapeStyle(config.profileShape),
+                        borderRadius: config.profileShape === 'circle' ? `${config.avatarRadius ?? 50}%` : config.profileShape === 'rounded-square' ? `${(config.avatarRadius ?? 50) / 4}px` : undefined,
+                        border: `2px solid ${theme.primaryColor}60`,
+                        boxShadow: theme.glowEnabled ? `0 0 25px ${theme.glowColor}44` : 'none',
+                        backgroundColor: `${theme.primaryColor}15`,
+                        color: theme.primaryColor,
+                      }}
+                    >
+                      {config.avatarUrl ? (
+                        <img src={config.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        config.displayName?.[0]?.toUpperCase() || '?'
+                      )}
+                    </div>
+                    {/* Avatar Decoration */}
+                    {config.avatarDecoration && config.avatarDecoration !== 'none' && (
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl pointer-events-none bio-avatar-deco" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }}>
+                        {config.avatarDecoration === 'cat-ears' ? '🐱' : config.avatarDecoration === 'crown' ? '👑' : config.avatarDecoration === 'horns' ? '😈' : config.avatarDecoration === 'halo' ? '😇' : '🔥'}
+                      </span>
+                    )}
                   </div>
-                  <audio controls className="flex-1 h-8 opacity-70" style={{ filter: 'invert(1)' }}>
-                    <source src={music.url} />
-                  </audio>
-                </div>
-              )}
-            </div>
-          )}
+                )}
 
-          {/* Discord Widget */}
-          {config.discordWidget?.enabled && config.discordWidget.userId && (
-            <div
-              className={`w-full mb-8 flex items-center gap-3 p-4 rounded-xl ${getEntranceClass()}`}
-              style={{
-                ...getEntranceDelay(13),
-                backgroundColor: 'rgba(88, 101, 242, 0.08)',
-                border: '1px solid rgba(88, 101, 242, 0.15)',
-              }}
-            >
-              <MessageCircle size={16} style={{ color: '#5865F2' }} />
-              <div>
-                <div className="text-[10px] uppercase tracking-wider font-bold text-[#5865F2]/80">Discord</div>
-                <div className="text-xs text-white/60 font-mono">{config.discordWidget.userId}</div>
+                {block.type === 'title' && (
+                  <h1
+                    className={`text-2xl font-bold ${getTextClass(effects.textEffect)}`}
+                    style={{
+                      ...(effects.textEffect === 'gradient' ? {} : effects.textEffect === 'neon-flicker' ? { color: theme.primaryColor } : { color: 'white' }),
+                    }}
+                  >
+                    {config.displayName || 'Username'}
+                  </h1>
+                )}
+
+                {block.type === 'subtitle' && (
+                  <div className="flex flex-col items-center">
+                    <p
+                      className={`text-sm ${config.usernameSparkles && config.usernameSparkles !== 'none' ? `bio-sparkle-${config.usernameSparkles}` : ''}`}
+                      style={{
+                        color: `${theme.primaryColor}aa`,
+                      }}
+                    >
+                      @{config.username || 'username'}
+                      {config.pronouns && (
+                        <span className="ml-2 opacity-50">• {config.pronouns}</span>
+                      )}
+                    </p>
+                    {config.location && (
+                      <p
+                        className="text-xs mt-1"
+                        style={{
+                          color: `${theme.primaryColor}66`,
+                        }}
+                      >
+                        📍 {config.location}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {block.type === 'badges' && config.badges.length > 0 && (
+                  <div
+                    className={`flex flex-wrap ${config.layoutPreset === 'left-aligned' ? 'justify-start' : 'justify-center'} gap-1.5`}
+                  >
+                     {config.badges.map((badge, i) => (
+                      <span
+                        key={i}
+                        className="px-2.5 py-0.5 text-[9px] uppercase tracking-widest font-bold flex items-center gap-1.5"
+                        style={{
+                          borderRadius: `${theme.borderRadius / 2}px`,
+                          backgroundColor: badge === 'VIP' ? 'rgba(255, 215, 0, 0.15)' : `${theme.primaryColor}15`,
+                          border: `1px solid ${badge === 'VIP' ? 'rgba(255, 215, 0, 0.4)' : `${theme.primaryColor}30`}`,
+                          color: badge === 'VIP' ? '#ffd700' : theme.primaryColor,
+                          boxShadow: badge === 'VIP' ? '0 0 10px rgba(255, 215, 0, 0.1)' : 'none',
+                        }}
+                      >
+                        {badge === 'VIP' && (
+                          <span className="bio-diamond-spin">
+                            <Diamond size={10} fill="currentColor" />
+                          </span>
+                        )}
+                        {badge}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {block.type === 'bio' && (
+                  <p
+                    className={`${config.layoutPreset === 'left-aligned' ? 'text-left' : 'text-center'} text-sm max-w-[280px] ${config.typingBio ? 'bio-text-typewriter' : ''}`}
+                    style={{
+                      color: 'rgba(255,255,255,0.5)',
+                      lineHeight: '1.6',
+                    }}
+                  >
+                    {config.bio || 'Your bio goes here...'}
+                  </p>
+                )}
+
+                {block.type === 'stats' && (stats.showViews || stats.showJoinDate || stats.customStats.length > 0) && (
+                  <div
+                    className={`flex flex-wrap ${config.layoutPreset === 'left-aligned' ? 'justify-start' : 'justify-center'} gap-6`}
+                  >
+                    {stats.showViews && (
+                      <div className="flex items-center gap-1.5">
+                        <Eye size={13} style={{ color: theme.primaryColor }} />
+                        <span className="text-xs font-semibold text-white/70">{realViews !== undefined ? realViews.toLocaleString() : '0'}</span>
+                        <span className="text-[9px] uppercase tracking-wider text-white/30">views</span>
+                      </div>
+                    )}
+                    {stats.showJoinDate && (
+                      <div className="flex items-center gap-1.5">
+                        <Calendar size={13} style={{ color: theme.primaryColor }} />
+                        <span className="text-xs font-semibold text-white/70">Mar 2026</span>
+                      </div>
+                    )}
+                    {stats.customStats.filter(s => s.label && s.value).map((stat, i) => (
+                      <div key={i} className="text-center">
+                        <div className="text-sm font-bold text-white/80">{stat.value}</div>
+                        <div className="text-[9px] uppercase tracking-wider text-white/30">{stat.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {block.type === 'socials' && socials.filter(s => s.url).length > 0 && (
+                  <div
+                    className={`flex flex-wrap ${config.layoutPreset === 'left-aligned' ? 'justify-start' : 'justify-center'} gap-3`}
+                  >
+                    {socials.filter(s => s.url).map((social, i) => (
+                      <a
+                        key={i}
+                        href={social.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-300 hover:scale-110"
+                        style={{
+                          backgroundColor: `${theme.primaryColor}10`,
+                          border: `1px solid ${theme.primaryColor}25`,
+                          color: theme.primaryColor,
+                        }}
+                      >
+                        <PlatformIcon platform={social.platform} size={16} />
+                      </a>
+                    ))}
+                  </div>
+                )}
+
+                {block.type === 'links' && customLinks.filter(l => l.enabled && l.title).length > 0 && (
+                  <div
+                    className="w-full space-y-3"
+                  >
+                    {customLinks.filter(l => l.enabled && l.title).map((link, i) => (
+                      <a
+                        key={i}
+                        href={link.url || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bio-link-hover flex items-center justify-between w-full p-4 transition-all duration-300 cursor-pointer group"
+                        style={{
+                          borderRadius: `${theme.borderRadius}px`,
+                          backgroundColor: theme.cardStyle === 'glass' ? 'rgba(255,255,255,0.04)' :
+                                           theme.cardStyle === 'solid' ? 'rgba(255,255,255,0.06)' :
+                                           'transparent',
+                          border: theme.cardStyle === 'neon'
+                            ? `1px solid ${theme.primaryColor}40`
+                            : theme.cardStyle === 'outline'
+                              ? '2px solid rgba(255,255,255,0.12)'
+                              : '1px solid rgba(255,255,255,0.08)',
+                          backdropFilter: theme.cardStyle === 'glass' ? 'blur(12px)' : 'none',
+                          boxShadow: theme.cardStyle === 'neon' ? `0 0 15px ${theme.primaryColor}15` : 'none',
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-8 h-8 rounded-lg flex items-center justify-center"
+                            style={{ backgroundColor: `${theme.primaryColor}15`, color: theme.primaryColor }}
+                          >
+                            <Link2 size={14} />
+                          </div>
+                          <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">
+                            {link.title}
+                          </span>
+                        </div>
+                        <ExternalLink size={14} className="text-white/20 group-hover:text-white/50 transition-colors" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+
+                {block.type === 'timeline' && config.timeline?.enabled && (config.timeline.items || []).filter(t => t.title).length > 0 && (
+                  <div
+                    className="w-full"
+                  >
+                    <h3 className="text-[9px] uppercase tracking-[0.25em] font-bold mb-4" style={{ color: `${theme.primaryColor}80` }}>
+                      Timeline
+                    </h3>
+                    <div className="relative pl-6 text-left">
+                      <div className="absolute left-2 top-0 bottom-0 w-px" style={{ backgroundColor: `${theme.primaryColor}20` }} />
+                      {(config.timeline.items || []).filter(t => t.title).map((item, i) => (
+                        <div key={i} className="relative mb-6 last:mb-0">
+                          <div
+                            className="absolute left-[-18px] top-1 w-3 h-3 rounded-full border-2"
+                            style={{ borderColor: theme.primaryColor, backgroundColor: `${theme.primaryColor}30` }}
+                          />
+                          {item.date && (
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <Clock size={10} style={{ color: `${theme.primaryColor}60` }} />
+                              <span className="text-[10px] font-mono" style={{ color: `${theme.primaryColor}60` }}>{item.date}</span>
+                            </div>
+                          )}
+                          <h4 className="text-sm font-semibold text-white/80">{item.title}</h4>
+                          {item.description && (
+                            <p className="text-xs text-white/40 mt-0.5">{item.description}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {block.type === 'gallery' && config.imageGallery?.enabled && (config.imageGallery.images || []).filter(img => img.url).length > 0 && (
+                  <div
+                    className="w-full"
+                  >
+                    <h3 className="text-[9px] uppercase tracking-[0.25em] font-bold mb-4" style={{ color: `${theme.primaryColor}80` }}>
+                      Gallery
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(config.imageGallery.images || []).filter(img => img.url).map((img, i) => (
+                        <div key={i} className="relative group rounded-xl overflow-hidden aspect-square">
+                          <img src={img.url} alt={img.caption || ''} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                          {img.caption && (
+                            <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                              <span className="text-[10px] text-white/80">{img.caption}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {block.type === 'video' && config.embedVideo?.enabled && config.embedVideo.url && (
+                  <div
+                    className="w-full"
+                  >
+                    <div className="w-full aspect-video rounded-xl overflow-hidden border border-white/[0.06]">
+                      <iframe
+                        src={config.embedVideo.url.replace('watch?v=', 'embed/').split('&')[0]}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {block.type === 'music' && music.enabled && music.url && (
+                  <div
+                    className="w-full"
+                  >
+                    {music.type === 'spotify' && getSpotifyEmbedUrl(music.url) && (
+                      <iframe
+                        src={getSpotifyEmbedUrl(music.url, 0) || ''}
+                        width="100%"
+                        height="152"
+                        frameBorder="0"
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        loading="lazy"
+                        className="rounded-xl opacity-90 transition-all hover:opacity-100"
+                      />
+                    )}
+                    {music.type === 'custom' && (
+                      <div
+                        className="flex items-center gap-3 p-4"
+                        style={{
+                          borderRadius: `${theme.borderRadius}px`,
+                          backgroundColor: 'rgba(255,255,255,0.04)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                        }}
+                      >
+                        <button
+                          onClick={() => {
+                            const audio = audioRef.current;
+                            if (!audio) return;
+                            if (isPlaying) {
+                              audio.pause();
+                              setIsPlaying(false);
+                            } else {
+                              audio.play().catch(e => console.log(e));
+                              setIsPlaying(true);
+                            }
+                          }}
+                          className="w-10 h-10 rounded-lg flex items-center justify-center transition-all bg-white/5 hover:bg-white/10"
+                          style={{ color: theme.primaryColor }}
+                        >
+                          {isPlaying ? (
+                            <span className="flex gap-0.5 items-end justify-center h-4 pb-0.5">
+                              <span className="w-0.5 h-2.5 bg-current animate-[pulse_0.8s_infinite] rounded-full" />
+                              <span className="w-0.5 h-4 bg-current animate-[pulse_0.5s_infinite] rounded-full" />
+                              <span className="w-0.5 h-3 bg-current animate-[pulse_1.2s_infinite] rounded-full" />
+                            </span>
+                          ) : (
+                            <Music size={16} />
+                          )}
+                        </button>
+                        <div className="flex-1 text-left truncate">
+                          <span className="text-[9px] text-white/40 block uppercase tracking-wider font-bold">Custom Soundtrack</span>
+                          <span className="text-xs text-white/80 font-medium truncate block max-w-[180px]">
+                            {music.url.split('/').pop() || 'soundtrack.mp3'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {block.type === 'discord' && config.discordWidget?.enabled && config.discordWidget.userId && (
+                  <div
+                    className="w-full flex items-center gap-3 p-4 rounded-xl text-left"
+                    style={{
+                      backgroundColor: 'rgba(88, 101, 242, 0.08)',
+                      border: '1px solid rgba(88, 101, 242, 0.15)',
+                    }}
+                  >
+                    <MessageCircle size={16} style={{ color: '#5865F2' }} />
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider font-bold text-[#5865F2]/80">Discord</div>
+                      <div className="text-xs text-white/60 font-mono">{config.discordWidget.userId}</div>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          )}
+            );
+          })}
 
           {/* Footer */}
           <div
@@ -1333,15 +1642,35 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           </div>
         </div>
 
+        {/* Custom Audio element */}
+        {music.enabled && music.url && music.type === 'custom' && (
+          <audio
+            ref={audioRef}
+            src={music.url}
+            loop
+            preload="auto"
+            crossOrigin="anonymous"
+            style={{ display: 'none' }}
+          />
+        )}
+
         {/* Reveal Screen Overlay */}
-        {config.revealScreen?.enabled && (
+        {config.revealScreen?.enabled && !revealed && (
           <div
             className="absolute inset-0 z-50 flex items-center justify-center cursor-pointer"
             style={{ backdropFilter: `blur(${config.revealScreen.blur || 15}px)`, backgroundColor: 'rgba(0,0,0,0.5)' }}
-            onClick={e => (e.currentTarget.style.display = 'none')}
+            onClick={() => {
+              setRevealed(true);
+              const audio = audioRef.current;
+              if (audio && music.autoplay) {
+                audio.play()
+                  .then(() => setIsPlaying(true))
+                  .catch(err => console.log('Interactive play blocked:', err));
+              }
+            }}
           >
             <div className="text-center">
-              <p className="text-xl font-bold text-white mb-2" style={{ textShadow: `0 0 20px ${theme.primaryColor}` }}>
+              <p className="text-xl font-bold text-white mb-2 animate-bounce" style={{ textShadow: `0 0 20px ${theme.primaryColor}` }}>
                 {config.revealScreen.text || 'Click to enter'}
               </p>
               <p className="text-[10px] uppercase tracking-[0.3em] text-white/40 animate-pulse">Click anywhere</p>
