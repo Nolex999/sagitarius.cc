@@ -7,6 +7,22 @@ import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
+function getLoginErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : '';
+  const lowerMessage = message.toLowerCase();
+
+  if (
+    lowerMessage.includes('networkerror') ||
+    lowerMessage.includes('failed to fetch') ||
+    lowerMessage.includes('fetch failed') ||
+    error instanceof DOMException
+  ) {
+    return 'Authentication service is unreachable. Please try again shortly.';
+  }
+
+  return message || 'Failed to sign in';
+}
+
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -29,7 +45,7 @@ export default function LoginForm() {
       router.push('/dashboard/software');
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in');
+      setError(getLoginErrorMessage(err));
     } finally {
       setLoading(false);
     }
