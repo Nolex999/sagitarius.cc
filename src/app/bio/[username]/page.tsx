@@ -10,7 +10,24 @@ type Props = {
   params: { username: string };
 };
 
+function BioUnavailablePage({ username }: { username: string }) {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#050403] px-6 text-center text-white">
+      <div className="max-w-md space-y-4">
+        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-[#C5A059]">
+          Sagitarius.cc
+        </p>
+        <h1 className="text-2xl font-semibold">Bio temporarily unavailable</h1>
+        <p className="text-sm leading-6 text-white/50">
+          The public bio for @{username} could not be loaded right now.
+        </p>
+      </div>
+    </main>
+  );
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const username = params.username.toLowerCase();
   let data = null;
 
   try {
@@ -18,12 +35,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const result = await supabase
       .from('bio_profiles')
       .select('config')
-      .eq('username', params.username.toLowerCase())
+      .eq('username', username)
       .eq('is_published', true)
-      .single();
+      .maybeSingle();
+    if (result.error) {
+      console.error('Failed to load bio metadata', result.error);
+      return {
+        title: 'Bio temporarily unavailable — Sagitarius.cc',
+        description: 'This bio page could not be loaded right now.',
+      };
+    }
     data = result.data;
   } catch (error) {
     console.error('Failed to load bio metadata', error);
+    return {
+      title: 'Bio temporarily unavailable — Sagitarius.cc',
+      description: 'This bio page could not be loaded right now.',
+    };
   }
 
   if (!data) {
@@ -38,20 +66,31 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function PublicBioPage({ params }: Props) {
+  const username = params.username.toLowerCase();
   let supabase;
   let data = null;
+  let didFailToLoad = false;
 
   try {
     supabase = await createClient();
     const result = await supabase
       .from('bio_profiles')
       .select('*')
-      .eq('username', params.username.toLowerCase())
+      .eq('username', username)
       .eq('is_published', true)
-      .single();
+      .maybeSingle();
+    if (result.error) {
+      console.error('Failed to load public bio', result.error);
+      didFailToLoad = true;
+    }
     data = result.data;
   } catch (error) {
     console.error('Failed to load public bio', error);
+    didFailToLoad = true;
+  }
+
+  if (didFailToLoad) {
+    return <BioUnavailablePage username={username} />;
   }
 
   if (!data) {
@@ -62,7 +101,7 @@ export default async function PublicBioPage({ params }: Props) {
   if (supabase) {
     void supabase
       .rpc('increment_bio_views', {
-        profile_username: params.username.toLowerCase(),
+        profile_username: username,
       })
       .then(({ error }) => {
         if (error) {

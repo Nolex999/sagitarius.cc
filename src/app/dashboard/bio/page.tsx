@@ -323,15 +323,56 @@ export default function S3Page() {
 
   const handleTogglePublish = useCallback(async () => {
     const newState = !isPublished;
+    const previousState = isPublished;
     setIsPublished(newState);
-    
-    if (profileId) {
-      await supabase
-        .from('bio_profiles')
-        .update({ is_published: newState })
-        .eq('id', profileId);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not logged in');
+
+      const username = config.username.toLowerCase().trim();
+      if (!username) {
+        alert('You must choose a username before publishing!');
+        setIsPublished(previousState);
+        return;
+      }
+
+      if (profileId) {
+        const { error } = await supabase
+          .from('bio_profiles')
+          .update({
+            username,
+            config: config as any,
+            is_published: newState,
+          })
+          .eq('id', profileId);
+
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from('bio_profiles')
+          .insert({
+            user_id: user.id,
+            username,
+            config: config as any,
+            is_published: newState,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (data) setProfileId(data.id);
+      }
+    } catch (err: any) {
+      console.error('Publish error:', err);
+      setIsPublished(previousState);
+      if (err?.message?.includes('duplicate') || err?.message?.includes('unique')) {
+        alert('This username is already taken!');
+      } else {
+        alert('Error publishing: ' + (err?.message || 'Unknown error'));
+      }
     }
-  }, [isPublished, profileId, supabase]);
+  }, [config, isPublished, profileId, supabase]);
 
   const handleCopyUrl = useCallback(() => {
     const url = `${window.location.origin}/bio/${config.username.toLowerCase().trim()}`;
