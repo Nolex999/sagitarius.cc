@@ -11,13 +11,20 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from('bio_profiles')
-    .select('config')
-    .eq('username', params.username.toLowerCase())
-    .eq('is_published', true)
-    .single();
+  let data = null;
+
+  try {
+    const supabase = await createClient();
+    const result = await supabase
+      .from('bio_profiles')
+      .select('config')
+      .eq('username', params.username.toLowerCase())
+      .eq('is_published', true)
+      .single();
+    data = result.data;
+  } catch (error) {
+    console.error('Failed to load bio metadata', error);
+  }
 
   if (!data) {
     return { title: 'Not Found — Sagitarius.cc' };
@@ -31,21 +38,40 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function PublicBioPage({ params }: Props) {
-  const supabase = await createClient();
+  let supabase;
+  let data = null;
 
-  const { data } = await supabase
-    .from('bio_profiles')
-    .select('*')
-    .eq('username', params.username.toLowerCase())
-    .eq('is_published', true)
-    .single();
+  try {
+    supabase = await createClient();
+    const result = await supabase
+      .from('bio_profiles')
+      .select('*')
+      .eq('username', params.username.toLowerCase())
+      .eq('is_published', true)
+      .single();
+    data = result.data;
+  } catch (error) {
+    console.error('Failed to load public bio', error);
+  }
 
   if (!data) {
     notFound();
   }
 
   // Increment views in background
-  supabase.rpc('increment_bio_views', { profile_username: params.username.toLowerCase() });
+  if (supabase) {
+    void supabase
+      .rpc('increment_bio_views', {
+        profile_username: params.username.toLowerCase(),
+      })
+      .then(({ error }) => {
+        if (error) {
+          console.error('Failed to increment bio views', error);
+        }
+      }, (error) => {
+        console.error('Failed to increment bio views', error);
+      });
+  }
 
   const config = data.config as BioConfig;
 

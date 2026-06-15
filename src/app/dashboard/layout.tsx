@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import Sidebar from '@/components/dashboard/Sidebar';
 import InteractiveBackground from '@/components/dashboard/InteractiveBackground';
 import SplashOverlay from '@/components/SplashOverlay';
+import type { Session } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,10 +12,20 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  let session: Session | null = null;
+
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  } catch (error) {
+    console.error('Failed to load dashboard auth session', error);
+    redirect(
+      `/auth/login?error=${encodeURIComponent(
+        'Authentication service unavailable. Please try again shortly.'
+      )}`
+    );
+  }
 
   if (!session) {
     redirect('/auth/login');

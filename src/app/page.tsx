@@ -2,12 +2,20 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { ArrowRight } from 'lucide-react';
 import LandingBackground from '@/components/LandingBackground';
+import type { Session } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  let session: Session | null = null;
+
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  } catch (error) {
+    console.error('Failed to load home auth session', error);
+  }
 
   return (
     <main
