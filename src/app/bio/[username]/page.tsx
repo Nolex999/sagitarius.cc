@@ -7,7 +7,7 @@ import type { BioConfig } from '@/types/bio';
 export const dynamic = 'force-dynamic';
 
 type Props = {
-  params: { username: string };
+  params: Promise<{ username: string }>;
 };
 
 function BioUnavailablePage({ username }: { username: string }) {
@@ -27,7 +27,8 @@ function BioUnavailablePage({ username }: { username: string }) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const username = params.username.toLowerCase();
+  const { username: routeUsername } = await params;
+  const username = routeUsername.toLowerCase();
   let data = null;
 
   try {
@@ -66,7 +67,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function PublicBioPage({ params }: Props) {
-  const username = params.username.toLowerCase();
+  const { username: routeUsername } = await params;
+  const username = routeUsername.toLowerCase();
   let supabase;
   let data = null;
   let didFailToLoad = false;
