@@ -12,21 +12,34 @@ export default function LandingBackground() {
     if (!ctx) return;
 
     let width: number, height: number;
+    let raf = 0;
     let time = 0;
     const mouse = { x: 0, y: 0, active: false };
 
     const init = () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
     const draw = () => {
+      if (document.hidden) {
+        raf = requestAnimationFrame(draw);
+        return;
+      }
+
       time += 0.005;
       ctx.fillStyle = '#030607';
       ctx.fillRect(0, 0, width, height);
 
-      const rows = 40;
-      const cols = 40;
+      const isSmall = width < 700;
+      const rows = isSmall ? 18 : 26;
+      const cols = isSmall ? 18 : 28;
       const xGap = width / cols;
       const yGap = height / rows;
 
@@ -77,24 +90,31 @@ export default function LandingBackground() {
           ctx.fillRect(0, 0, width, height);
       }
 
-      requestAnimationFrame(draw);
+      raf = requestAnimationFrame(draw);
     };
 
-    window.addEventListener('resize', init);
-    window.addEventListener('mousemove', (e) => {
+    const handleMouseMove = (e: MouseEvent) => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
       mouse.active = true;
-    });
-    window.addEventListener('mouseleave', () => {
+    };
+
+    const handleMouseLeave = () => {
       mouse.active = false;
-    });
+    };
+
+    window.addEventListener('resize', init);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('mouseleave', handleMouseLeave);
 
     init();
     draw();
 
     return () => {
+      cancelAnimationFrame(raf);
       window.removeEventListener('resize', init);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseleave', handleMouseLeave);
     };
   }, []);
 

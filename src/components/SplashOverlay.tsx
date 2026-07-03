@@ -18,11 +18,11 @@ export default function SplashOverlay() {
 
     const fadeTimer = setTimeout(() => {
       setPhase('fading');
-    }, 1400);
+    }, 520);
 
     const removeTimer = setTimeout(() => {
       setPhase('gone');
-    }, 2600);
+    }, 920);
 
     return () => {
       clearTimeout(fadeTimer);
@@ -43,7 +43,7 @@ export default function SplashOverlay() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#020202',
+        backgroundColor: '#030607',
         pointerEvents: phase === 'fading' ? 'none' : 'all',
         overflow: 'hidden',
       }}
@@ -53,7 +53,7 @@ export default function SplashOverlay() {
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.02) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse at center, rgba(94,234,212,0.08) 0%, rgba(56,189,248,0.03) 36%, transparent 72%)',
           pointerEvents: 'none',
         }}
       />
@@ -68,8 +68,8 @@ export default function SplashOverlay() {
               width: '1px',
               height: '1px',
               borderRadius: '50%',
-              backgroundColor: 'rgba(255,255,255,0.15)',
-              boxShadow: '0 0 6px rgba(255,255,255,0.08)',
+              backgroundColor: 'rgba(94,234,212,0.24)',
+              boxShadow: '0 0 8px rgba(94,234,212,0.18)',
               left: `${15 + i * 14}%`,
               top: `${30 + (i % 3) * 15}%`,
               animation: `splashParticleFloat ${3 + i * 0.5}s ease-in-out infinite`,
@@ -90,7 +90,7 @@ export default function SplashOverlay() {
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
             color: 'transparent',
-            backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.06) 100%)',
+            backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.38) 0%, rgba(94,234,212,0.18) 100%)',
             backgroundClip: 'text',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
@@ -110,9 +110,9 @@ export default function SplashOverlay() {
             width: '60%',
             height: '1px',
             margin: '1.5rem auto 0',
-            background: 'linear-gradient(90deg, transparent, rgba(249,115,22,0.3), rgba(251,191,36,0.3), transparent)',
+            background: 'linear-gradient(90deg, transparent, rgba(94,234,212,0.42), rgba(56,189,248,0.36), transparent)',
             opacity: 0,
-            animation: 'splashTitleReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards',
+            animation: 'splashTitleReveal 0.42s cubic-bezier(0.16, 1, 0.3, 1) 0.16s forwards',
           }}
         />
       </div>

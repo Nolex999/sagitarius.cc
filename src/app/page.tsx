@@ -1,22 +1,10 @@
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
-import { ArrowRight } from 'lucide-react';
 import LandingBackground from '@/components/LandingBackground';
-import type { Session } from '@supabase/supabase-js';
+import HomeAuthActions from '@/components/HomeAuthActions';
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-static';
 
-export default async function HomePage() {
-  let session: Session | null = null;
-
-  try {
-    const supabase = await createClient();
-    const { data } = await supabase.auth.getSession();
-    session = data.session;
-  } catch (error) {
-    console.error('Failed to load home auth session', error);
-  }
-
+export default function HomePage() {
   return (
     <main
       className="relative min-h-screen bg-[#030607] text-white overflow-hidden selection:bg-[var(--accent)]/20 selection:text-white"
@@ -75,47 +63,12 @@ export default async function HomePage() {
           Sagitarius
         </h1>
 
-        {/* CTA */}
-        {session ? (
-          <Link
-            href="/dashboard/software"
-            className="group flex items-center gap-2.5 px-7 py-3.5 rounded-full text-sm font-medium transition-all duration-300 hover:scale-[1.02]"
-            style={{
-              background: 'linear-gradient(135deg, #5eead4 0%, #38bdf8 100%)',
-              color: '#021013',
-              boxShadow: '0 4px 24px rgba(94,234,212,0.22)',
-            }}
-          >
-            Enter
-            <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-        ) : (
-          <div className="flex flex-col items-center gap-5">
-            <Link
-              href="/auth/register"
-              className="group flex items-center gap-2.5 px-7 py-3.5 rounded-full text-sm font-medium transition-all duration-300 hover:scale-[1.02]"
-              style={{
-                background: 'linear-gradient(135deg, #5eead4 0%, #38bdf8 100%)',
-                color: '#021013',
-                boxShadow: '0 4px 24px rgba(94,234,212,0.22)',
-              }}
-            >
-              Request Access
-              <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-            <Link
-              href="/auth/login"
-              className="text-xs tracking-widest uppercase transition-colors duration-300"
-              style={{ color: 'rgba(255,255,255,0.22)' }}
-            >
-              Already a member? Sign in
-            </Link>
-          </div>
-        )}
+        <HomeAuthActions />
       </div>
 
       <Link
         href="https://software.sagitarius.cc"
+        rel="noopener noreferrer"
         className="group absolute bottom-5 right-5 z-20 flex h-9 items-center gap-2 rounded-full border border-white/[0.04] bg-white/[0.02] px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-white/10 backdrop-blur-md transition-all duration-300 hover:border-[var(--accent)]/25 hover:bg-[var(--accent)]/5 hover:text-[var(--accent)] focus-visible:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/30"
         aria-label="Secret software presentation"
       >
