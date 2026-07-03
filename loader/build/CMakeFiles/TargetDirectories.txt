@@ -1,0 +1,3 @@
+C:/Users/chris/Documents/projet/sagitarius.cc/loader/build/CMakeFiles/SagitariusLoader.dir
+C:/Users/chris/Documents/projet/sagitarius.cc/loader/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/chris/Documents/projet/sagitarius.cc/loader/build/CMakeFiles/ZERO_CHECK.dir

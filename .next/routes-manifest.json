@@ -272,6 +272,12 @@
       "regex": "^/dashboard/support(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/dashboard/support(?:/)?$"
+    },
+    {
+      "page": "/software",
+      "regex": "^/software(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/software(?:/)?$"
     }
   ],
   "dataRoutes": [],

@@ -1,0 +1,10 @@
+^C:\USERS\CHRIS\DOCUMENTS\PROJET\SAGITARIUS.CC\LOADER\BUILD\CMAKEFILES\8F7AE25E2A1A63718FE328CD0B82C945\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/chris/Documents/projet/sagitarius.cc/loader -BC:/Users/chris/Documents/projet/sagitarius.cc/loader/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/chris/Documents/projet/sagitarius.cc/loader/build/SagitariusLoader.slnx
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

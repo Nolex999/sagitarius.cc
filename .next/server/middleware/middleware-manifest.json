@@ -4,25 +4,29 @@
     "/": {
       "files": [
         "server/edge/chunks/node_modules_next_dist_esm_build_templates_edge-wrapper_3b93bb62.js",
-        "server/edge/chunks/[root-of-the-server]__de181cce._.js",
-        "server/edge/chunks/turbopack-node_modules_next_dist_esm_build_templates_edge-wrapper_c707edce.js"
+        "server/edge/chunks/[root-of-the-server]__923c00ae._.js",
+        "server/edge/chunks/turbopack-node_modules_next_dist_esm_build_templates_edge-wrapper_3829b373.js"
       ],
       "name": "middleware",
       "page": "/",
       "matchers": [
         {
-          "regexp": "/:nextData(_next/data/[^/]{1,})?/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*){(\\\\.json)}?",
-          "originalSource": "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/(/?index|/?index\\\\.json)?",
+          "originalSource": "/"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/dashboard/:path*{(\\\\.json)}?",
+          "originalSource": "/dashboard/:path*"
         }
       ],
       "wasm": [],
       "assets": [],
       "env": {
-        "__NEXT_BUILD_ID": "7qfjFCchB-cDRaUbuA47l",
-        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "l6Afh7mqCgZopBlJsBZemQBA/DZ6NUHFewKkzqRsygY=",
-        "__NEXT_PREVIEW_MODE_ID": "c68b3b43f6ff271a14cd58eb2756c5c8",
-        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "f816adc3b067db3f58314ee7cd3dea0b2deae024e0305b8a178bcbc669c53916",
-        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "644a0a41e25f43871077a673827786e627d171c73ca845ce3d75c98a716a10cd"
+        "__NEXT_BUILD_ID": "wY0rx0wl-lHeLL3hSL4WS",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "b0voftn6bjild0UEGVLoUC+86aIDDhQA2J7rZ8Zse90=",
+        "__NEXT_PREVIEW_MODE_ID": "0aa8af7c45115899c118aca09e9b5990",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "980637f21d505e478a82e105d3b209a97346e4291cb27556e49351a973a70497",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "22d64e6e342f55d4ac6c1d3a629b21b2660a343f4a5cea98bfcae84b71dde791"
       }
     }
   },

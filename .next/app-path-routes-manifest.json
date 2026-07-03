@@ -39,5 +39,6 @@
   "/dashboard/settings/page": "/dashboard/settings",
   "/dashboard/software/page": "/dashboard/software",
   "/dashboard/support/page": "/dashboard/support",
-  "/page": "/"
+  "/page": "/",
+  "/software/page": "/software"
 }
