@@ -434,7 +434,7 @@ export default function S3Page() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`group relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-300 ${
                     isActive 
-                      ? 'bg-[var(--accent)]/20 text-[var(--accent-gold)] shadow-[0_0_20px_rgba(197,160,89,0.1)]' 
+                      ? 'bg-[var(--accent)]/20 text-[var(--accent-gold)] shadow-[0_0_20px_rgba(94,234,212,0.1)]' 
                       : 'text-white/30 hover:text-white hover:bg-white/5'
                   }`}
                   title={tab.label}
@@ -486,7 +486,7 @@ export default function S3Page() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-gold)] text-black text-[10px] uppercase font-black tracking-widest transition-all shadow-[0_4px_20px_rgba(197,160,89,0.2)] disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-gold)] text-black text-[10px] uppercase font-black tracking-widest transition-all shadow-[0_4px_20px_rgba(94,234,212,0.2)] disabled:opacity-50"
           >
             {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
             {saving ? 'Saving...' : 'Save Changes'}

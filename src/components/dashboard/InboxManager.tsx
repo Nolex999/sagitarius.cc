@@ -174,7 +174,7 @@ export default function InboxManager() {
             className={`rounded-2xl border transition-all overflow-hidden ${
               msg.is_read 
                 ? 'bg-[var(--accent)]/[0.01] border-[var(--accent)]/[0.04]' 
-                : 'bg-[var(--accent)]/[0.03] border-[var(--accent)]/20 shadow-[0_0_20px_rgba(197,160,89,0.05)]'
+                : 'bg-[var(--accent)]/[0.03] border-[var(--accent)]/20 shadow-[0_0_20px_rgba(94,234,212,0.05)]'
             }`}
           >
             <div className="p-5 flex items-start gap-4">

@@ -471,7 +471,7 @@ export default function AdminPanel({ userRole }: AdminPanelProps = {}) {
                           profile.role === 'owner' ? 'bg-white text-black border-white shadow-[0_0_10px_rgba(255,255,255,0.2)]' :
                           profile.role === 'admin' ? 'bg-gradient-to-r from-[var(--accent)] to-[var(--accent-gold)] text-black border-[var(--accent)]' :
                           profile.role === 'super_vip' ? 'bg-gradient-to-r from-blue-600/20 via-[var(--accent)]/30 to-blue-600/20 text-white border-[var(--accent)]/40 animate-pulse' :
-                          profile.role === 'vip' ? 'bg-[#ffd700]/10 text-[#ffd700] border-[#ffd700]/20 shadow-[0_0_10px_rgba(255,215,0,0.1)]' :
+                          profile.role === 'vip' ? 'bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/20 shadow-[0_0_10px_rgba(94,234,212,0.1)]' :
                           'bg-white/5 text-white/30 border-white/5'
                         }`}>
                           {profile.role === 'super_vip' && <Crown size={8} className="text-[var(--accent)]" />}

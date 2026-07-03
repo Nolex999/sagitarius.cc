@@ -24,7 +24,7 @@ export default function InviteRequestForm() {
 
       const embed = {
         title: '📩 New Invite Request',
-        color: 0xC5A059, // Gold
+        color: 0x5eead4,
         fields: [
           { name: '📧 Email', value: email, inline: true },
           { name: '📝 Message', value: message || '_No message_', inline: false },

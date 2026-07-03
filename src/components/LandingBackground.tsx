@@ -22,7 +22,7 @@ export default function LandingBackground() {
 
     const draw = () => {
       time += 0.005;
-      ctx.fillStyle = '#050403';
+      ctx.fillStyle = '#030607';
       ctx.fillRect(0, 0, width, height);
 
       const rows = 40;
@@ -52,14 +52,14 @@ export default function LandingBackground() {
 
             // Subtle particles at intersections
             const opacity = 0.05 + influence * 0.3;
-            ctx.fillStyle = `rgba(197, 160, 89, ${opacity})`;
+            ctx.fillStyle = `rgba(94, 234, 212, ${opacity})`;
             ctx.beginPath();
             ctx.arc(mx, my, 1 + influence * 2, 0, Math.PI * 2);
             ctx.fill();
 
             // Connect nearby intersections with very faint lines if near mouse
             if (influence > 0.4) {
-                ctx.strokeStyle = `rgba(197, 160, 89, ${influence * 0.1})`;
+                ctx.strokeStyle = `rgba(94, 234, 212, ${influence * 0.1})`;
                 ctx.beginPath();
                 ctx.moveTo(mx, my);
                 ctx.lineTo(mouse.x, mouse.y);
@@ -71,7 +71,7 @@ export default function LandingBackground() {
       // Draw light rays from mouse
       if (mouse.active) {
           const gradient = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 500);
-          gradient.addColorStop(0, 'rgba(197, 160, 89, 0.05)');
+          gradient.addColorStop(0, 'rgba(94, 234, 212, 0.05)');
           gradient.addColorStop(1, 'transparent');
           ctx.fillStyle = gradient;
           ctx.fillRect(0, 0, width, height);
@@ -99,9 +99,9 @@ export default function LandingBackground() {
   }, []);
 
   return (
-    <div className="absolute inset-0 z-0 overflow-hidden bg-[#050403]">
+    <div className="absolute inset-0 z-0 overflow-hidden bg-[#030607]">
       <canvas ref={canvasRef} className="absolute inset-0 block" />
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050403]/20 to-[#050403] pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#030607]/20 to-[#030607] pointer-events-none" />
     </div>
   );
 }

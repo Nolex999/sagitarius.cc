@@ -146,7 +146,7 @@ function ToggleSwitch({ value, onChange }: { value: boolean; onChange: (v: boole
       } border`}
     >
       <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-all duration-300 ${
-        value ? 'left-[calc(100%-18px)] bg-[var(--accent)] shadow-[0_0_8px_rgba(197,160,89,0.5)]' : 'left-0.5 bg-white/30'
+        value ? 'left-[calc(100%-18px)] bg-[var(--accent)] shadow-[0_0_8px_rgba(94,234,212,0.5)]' : 'left-0.5 bg-white/30'
       }`} />
     </button>
   );
@@ -161,7 +161,7 @@ function OptionGrid({ value, onChange, options, cols = 2 }: { value: string; onC
           onClick={() => onChange(opt.value)}
           className={`flex items-center gap-2 h-9 px-3 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all ${
             value === opt.value
-              ? 'bg-[var(--accent)]/15 border border-[var(--accent-gold)]/30 text-[var(--accent-gold)] shadow-[0_0_12px_rgba(197,160,89,0.1)]'
+              ? 'bg-[var(--accent)]/15 border border-[var(--accent-gold)]/30 text-[var(--accent-gold)] shadow-[0_0_12px_rgba(94,234,212,0.1)]'
               : 'bg-white/[0.02] border border-white/[0.06] text-[var(--text-secondary)] hover:bg-white/[0.04] hover:text-white'
           }`}
         >
@@ -956,7 +956,7 @@ export default function BioEditor({
                 onClick={() => setSelectedBlockId(isSelected ? null : block.id)}
                 className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all border ${
                   isSelected
-                    ? 'bg-[var(--accent)]/15 border-[var(--accent-gold)]/40 shadow-[0_0_10px_rgba(197,160,89,0.05)]'
+                    ? 'bg-[var(--accent)]/15 border-[var(--accent-gold)]/40 shadow-[0_0_10px_rgba(94,234,212,0.05)]'
                     : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.04]'
                 }`}
               >

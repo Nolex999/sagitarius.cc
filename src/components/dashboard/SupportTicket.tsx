@@ -71,7 +71,7 @@ export default function SupportTicket() {
       const webhookPayload = {
         embeds: [{
           title: '📝 New Reseller Application',
-          color: 0xC5A059,
+          color: 0x5eead4,
           fields: [
             { name: 'User', value: `**${profile?.username || 'Unknown'}**\n${profile?.email}`, inline: true },
             { name: 'Discord', value: discord || 'Not provided', inline: true },
@@ -109,7 +109,7 @@ export default function SupportTicket() {
       const payload = {
         embeds: [{
           title: `New Support Ticket: ${subject}`,
-          color: 0xC5A059, // Gold
+          color: 0x5eead4,
           fields: [
             { name: "User Email", value: user.email || "Unknown", inline: true },
             { name: "User ID", value: user.id, inline: true },

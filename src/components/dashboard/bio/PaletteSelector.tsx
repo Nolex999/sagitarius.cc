@@ -84,7 +84,7 @@ export default function PaletteSelector({ currentTheme, onChange }: PaletteSelec
                   onClick={() => onChange(palette.colors)}
                   className={`group relative flex flex-col gap-1.5 p-2 rounded-lg border transition-all text-left overflow-hidden ${
                     active 
-                      ? 'bg-[var(--accent)]/10 border-[var(--accent)]/50 shadow-[0_0_15px_rgba(197,160,89,0.15)]' 
+                      ? 'bg-[var(--accent)]/10 border-[var(--accent)]/50 shadow-[0_0_15px_rgba(94,234,212,0.15)]' 
                       : 'bg-white/[0.02] border-white/[0.05] hover:border-white/20 hover:bg-white/[0.04]'
                   }`}
                 >

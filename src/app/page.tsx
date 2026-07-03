@@ -19,7 +19,7 @@ export default async function HomePage() {
 
   return (
     <main
-      className="relative min-h-screen bg-[#050403] text-white overflow-hidden selection:bg-[#C5A059]/20 selection:text-white"
+      className="relative min-h-screen bg-[#030607] text-white overflow-hidden selection:bg-[var(--accent)]/20 selection:text-white"
       style={{ fontFamily: 'var(--font-ui)' }}
     >
       <LandingBackground />
@@ -29,7 +29,7 @@ export default async function HomePage() {
         <div
           className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[800px] h-[700px]"
           style={{
-            background: 'radial-gradient(ellipse at center, rgba(197,160,89,0.07) 0%, transparent 65%)',
+            background: 'radial-gradient(ellipse at center, rgba(94,234,212,0.07) 0%, transparent 65%)',
             filter: 'blur(100px)',
           }}
         />
@@ -49,7 +49,7 @@ export default async function HomePage() {
             className="text-[clamp(14px,2vw,18px)] font-bold tracking-[0.3em] uppercase"
             style={{
               fontFamily: 'var(--font-display)',
-              background: 'linear-gradient(90deg, rgba(197,160,89,0.9) 0%, rgba(255,255,255,0.95) 50%, rgba(197,160,89,0.9) 100%)',
+              background: 'linear-gradient(90deg, rgba(94,234,212,0.92) 0%, rgba(255,255,255,0.95) 50%, rgba(56,189,248,0.92) 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
@@ -81,9 +81,9 @@ export default async function HomePage() {
             href="/dashboard/software"
             className="group flex items-center gap-2.5 px-7 py-3.5 rounded-full text-sm font-medium transition-all duration-300 hover:scale-[1.02]"
             style={{
-              background: 'linear-gradient(135deg, #C5A059 0%, #a07840 100%)',
-              color: '#0a0907',
-              boxShadow: '0 4px 24px rgba(197,160,89,0.25)',
+              background: 'linear-gradient(135deg, #5eead4 0%, #38bdf8 100%)',
+              color: '#021013',
+              boxShadow: '0 4px 24px rgba(94,234,212,0.22)',
             }}
           >
             Enter
@@ -95,9 +95,9 @@ export default async function HomePage() {
               href="/auth/register"
               className="group flex items-center gap-2.5 px-7 py-3.5 rounded-full text-sm font-medium transition-all duration-300 hover:scale-[1.02]"
               style={{
-                background: 'linear-gradient(135deg, #C5A059 0%, #a07840 100%)',
-                color: '#0a0907',
-                boxShadow: '0 4px 24px rgba(197,160,89,0.25)',
+                background: 'linear-gradient(135deg, #5eead4 0%, #38bdf8 100%)',
+                color: '#021013',
+                boxShadow: '0 4px 24px rgba(94,234,212,0.22)',
               }}
             >
               Request Access
@@ -113,6 +113,15 @@ export default async function HomePage() {
           </div>
         )}
       </div>
+
+      <Link
+        href="https://software.sagitarius.cc"
+        className="group absolute bottom-5 right-5 z-20 flex h-9 items-center gap-2 rounded-full border border-white/[0.04] bg-white/[0.02] px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-white/10 backdrop-blur-md transition-all duration-300 hover:border-[var(--accent)]/25 hover:bg-[var(--accent)]/5 hover:text-[var(--accent)] focus-visible:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/30"
+        aria-label="Secret software presentation"
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]/25 transition-colors group-hover:bg-[var(--accent)]" />
+        Secret
+      </Link>
     </main>
   );
 }

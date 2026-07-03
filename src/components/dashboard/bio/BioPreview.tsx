@@ -972,7 +972,7 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           background-clip: text; animation: bio-sparkle-shimmer 3s linear infinite;
         }
         .bio-sparkle-gold {
-          background: linear-gradient(90deg, #d4a574, #ffd700, #d4a574, #ffd700);
+          background: linear-gradient(90deg, #5eead4, #38bdf8, #5eead4, #38bdf8);
           background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           background-clip: text; animation: bio-sparkle-shimmer 3s linear infinite;
         }
@@ -982,7 +982,7 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
           background-clip: text; animation: bio-sparkle-shimmer 3s linear infinite;
         }
         .bio-sparkle-fire {
-          background: linear-gradient(90deg, #ff4500, #ff8c00, #ffd700, #ff4500);
+          background: linear-gradient(90deg, #06b6d4, #38bdf8, #5eead4, #06b6d4);
           background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           background-clip: text; animation: bio-sparkle-shimmer 2s linear infinite;
         }
@@ -1366,7 +1366,7 @@ export default function BioPreview({ config, realViews }: { config: BioConfig; r
                           borderRadius: `${theme.borderRadius / 2}px`,
                           backgroundColor: badge === 'VIP' ? 'rgba(255, 215, 0, 0.15)' : `${theme.primaryColor}15`,
                           border: `1px solid ${badge === 'VIP' ? 'rgba(255, 215, 0, 0.4)' : `${theme.primaryColor}30`}`,
-                          color: badge === 'VIP' ? '#ffd700' : theme.primaryColor,
+                          color: badge === 'VIP' ? '#5eead4' : theme.primaryColor,
                           boxShadow: badge === 'VIP' ? '0 0 10px rgba(255, 215, 0, 0.1)' : 'none',
                         }}
                       >

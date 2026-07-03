@@ -14,7 +14,7 @@ function BioUnavailablePage({ username }: { username: string }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#050403] px-6 text-center text-white">
       <div className="max-w-md space-y-4">
-        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-[#C5A059]">
+        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-[var(--accent)]">
           Sagitarius.cc
         </p>
         <h1 className="text-2xl font-semibold">Bio temporarily unavailable</h1>

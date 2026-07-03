@@ -219,7 +219,7 @@ export default function GetKeyManager() {
           <button
             onClick={handleVerify}
             disabled={verifying}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[var(--accent)]/30 text-[11px] font-bold text-white uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(255,255,255,0.02)] hover:shadow-[0_0_30px_rgba(197,160,89,0.05)] active:scale-95"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[var(--accent)]/30 text-[11px] font-bold text-white uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(255,255,255,0.02)] hover:shadow-[0_0_30px_rgba(94,234,212,0.05)] active:scale-95"
           >
             {verifying ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} className="text-[var(--accent)]" />}
             Verify My Purchase
@@ -237,7 +237,7 @@ export default function GetKeyManager() {
           <div
             key={plan.id}
             className={`relative flex flex-col rounded-[2.5rem] border transition-all duration-500 p-8 group ${plan.highlight
-                ? 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border-[var(--accent)]/30 shadow-[0_20px_50px_rgba(197,160,89,0.1)]'
+                ? 'bg-gradient-to-b from-white/[0.05] to-white/[0.02] border-[var(--accent)]/30 shadow-[0_20px_50px_rgba(94,234,212,0.1)]'
                 : 'bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12]'
               }`}
           >

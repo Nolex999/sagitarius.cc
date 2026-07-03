@@ -31,8 +31,8 @@ export function getOrderEmailTemplate(orderId: string, productName: string, acti
             color: #ffffff;
           }
           .accent { 
-            color: #C5A059;
-            text-shadow: 0 0 20px rgba(197, 160, 89, 0.4);
+            color: #5eead4;
+            text-shadow: 0 0 20px rgba(94, 234, 212, 0.4);
           }
           h1 {
             font-size: 20px;
@@ -59,8 +59,8 @@ export function getOrderEmailTemplate(orderId: string, productName: string, acti
             margin-bottom: 40px;
           }
           .key-container {
-            background: rgba(197, 160, 89, 0.03);
-            border: 1px dashed rgba(197, 160, 89, 0.2);
+            background: rgba(94, 234, 212, 0.03);
+            border: 1px dashed rgba(94, 234, 212, 0.2);
             border-radius: 16px;
             padding: 24px;
             margin-bottom: 40px;

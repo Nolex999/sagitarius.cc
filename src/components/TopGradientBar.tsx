@@ -5,16 +5,16 @@ import { usePathname } from 'next/navigation';
 
 // Route-based gradient colors
 const routeGradients: Record<string, string[]> = {
-  '/dashboard': ['#C5A059', '#D4AF37', '#8B6D31'],
-  '/auth': ['#C5A059', '#D4AF37', '#8B6D31'],
-  '/bio': ['#C5A059', '#D4AF37', '#8B6D31'],
+  '/dashboard': ['#5eead4', '#38bdf8', '#2563eb'],
+  '/auth': ['#5eead4', '#38bdf8', '#2563eb'],
+  '/bio': ['#5eead4', '#38bdf8', '#2563eb'],
 };
 
 function getGradientForRoute(pathname: string): string[] {
   for (const [route, colors] of Object.entries(routeGradients)) {
     if (pathname.startsWith(route)) return colors;
   }
-  return ['#C5A059', '#D4AF37', '#8B6D31']; // Default gold
+  return ['#5eead4', '#38bdf8', '#2563eb'];
 }
 
 export default function TopGradientBar() {

@@ -67,7 +67,7 @@ function RoleBadge({ role }: { role: UserRole }) {
     </span>
   );
   if (role === 'admin') return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold border bg-gradient-to-r from-[var(--accent)] to-[var(--accent-gold)] text-black border-[var(--accent)]/20 shadow-[0_0_10px_rgba(197,160,89,0.15)]">
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold border bg-gradient-to-r from-[var(--accent)] to-[var(--accent-gold)] text-black border-[var(--accent)]/20 shadow-[0_0_10px_rgba(94,234,212,0.15)]">
       <Shield size={8} strokeWidth={2.5} /> Admin
     </span>
   );
@@ -77,7 +77,7 @@ function RoleBadge({ role }: { role: UserRole }) {
     </span>
   );
   if (role === 'vip') return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold border bg-[#ffd700]/10 text-[#ffd700] border-[#ffd700]/20 shadow-[0_0_12px_rgba(255,215,0,0.1)]">
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[8px] uppercase tracking-[0.2em] font-extrabold border bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/20 shadow-[0_0_12px_rgba(94,234,212,0.1)]">
       <style>{`
         @keyframes sidebar-diamond-spin {
           from { transform: rotateY(0deg); }
@@ -190,7 +190,7 @@ export default function Sidebar({ user }: { user: AuthUser }) {
                   href={href}
                   className={`flex items-center gap-2.5 h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all relative ${
                     isActive 
-                      ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20 shadow-[0_0_15px_rgba(197,160,89,0.1)]' 
+                      ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20 shadow-[0_0_15px_rgba(94,234,212,0.1)]' 
                       : 'text-white/40 hover:text-white hover:bg-white/5'
                   }`}
                 >
