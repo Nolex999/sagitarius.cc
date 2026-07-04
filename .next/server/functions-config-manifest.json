@@ -1,9 +1,0 @@
-{
-  "version": 1,
-  "functions": {
-    "/api/loader/auth": {},
-    "/api/loader/download": {},
-    "/api/loader/generate": {},
-    "/api/loader/manifest": {}
-  }
-}

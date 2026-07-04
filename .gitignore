@@ -7,15 +7,19 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Dependencies & Build (Ajout des / pour blinder le blocage)
+node_modules/
+dist/
+dist-ssr/
+build/
+.next/
+.nuxt/
 *.local
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
@@ -23,7 +27,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# Private directory (protected binaries, not served publicly)
+# Private directory (ATTENTION : si ce dossier contient tes 430 Mo, c'est lui qu'il faut vider)
 private/
 
 # Environment variables
