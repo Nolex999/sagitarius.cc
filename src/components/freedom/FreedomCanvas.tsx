@@ -273,6 +273,7 @@ export default function FreedomCanvas() {
   const [audioStarted, setAudioStarted] = useState(false);
   const [uploading, setUploading] = useState<'video' | 'audio' | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTarget, setUploadTarget] = useState<'video' | 'audio'>('video');
   const supabase = createClient();
@@ -390,10 +391,15 @@ export default function FreedomCanvas() {
   };
 
   const startAudio = useCallback(() => {
-    if (!audioStarted && audioRef.current && cfg.audioUrl) {
+    if (audioStarted) return;
+    setAudioStarted(true);
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      videoRef.current.volume = cfg.audioVolume / 100;
+    }
+    if (audioRef.current && cfg.audioUrl) {
       audioRef.current.volume = cfg.audioVolume / 100;
       audioRef.current.play().catch(() => {});
-      setAudioStarted(true);
     }
   }, [audioStarted, cfg.audioUrl, cfg.audioVolume]);
 
@@ -474,6 +480,7 @@ export default function FreedomCanvas() {
         {/* Video Background */}
         {cfg.videoUrl && (
           <video
+            ref={videoRef}
             key={cfg.videoUrl}
             src={cfg.videoUrl}
             autoPlay loop muted playsInline
