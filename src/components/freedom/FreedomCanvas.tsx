@@ -390,29 +390,48 @@ export default function FreedomCanvas() {
     ].filter(Boolean).join(' '),
   };
 
-  const startAudio = useCallback(() => {
-    if (audioStarted) return;
-    setAudioStarted(true);
-    if (videoRef.current) {
-      videoRef.current.muted = false;
-      videoRef.current.volume = cfg.audioVolume / 100;
-    }
+  const unmuteVideo = useCallback(() => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = false;
+    videoRef.current.volume = cfg.audioVolume / 100;
+  }, [cfg.audioVolume]);
+
+  const playAudio = useCallback(() => {
     if (audioRef.current && cfg.audioUrl) {
       audioRef.current.volume = cfg.audioVolume / 100;
       audioRef.current.play().catch(() => {});
     }
-  }, [audioStarted, cfg.audioUrl, cfg.audioVolume]);
+  }, [cfg.audioUrl, cfg.audioVolume]);
 
   useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
     if (!edit) {
-      document.addEventListener('click', startAudio, { once: true });
-      document.addEventListener('touchstart', startAudio, { once: true });
-      return () => {
-        document.removeEventListener('click', startAudio);
-        document.removeEventListener('touchstart', startAudio);
+      const tryPlay = () => {
+        v.muted = false;
+        const p = v.play();
+        if (p !== undefined) {
+          p.then(() => {
+            setAudioStarted(true);
+            playAudio();
+          }).catch(() => {
+            v.muted = true;
+            v.play();
+            const onInteraction = () => {
+              unmuteVideo();
+              playAudio();
+              setAudioStarted(true);
+              document.removeEventListener('click', onInteraction);
+              document.removeEventListener('touchstart', onInteraction);
+            };
+            document.addEventListener('click', onInteraction, { once: true });
+            document.addEventListener('touchstart', onInteraction, { once: true });
+          });
+        }
       };
+      tryPlay();
     }
-  }, [edit, startAudio]);
+  }, [edit, cfg.videoUrl, unmuteVideo, playAudio]);
 
   const layoutClass = cfg.layout === 'left' ? 'items-start text-left px-12' :
     cfg.layout === 'right' ? 'items-end text-right px-12' :
@@ -483,7 +502,7 @@ export default function FreedomCanvas() {
             ref={videoRef}
             key={cfg.videoUrl}
             src={cfg.videoUrl}
-            autoPlay loop muted playsInline
+            autoPlay loop playsInline
             className="absolute inset-0 w-full h-full object-cover"
             style={videoStyle}
           />
