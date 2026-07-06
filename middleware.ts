@@ -11,6 +11,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
+  if (host === 'wl.sagitarius.cc' && pathname === '/freedom') {
+    const url = request.nextUrl.clone();
+    url.pathname = '/freedom';
+    return NextResponse.rewrite(url);
+  }
+
   if (pathname.startsWith('/dashboard')) {
     return await updateSession(request);
   }
@@ -19,5 +25,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/dashboard/:path*'],
+  matcher: ['/', '/freedom', '/dashboard/:path*'],
 };

@@ -1048,6 +1048,44 @@ USING (
     AND auth.role() = 'authenticated'
 );
 
+-- ============================================================================
+-- Bio Media Storage Bucket (for bio pages: images, videos, audio)
+-- ============================================================================
+
+INSERT INTO storage.buckets (id, name, public, avif_autodetection, file_size_limit, allowed_mime_types)
+VALUES ('bio-media', 'bio-media', true, false, 52428800, ARRAY['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/mov', 'audio/mpeg', 'audio/wav', 'audio/ogg']::text[])
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+DROP POLICY IF EXISTS "Bio media files are publicly accessible" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can upload bio media files" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can update bio media files" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can delete bio media files" ON storage.objects;
+
+CREATE POLICY "Bio media files are publicly accessible"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'bio-media');
+
+CREATE POLICY "Authenticated users can upload bio media files"
+ON storage.objects FOR INSERT
+WITH CHECK (
+    bucket_id = 'bio-media'
+    AND auth.role() = 'authenticated'
+);
+
+CREATE POLICY "Authenticated users can update bio media files"
+ON storage.objects FOR UPDATE
+USING (
+    bucket_id = 'bio-media'
+    AND auth.role() = 'authenticated'
+);
+
+CREATE POLICY "Authenticated users can delete bio media files"
+ON storage.objects FOR DELETE
+USING (
+    bucket_id = 'bio-media'
+    AND auth.role() = 'authenticated'
+);
+
 NOTIFY pgrst, 'reload schema';
 
 -- ============================================================================
