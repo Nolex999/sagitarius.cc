@@ -33,6 +33,7 @@ interface FreedomConfig {
   cardOpacity: number;
   cardBlur: number;
   showAvatar: boolean;
+  showContent: boolean;
   layout: 'centered' | 'left' | 'right';
 }
 
@@ -64,6 +65,7 @@ const DEFAULT_CONFIG: FreedomConfig = {
   cardOpacity: 30,
   cardBlur: 16,
   showAvatar: true,
+  showContent: true,
   layout: 'centered',
 };
 
@@ -527,6 +529,7 @@ export default function FreedomCanvas() {
         )}
 
         {/* Content */}
+        {cfg.showContent && (
         <div className={`absolute inset-0 z-20 flex flex-col justify-center ${layoutClass}`}>
           <div
             className="max-w-md w-full mx-auto p-8 rounded-2xl backdrop-blur-sm freedom-glow"
@@ -615,6 +618,7 @@ export default function FreedomCanvas() {
             )}
           </div>
         </div>
+        )}
 
         {/* Audio */}
         <audio ref={audioRef} loop preload="auto">
@@ -835,6 +839,7 @@ export default function FreedomCanvas() {
                 <Slider label="Opacity" value={cfg.cardOpacity} onChange={v => update('cardOpacity', v)} suffix="%" />
                 <Slider label="Blur" value={cfg.cardBlur} onChange={v => update('cardBlur', v)} min={0} max={40} suffix="px" />
                 <Toggle label="Show Avatar" value={cfg.showAvatar} onChange={v => update('showAvatar', v)} />
+                <Toggle label="Show Content Card" value={cfg.showContent} onChange={v => update('showContent', v)} />
               </Section>
 
               {/* CUSTOM CSS */}
