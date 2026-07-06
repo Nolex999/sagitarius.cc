@@ -416,62 +416,79 @@ export default function FreedomCanvas() {
     ].filter(Boolean).join(' '),
   };
 
-  const tryPlayAudio = useCallback(() => {
-    if (cfg.audioUrl && audioRef.current) {
-      audioRef.current.volume = cfg.audioVolume / 100;
-      audioRef.current.play().catch(() => {});
-    }
-  }, [cfg.audioUrl, cfg.audioVolume]);
-
   useEffect(() => {
     if (edit) return;
     const v = videoRef.current;
     const a = audioRef.current;
 
-    const startAudio = () => {
-      if (v) v.muted = false;
-      tryPlayAudio();
-      setAudioStarted(true);
-    };
-
-    const tryUnmuted = async () => {
-      if (v) {
-        v.muted = false;
-        v.volume = cfg.audioVolume / 100;
-        try {
-          await v.play();
-          setAudioStarted(true);
-          tryPlayAudio();
-          return;
-        } catch { /* blocked */ }
-      }
-      // Fallback: play muted video
-      if (v) {
-        v.muted = true;
-        await v.play().catch(() => {});
-      }
-      // Try audio element independently (may work even if video can't unmute)
+    const playAudio = () => {
       if (a && cfg.audioUrl) {
-        a.muted = false;
         a.volume = cfg.audioVolume / 100;
-        try {
-          await a.play();
-          setAudioStarted(true);
-          return;
-        } catch { /* also blocked */ }
+        a.play().catch(() => {});
       }
-      // Final fallback: add click/touch listener
-      const onInteraction = () => {
-        startAudio();
-        document.removeEventListener('click', onInteraction);
-        document.removeEventListener('touchstart', onInteraction);
-      };
-      document.addEventListener('click', onInteraction, { once: true });
-      document.addEventListener('touchstart', onInteraction, { once: true });
     };
 
-    tryUnmuted();
-  }, [edit, cfg.videoUrl, cfg.audioUrl, cfg.audioVolume, tryPlayAudio]);
+    // Try video unmute
+    const tryVideoUnmute = (): Promise<boolean> => {
+      if (!v) return Promise.resolve(false);
+      v.muted = false;
+      v.volume = cfg.audioVolume / 100;
+      return v.play().then(() => {
+        setAudioStarted(true);
+        playAudio();
+        return true;
+      }).catch(() => false);
+    };
+
+    // Try AudioContext silence buffer to unlock audio
+    const tryAudioCtx = (): Promise<boolean> => {
+      return new Promise(resolve => {
+        try {
+          const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+          if (ctx.state === 'suspended') {
+            ctx.resume().then(() => {
+              const buf = ctx.createBuffer(1, 22050, 22050);
+              const src = ctx.createBufferSource();
+              src.buffer = buf;
+              src.connect(ctx.destination);
+              src.start();
+              if (v) { v.muted = false; v.play(); }
+              playAudio();
+              setAudioStarted(true);
+              ctx.close();
+              resolve(true);
+            }).catch(() => resolve(false));
+          } else {
+            ctx.close();
+            resolve(false);
+          }
+        } catch { resolve(false); }
+      });
+    };
+
+    // Try audio element independently
+    const tryAudioElem = (): Promise<boolean> => {
+      if (!a || !cfg.audioUrl) return Promise.resolve(false);
+      a.muted = false;
+      a.volume = cfg.audioVolume / 100;
+      return a.play().then(() => { setAudioStarted(true); return true; }).catch(() => false);
+    };
+
+    (async () => {
+      const ok = await tryVideoUnmute() || await tryAudioCtx() || await tryAudioElem();
+      if (!ok) {
+        const onInteraction = () => {
+          if (v) { v.muted = false; v.play(); }
+          playAudio();
+          setAudioStarted(true);
+          document.removeEventListener('click', onInteraction);
+          document.removeEventListener('touchstart', onInteraction);
+        };
+        document.addEventListener('click', onInteraction, { once: true });
+        document.addEventListener('touchstart', onInteraction, { once: true });
+      }
+    })();
+  }, [edit, cfg.videoUrl, cfg.audioUrl, cfg.audioVolume]);
 
   const layoutClass = cfg.layout === 'left' ? 'items-start text-left px-12' :
     cfg.layout === 'right' ? 'items-end text-right px-12' :
@@ -571,7 +588,7 @@ export default function FreedomCanvas() {
             ref={videoRef}
             key={cfg.videoUrl}
             src={cfg.videoUrl}
-            autoPlay loop playsInline
+            autoPlay loop muted playsInline
             className="absolute inset-0 w-full h-full object-cover"
             style={videoStyle}
           />
