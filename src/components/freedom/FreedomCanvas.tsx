@@ -43,6 +43,10 @@ interface FreedomConfig {
   nameShadowColor: string;
   nameAnimation: string;
   showCardBg: boolean;
+  badgeEnabled: boolean;
+  badgeText: string;
+  badgeSize: number;
+  badgeFont: string;
 }
 
 const STORAGE_KEY = 'freedom-config';
@@ -83,6 +87,10 @@ const DEFAULT_CONFIG: FreedomConfig = {
   nameShadowColor: '#000000',
   nameAnimation: 'fade-up',
   showCardBg: true,
+  badgeEnabled: false,
+  badgeText: 'chris',
+  badgeSize: 14,
+  badgeFont: 'Inter, system-ui, sans-serif',
 };
 
 function loadConfig(): FreedomConfig {
@@ -569,6 +577,40 @@ export default function FreedomCanvas() {
           </div>
         )}
 
+        {/* Badge */}
+        {cfg.badgeEnabled && (
+          <div
+            className="absolute top-4 left-4 z-30 flex items-center gap-2 px-3 py-1.5 rounded-xl"
+            style={{
+              backgroundColor: `rgba(0,0,0,${cfg.cardOpacity / 100})`,
+              backdropFilter: `blur(${cfg.cardBlur}px)`,
+              WebkitBackdropFilter: `blur(${cfg.cardBlur}px)`,
+            }}
+          >
+            <span
+              className="leading-none"
+              style={{
+                fontFamily: cfg.badgeFont,
+                fontSize: `${cfg.badgeSize}px`,
+                color: cfg.primaryColor,
+                fontWeight: 500,
+              }}
+            >
+              {cfg.badgeText || 'user'}
+            </span>
+            <span
+              className="leading-none opacity-50"
+              style={{
+                fontFamily: cfg.badgeFont,
+                fontSize: `${cfg.badgeSize * 0.7}px`,
+                color: cfg.primaryColor,
+              }}
+            >
+              #1
+            </span>
+          </div>
+        )}
+
         {/* Content */}
         {hasContent && (
         <div className={`absolute inset-0 z-20 flex flex-col ${layoutClass} ${
@@ -943,6 +985,33 @@ export default function FreedomCanvas() {
                 <Toggle label="Show Card Background" value={cfg.showCardBg} onChange={v => update('showCardBg', v)} />
                 <Toggle label="Show Avatar" value={cfg.showAvatar} onChange={v => update('showAvatar', v)} />
                 <Toggle label="Show Content Card" value={cfg.showContent} onChange={v => update('showContent', v)} />
+              </Section>
+
+              {/* BADGE */}
+              <Section title="Badge">
+                <Toggle label="Show Badge" value={cfg.badgeEnabled} onChange={v => update('badgeEnabled', v)} />
+                {cfg.badgeEnabled && (
+                  <>
+                    <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Text</label>
+                    <input type="text" value={cfg.badgeText} onChange={e => update('badgeText', e.target.value)}
+                      placeholder="Username" maxLength={24}
+                      className="w-full h-9 px-3 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/20 placeholder:text-white/20" />
+                    <div className="flex gap-3 mt-2">
+                      <div className="flex-1">
+                        <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Font</label>
+                        <select value={cfg.badgeFont} onChange={e => update('badgeFont', e.target.value)}
+                          className="w-full h-9 px-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[10px] text-white focus:outline-none focus:border-white/20 appearance-none cursor-pointer">
+                          {FONTS.map(f => <option key={f} value={f}>{f.split(',')[0]}</option>)}
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Size</label>
+                        <input type="number" min={10} max={60} value={cfg.badgeSize} onChange={e => update('badgeSize', Number(e.target.value))}
+                          className="w-full h-9 px-3 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/20" />
+                      </div>
+                    </div>
+                  </>
+                )}
               </Section>
 
               {/* CUSTOM CSS */}
