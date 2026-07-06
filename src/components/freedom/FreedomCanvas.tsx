@@ -279,10 +279,31 @@ export default function FreedomCanvas() {
   const [draftLink, setDraftLink] = useState('');
   const [draftLabel, setDraftLabel] = useState('');
   const [draftPlatform, setDraftPlatform] = useState('');
+  const [isOwner, setIsOwner] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     setCfg(loadConfig());
     setLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+          if (data && (data.role === 'owner' || data.role === 'admin')) {
+            setIsOwner(true);
+          }
+        }
+      } catch {}
+      setAuthChecked(true);
+    })();
   }, []);
 
   useEffect(() => {
@@ -575,6 +596,7 @@ export default function FreedomCanvas() {
         </audio>
 
         {/* Edit Toggle Button */}
+        {isOwner && (
         <button
           onClick={() => setEdit(!edit)}
           className="fixed top-4 right-4 z-50 w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110"
@@ -591,6 +613,7 @@ export default function FreedomCanvas() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
           )}
         </button>
+        )}
 
         {/* Edit Panel */}
         {edit && (
