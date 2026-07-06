@@ -35,6 +35,14 @@ interface FreedomConfig {
   showAvatar: boolean;
   showContent: boolean;
   layout: 'centered' | 'left' | 'right';
+  verticalPos: 'center' | 'top' | 'bottom';
+  nameSize: number;
+  nameWeight: number;
+  nameSpacing: number;
+  nameShadow: boolean;
+  nameShadowColor: string;
+  nameAnimation: string;
+  showCardBg: boolean;
 }
 
 const STORAGE_KEY = 'freedom-config';
@@ -67,6 +75,14 @@ const DEFAULT_CONFIG: FreedomConfig = {
   showAvatar: true,
   showContent: true,
   layout: 'centered',
+  verticalPos: 'center',
+  nameSize: 56,
+  nameWeight: 700,
+  nameSpacing: 0,
+  nameShadow: false,
+  nameShadowColor: '#000000',
+  nameAnimation: 'fade-up',
+  showCardBg: true,
 };
 
 function loadConfig(): FreedomConfig {
@@ -465,6 +481,30 @@ export default function FreedomCanvas() {
           0%, 100% { box-shadow: 0 0 20px ${cfg.accentColor}33, 0 0 40px ${cfg.accentColor}11; }
           50% { box-shadow: 0 0 30px ${cfg.accentColor}55, 0 0 60px ${cfg.accentColor}22; }
         }
+        @keyframes fade-in { 0% { opacity: 0; } 100% { opacity: 1; } }
+        @keyframes slide-in-top { 0% { opacity: 0; transform: translateY(-40px); } 100% { opacity: 1; transform: translateY(0); } }
+        @keyframes scale-in { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+        @keyframes bounce-in { 0% { opacity: 0; transform: scale(0.3); } 50% { opacity: 1; transform: scale(1.05); } 70% { transform: scale(0.9); } 100% { transform: scale(1); } }
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        .name-anim-fade-up { animation: float-up 1s ease-out both; }
+        .name-anim-fade-in { animation: fade-in 1s ease-out both; }
+        .name-anim-slide-top { animation: slide-in-top 1s ease-out both; }
+        .name-anim-scale { animation: scale-in 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+        .name-anim-bounce { animation: bounce-in 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) both; }
+        .name-anim-float { animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .name-anim-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        .name-anim-shimmer {
+          background: linear-gradient(90deg, transparent, ${cfg.primaryColor}88, transparent);
+          background-size: 200% 100%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: shimmer 2s linear infinite;
+        }
         .freedom-enter { animation: float-up 0.8s ease-out both; }
         .freedom-enter-d1 { animation-delay: 0.1s; }
         .freedom-enter-d2 { animation-delay: 0.2s; }
@@ -531,13 +571,17 @@ export default function FreedomCanvas() {
 
         {/* Content */}
         {hasContent && (
-        <div className={`absolute inset-0 z-20 flex flex-col justify-center ${layoutClass}`}>
+        <div className={`absolute inset-0 z-20 flex flex-col ${layoutClass} ${
+          cfg.verticalPos === 'top' ? 'justify-start pt-16' :
+          cfg.verticalPos === 'bottom' ? 'justify-end pb-16' :
+          'justify-center'
+        }`}>
           <div
-            className="max-w-md w-full mx-auto p-8 rounded-2xl backdrop-blur-sm freedom-glow"
+            className={`max-w-md w-full mx-auto p-8 rounded-2xl ${cfg.showCardBg ? 'backdrop-blur-sm freedom-glow' : ''}`}
             style={{
-              backgroundColor: `rgba(0,0,0,${cfg.cardOpacity / 100})`,
-              backdropFilter: `blur(${cfg.cardBlur}px)`,
-              WebkitBackdropFilter: `blur(${cfg.cardBlur}px)`,
+              backgroundColor: cfg.showCardBg ? `rgba(0,0,0,${cfg.cardOpacity / 100})` : 'transparent',
+              backdropFilter: cfg.showCardBg ? `blur(${cfg.cardBlur}px)` : 'none',
+              WebkitBackdropFilter: cfg.showCardBg ? `blur(${cfg.cardBlur}px)` : 'none',
             }}
           >
             {cfg.showAvatar && cfg.avatarUrl && (
@@ -548,8 +592,15 @@ export default function FreedomCanvas() {
 
             {cfg.displayName && (
               <h1
-                className={`freedom-enter freedom-enter-d2 text-4xl font-bold mb-2 leading-tight`}
-                style={{ color: cfg.primaryColor, fontFamily: cfg.fontFamily }}
+                className={`mb-2 leading-tight ${cfg.nameAnimation !== 'none' ? `name-anim-${cfg.nameAnimation}` : ''}`}
+                style={{
+                  color: cfg.primaryColor,
+                  fontFamily: cfg.fontFamily,
+                  fontSize: `${cfg.nameSize}px`,
+                  fontWeight: cfg.nameWeight,
+                  letterSpacing: `${cfg.nameSpacing}px`,
+                  textShadow: cfg.nameShadow ? `0 2px 20px ${cfg.nameShadowColor}66` : 'none',
+                }}
               >
                 {cfg.displayName}
               </h1>
@@ -836,9 +887,60 @@ export default function FreedomCanvas() {
                     </button>
                   ))}
                 </div>
+                <div className="flex gap-3 mt-2">
+                  <div className="flex-1">
+                    <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Vertical</label>
+                    <select value={cfg.verticalPos} onChange={e => update('verticalPos', e.target.value as typeof cfg.verticalPos)}
+                      className="w-full h-9 px-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[10px] text-white focus:outline-none focus:border-white/20 appearance-none cursor-pointer">
+                      <option value="top">Top</option>
+                      <option value="center">Center</option>
+                      <option value="bottom">Bottom</option>
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Anim</label>
+                    <select value={cfg.nameAnimation} onChange={e => update('nameAnimation', e.target.value)}
+                      className="w-full h-9 px-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[10px] text-white focus:outline-none focus:border-white/20 appearance-none cursor-pointer">
+                      <option value="fade-up">Fade Up</option>
+                      <option value="fade-in">Fade In</option>
+                      <option value="slide-top">Slide Top</option>
+                      <option value="scale">Scale</option>
+                      <option value="bounce">Bounce</option>
+                      <option value="float">Float</option>
+                      <option value="glow">Glow</option>
+                      <option value="shimmer">Shimmer</option>
+                      <option value="">None</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Size</label>
+                    <input type="number" min={12} max={200} value={cfg.nameSize} onChange={e => update('nameSize', Number(e.target.value))}
+                      className="w-full h-9 px-3 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/20" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Weight</label>
+                    <input type="number" min={100} max={900} step={100} value={cfg.nameWeight} onChange={e => update('nameWeight', Number(e.target.value))}
+                      className="w-full h-9 px-3 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/20" />
+                  </div>
+                </div>
+                <Slider label="Letter Spacing" value={cfg.nameSpacing} onChange={v => update('nameSpacing', v)} min={-5} max={30} suffix="px" />
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] text-white/40 w-20 shrink-0">Text Shadow</span>
+                  <input type="color" value={cfg.nameShadowColor} onChange={e => update('nameShadowColor', e.target.value)}
+                    className="h-7 w-7 rounded cursor-pointer bg-transparent border border-white/[0.08]" />
+                  <button onClick={() => update('nameShadow', !cfg.nameShadow)}
+                    className={`text-[9px] font-bold uppercase tracking-wider px-3 py-1 rounded-lg transition-all ${
+                      cfg.nameShadow
+                        ? 'bg-white/20 text-white'
+                        : 'bg-white/[0.03] text-white/40'
+                    }`}>On</button>
+                </div>
                 <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1 mt-2">Card</label>
                 <Slider label="Opacity" value={cfg.cardOpacity} onChange={v => update('cardOpacity', v)} suffix="%" />
                 <Slider label="Blur" value={cfg.cardBlur} onChange={v => update('cardBlur', v)} min={0} max={40} suffix="px" />
+                <Toggle label="Show Card Background" value={cfg.showCardBg} onChange={v => update('showCardBg', v)} />
                 <Toggle label="Show Avatar" value={cfg.showAvatar} onChange={v => update('showAvatar', v)} />
                 <Toggle label="Show Content Card" value={cfg.showContent} onChange={v => update('showContent', v)} />
               </Section>
