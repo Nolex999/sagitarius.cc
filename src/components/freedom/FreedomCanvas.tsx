@@ -416,11 +416,7 @@ export default function FreedomCanvas() {
     ].filter(Boolean).join(' '),
   };
 
-  const unmute = useCallback(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = false;
-    v.volume = cfg.audioVolume / 100;
+  const tryPlayAudio = useCallback(() => {
     if (cfg.audioUrl && audioRef.current) {
       audioRef.current.volume = cfg.audioVolume / 100;
       audioRef.current.play().catch(() => {});
@@ -428,32 +424,54 @@ export default function FreedomCanvas() {
   }, [cfg.audioUrl, cfg.audioVolume]);
 
   useEffect(() => {
-    if (edit || !videoRef.current) return;
+    if (edit) return;
     const v = videoRef.current;
-    v.volume = cfg.audioVolume / 100;
-    v.muted = false;
-    const p = v.play();
-    if (p !== undefined) {
-      p.then(() => {
-        setAudioStarted(true);
-        if (cfg.audioUrl && audioRef.current) {
-          audioRef.current.volume = cfg.audioVolume / 100;
-          audioRef.current.play().catch(() => {});
-        }
-      }).catch(() => {
-        v.muted = true;
-        v.play();
-        const onInteraction = () => {
-          unmute();
+    const a = audioRef.current;
+
+    const startAudio = () => {
+      if (v) v.muted = false;
+      tryPlayAudio();
+      setAudioStarted(true);
+    };
+
+    const tryUnmuted = async () => {
+      if (v) {
+        v.muted = false;
+        v.volume = cfg.audioVolume / 100;
+        try {
+          await v.play();
           setAudioStarted(true);
-          document.removeEventListener('click', onInteraction);
-          document.removeEventListener('touchstart', onInteraction);
-        };
-        document.addEventListener('click', onInteraction, { once: true });
-        document.addEventListener('touchstart', onInteraction, { once: true });
-      });
-    }
-  }, [edit, cfg.videoUrl, cfg.audioUrl, cfg.audioVolume, unmute]);
+          tryPlayAudio();
+          return;
+        } catch { /* blocked */ }
+      }
+      // Fallback: play muted video
+      if (v) {
+        v.muted = true;
+        await v.play().catch(() => {});
+      }
+      // Try audio element independently (may work even if video can't unmute)
+      if (a && cfg.audioUrl) {
+        a.muted = false;
+        a.volume = cfg.audioVolume / 100;
+        try {
+          await a.play();
+          setAudioStarted(true);
+          return;
+        } catch { /* also blocked */ }
+      }
+      // Final fallback: add click/touch listener
+      const onInteraction = () => {
+        startAudio();
+        document.removeEventListener('click', onInteraction);
+        document.removeEventListener('touchstart', onInteraction);
+      };
+      document.addEventListener('click', onInteraction, { once: true });
+      document.addEventListener('touchstart', onInteraction, { once: true });
+    };
+
+    tryUnmuted();
+  }, [edit, cfg.videoUrl, cfg.audioUrl, cfg.audioVolume, tryPlayAudio]);
 
   const layoutClass = cfg.layout === 'left' ? 'items-start text-left px-12' :
     cfg.layout === 'right' ? 'items-end text-right px-12' :
@@ -553,7 +571,7 @@ export default function FreedomCanvas() {
             ref={videoRef}
             key={cfg.videoUrl}
             src={cfg.videoUrl}
-            autoPlay loop muted playsInline
+            autoPlay loop playsInline
             className="absolute inset-0 w-full h-full object-cover"
             style={videoStyle}
           />
@@ -575,6 +593,27 @@ export default function FreedomCanvas() {
           <div className={`absolute inset-0 pointer-events-none z-10 ${cfg.overlay === 'crt' ? 'overlay-crt' : ''}`}>
             <div className={`w-full h-full ${cfg.overlay !== 'crt' ? `overlay-${cfg.overlay}` : ''}`} />
           </div>
+        )}
+
+        {/* Unmute button */}
+        {!audioStarted && !edit && (
+          <button
+            onClick={() => {
+              const v = videoRef.current;
+              const a = audioRef.current;
+              if (v) { v.muted = false; v.play(); }
+              if (a && cfg.audioUrl) { a.volume = cfg.audioVolume / 100; a.play().catch(() => {}); }
+              setAudioStarted(true);
+            }}
+            className="absolute bottom-6 right-6 z-30 w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
+            style={{ backgroundColor: `rgba(0,0,0,${cfg.cardOpacity / 100})`, backdropFilter: `blur(${cfg.cardBlur}px)` }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+            </svg>
+          </button>
         )}
 
         {/* Badge */}
