@@ -392,52 +392,53 @@ export default function FreedomCanvas() {
     ].filter(Boolean).join(' '),
   };
 
-  const unmuteVideo = useCallback(() => {
-    if (!videoRef.current) return;
-    videoRef.current.muted = false;
-    videoRef.current.volume = cfg.audioVolume / 100;
-  }, [cfg.audioVolume]);
-
-  const playAudio = useCallback(() => {
-    if (audioRef.current && cfg.audioUrl) {
+  const unmute = useCallback(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = false;
+    v.volume = cfg.audioVolume / 100;
+    if (cfg.audioUrl && audioRef.current) {
       audioRef.current.volume = cfg.audioVolume / 100;
       audioRef.current.play().catch(() => {});
     }
   }, [cfg.audioUrl, cfg.audioVolume]);
 
   useEffect(() => {
+    if (edit || !videoRef.current) return;
     const v = videoRef.current;
-    if (!v) return;
-    if (!edit) {
-      const tryPlay = () => {
-        v.muted = false;
-        const p = v.play();
-        if (p !== undefined) {
-          p.then(() => {
-            setAudioStarted(true);
-            playAudio();
-          }).catch(() => {
-            v.muted = true;
-            v.play();
-            const onInteraction = () => {
-              unmuteVideo();
-              playAudio();
-              setAudioStarted(true);
-              document.removeEventListener('click', onInteraction);
-              document.removeEventListener('touchstart', onInteraction);
-            };
-            document.addEventListener('click', onInteraction, { once: true });
-            document.addEventListener('touchstart', onInteraction, { once: true });
-          });
+    v.volume = cfg.audioVolume / 100;
+    v.muted = false;
+    const p = v.play();
+    if (p !== undefined) {
+      p.then(() => {
+        setAudioStarted(true);
+        if (cfg.audioUrl && audioRef.current) {
+          audioRef.current.volume = cfg.audioVolume / 100;
+          audioRef.current.play().catch(() => {});
         }
-      };
-      tryPlay();
+      }).catch(() => {
+        v.muted = true;
+        v.play();
+        const onInteraction = () => {
+          unmute();
+          setAudioStarted(true);
+          document.removeEventListener('click', onInteraction);
+          document.removeEventListener('touchstart', onInteraction);
+        };
+        document.addEventListener('click', onInteraction, { once: true });
+        document.addEventListener('touchstart', onInteraction, { once: true });
+      });
     }
-  }, [edit, cfg.videoUrl, unmuteVideo, playAudio]);
+  }, [edit, cfg.videoUrl, cfg.audioUrl, cfg.audioVolume, unmute]);
 
   const layoutClass = cfg.layout === 'left' ? 'items-start text-left px-12' :
     cfg.layout === 'right' ? 'items-end text-right px-12' :
     'items-center text-center';
+
+  const hasContent = cfg.showContent && (
+    cfg.displayName.trim() || cfg.bioText.trim() || cfg.avatarUrl.trim() ||
+    cfg.customLinks.length > 0 || cfg.socialLinks.length > 0
+  );
 
   if (!loaded) return null;
 
@@ -504,7 +505,7 @@ export default function FreedomCanvas() {
             ref={videoRef}
             key={cfg.videoUrl}
             src={cfg.videoUrl}
-            autoPlay loop playsInline
+            autoPlay loop muted playsInline
             className="absolute inset-0 w-full h-full object-cover"
             style={videoStyle}
           />
@@ -529,7 +530,7 @@ export default function FreedomCanvas() {
         )}
 
         {/* Content */}
-        {cfg.showContent && (
+        {hasContent && (
         <div className={`absolute inset-0 z-20 flex flex-col justify-center ${layoutClass}`}>
           <div
             className="max-w-md w-full mx-auto p-8 rounded-2xl backdrop-blur-sm freedom-glow"
