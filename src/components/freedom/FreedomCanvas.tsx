@@ -555,9 +555,14 @@ export default function FreedomCanvas() {
           setAudioStarted(true);
           document.removeEventListener('click', onInteraction);
           document.removeEventListener('touchstart', onInteraction);
+          document.removeEventListener('keydown', onKey);
+        };
+        const onKey = (e: KeyboardEvent) => {
+          if (e.key === ' ' || e.key === 'Enter') onInteraction();
         };
         document.addEventListener('click', onInteraction, { once: true });
         document.addEventListener('touchstart', onInteraction, { once: true });
+        document.addEventListener('keydown', onKey, { once: true });
       }
     })();
   }, [edit, cfg.videoUrl, cfg.audioUrl, cfg.audioVolume]);
@@ -611,6 +616,8 @@ export default function FreedomCanvas() {
         .name-anim-bounce { animation: bounce-in 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) both; }
         .name-anim-float { animation: float 3s ease-in-out infinite; }
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes sound-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.08); } 50% { box-shadow: 0 0 0 12px rgba(255,255,255,0); } }
+        .sound-btn { animation: sound-pulse 2s ease-in-out infinite; }
         .name-anim-glow { animation: pulse-glow 2s ease-in-out infinite; }
         .name-anim-shimmer {
           background: linear-gradient(90deg, transparent, ${cfg.primaryColor}88, transparent);
@@ -685,7 +692,8 @@ export default function FreedomCanvas() {
 
         {/* Click-to-enable overlay */}
         {!audioStarted && !edit && (
-          <button
+          <div
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 sound-btn flex items-center gap-2.5 px-5 py-3 rounded-xl transition-all hover:scale-105 active:scale-95 cursor-pointer"
             onClick={() => {
               const v = videoRef.current;
               const a = audioRef.current;
@@ -693,7 +701,6 @@ export default function FreedomCanvas() {
               if (a && cfg.audioUrl) { a.volume = cfg.audioVolume / 100; a.play().catch(() => {}); }
               setAudioStarted(true);
             }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 px-5 py-3 rounded-xl transition-all hover:scale-105 active:scale-95 cursor-pointer"
             style={{
               backgroundColor: `rgba(0,0,0,${cfg.cardOpacity / 100})`,
               backdropFilter: `blur(${cfg.cardBlur}px)`,
@@ -706,8 +713,8 @@ export default function FreedomCanvas() {
               <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
               <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
             </svg>
-            <span className="text-sm font-medium" style={{ color: cfg.primaryColor + 'dd' }}>Enable sound</span>
-          </button>
+            <span className="text-sm font-medium" style={{ color: cfg.primaryColor + 'dd' }}>Tap for sound</span>
+          </div>
         )}
 
         {/* Badge */}
