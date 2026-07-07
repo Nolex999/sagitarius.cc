@@ -640,8 +640,17 @@ export default function FreedomCanvas() {
           100% { background-position: 200% center; }
         }
         @keyframes reveal-rainbow {
-          0% { filter: hue-rotate(0deg); }
-          100% { filter: hue-rotate(360deg); }
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .reveal-anim-rainbow {
+          background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000);
+          background-size: 400% 100%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: reveal-rainbow 6s ease infinite;
         }
         @keyframes reveal-bounce {
           0%,100% { transform: translateY(0); }
@@ -768,7 +777,7 @@ export default function FreedomCanvas() {
                 </span>
               </div>
             )}
-            <div className={`flex items-center gap-3 px-6 py-3 rounded-xl ${cfg.revealAnimation !== 'shimmer' && cfg.revealAnimation !== 'rainbow' ? 'reveal-anim-' + cfg.revealAnimation : ''}`} style={{ backgroundColor: `rgba(255,255,255,0.06)` }}>
+            <div className={`flex items-center gap-3 px-6 py-3 rounded-xl ${cfg.revealAnimation !== 'shimmer' ? 'reveal-anim-' + cfg.revealAnimation : ''}`} style={{ backgroundColor: `rgba(255,255,255,0.06)` }}>
               {cfg.revealAnimation !== 'shimmer' && (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={cfg.revealAnimation === 'rainbow' ? '#fff' : cfg.primaryColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
