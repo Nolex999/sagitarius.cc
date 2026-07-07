@@ -323,10 +323,11 @@ export default function FreedomCanvas() {
           .from('freedom_config')
           .select('config, views')
           .eq('id', 1)
-          .single();
+          .maybeSingle();
         if (data?.config) {
           const sc = data.config as Record<string, unknown>;
-          if (Object.keys(sc).length > 10) { // sanity check: a real config has many keys
+          const isPopulated = Object.keys(sc).length > 10;
+          if (isPopulated) {
             merged = { ...merged, ...sc as unknown as Partial<FreedomConfig> };
           }
           setViewCount(Number(data.views));
@@ -454,11 +455,16 @@ export default function FreedomCanvas() {
     try {
       const { error } = await supabase
         .from('freedom_config')
-        .update({ config: cfg as unknown as JSON, updated_at: new Date().toISOString() })
-        .eq('id', 1);
+        .upsert(
+          { id: 1, config: cfg as unknown as JSON, updated_at: new Date().toISOString() },
+          { onConflict: 'id' }
+        );
       if (error) throw error;
+      // Refresh view count
+      const { data } = await supabase.from('freedom_config').select('views').eq('id', 1).maybeSingle();
+      if (data) setViewCount(Number(data.views));
       alert('Published! Config is now live for all visitors.');
-    } catch {
+    } catch (e) {
       alert('Failed to publish. Are you logged in as owner/admin?');
     }
   };
@@ -841,25 +847,45 @@ export default function FreedomCanvas() {
           <source src={cfg.audioUrl} type="audio/mpeg" />
         </audio>
 
-        {/* Edit Toggle Button */}
-        {isOwner && (
-        <button
-          onClick={() => setEdit(!edit)}
-          className="fixed top-4 right-4 z-50 w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110"
-          style={{
-            backgroundColor: edit ? cfg.accentColor + '30' : 'rgba(255,255,255,0.08)',
-            color: edit ? cfg.accentColor : '#fff',
-            border: `1px solid ${edit ? cfg.accentColor + '50' : 'rgba(255,255,255,0.1)'}`,
-          }}
-          title={edit ? 'Close editor' : 'Open editor'}
-        >
-          {edit ? (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        {/* Top right: views + edit */}
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+          {/* View count */}
+          <div
+            className="flex items-center gap-1.5 px-3 h-10 rounded-xl text-[11px] font-medium"
+            style={{
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              backdropFilter: 'blur(8px)',
+              color: cfg.primaryColor + 'cc',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            <span>{viewCount}</span>
+          </div>
+
+          {/* Edit Toggle Button */}
+          {isOwner && (
+          <button
+            onClick={() => setEdit(!edit)}
+            className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-110"
+            style={{
+              backgroundColor: edit ? cfg.accentColor + '30' : 'rgba(0,0,0,0.4)',
+              color: edit ? cfg.accentColor : '#fff',
+              backdropFilter: edit ? 'none' : 'blur(8px)',
+              border: `1px solid ${edit ? cfg.accentColor + '50' : 'rgba(255,255,255,0.08)'}`,
+            }}
+            title={edit ? 'Close editor' : 'Open editor'}
+          >
+            {edit ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            )}
+          </button>
           )}
-        </button>
-        )}
+        </div>
 
         {/* Edit Panel */}
         {edit && (

@@ -1146,13 +1146,20 @@ ON CONFLICT (id) DO NOTHING;
 ALTER TABLE public.freedom_config ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Anyone can read freedom_config" ON public.freedom_config;
-DROP POLICY IF EXISTS "Only owner/admin can update freedom_config" ON public.freedom_config;
+DROP POLICY IF EXISTS "Anyone can read freedom_config" ON public.freedom_config;
+DROP POLICY IF EXISTS "Only owner/admin can upsert freedom_config" ON public.freedom_config;
 
 CREATE POLICY "Anyone can read freedom_config"
 ON public.freedom_config FOR SELECT
 USING (true);
 
-CREATE POLICY "Only owner/admin can update freedom_config"
+CREATE POLICY "Only owner/admin can upsert freedom_config"
+ON public.freedom_config FOR INSERT
+WITH CHECK (
+  (SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('owner', 'admin')
+);
+
+CREATE POLICY "Only owner/admin can upsert freedom_config"
 ON public.freedom_config FOR UPDATE
 USING (
   (SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('owner', 'admin')
