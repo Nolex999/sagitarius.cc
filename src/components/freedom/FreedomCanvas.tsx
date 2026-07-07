@@ -690,10 +690,10 @@ export default function FreedomCanvas() {
           </div>
         )}
 
-        {/* Click-to-enable overlay */}
+        {/* Full-screen reveal overlay */}
         {!audioStarted && !edit && (
           <div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 sound-btn flex items-center gap-2.5 px-5 py-3 rounded-xl transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center cursor-pointer"
             onClick={() => {
               const v = videoRef.current;
               const a = audioRef.current;
@@ -702,18 +702,32 @@ export default function FreedomCanvas() {
               setAudioStarted(true);
             }}
             style={{
-              backgroundColor: `rgba(0,0,0,${cfg.cardOpacity / 100})`,
-              backdropFilter: `blur(${cfg.cardBlur}px)`,
-              WebkitBackdropFilter: `blur(${cfg.cardBlur}px)`,
-              border: `1px solid ${cfg.primaryColor}22`,
+              backgroundColor: `rgba(0,0,0,0.85)`,
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
             }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cfg.primaryColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-            </svg>
-            <span className="text-sm font-medium" style={{ color: cfg.primaryColor + 'dd' }}>Tap for sound</span>
+            {cfg.badgeEnabled && (
+              <div
+                className="flex items-center gap-2 px-4 py-2 rounded-xl mb-6"
+                style={{ backgroundColor: `rgba(255,255,255,0.05)` }}
+              >
+                <span style={{ fontFamily: cfg.badgeFont, fontSize: `${cfg.badgeSize + 4}px`, color: cfg.primaryColor, fontWeight: 600 }}>
+                  {cfg.badgeText || 'user'}
+                </span>
+                <span style={{ fontFamily: cfg.badgeFont, fontSize: `${cfg.badgeSize * 0.7}px`, color: cfg.primaryColor + '66' }}>
+                  #1
+                </span>
+              </div>
+            )}
+            <div className="sound-btn flex items-center gap-3 px-6 py-3 rounded-xl" style={{ backgroundColor: `rgba(255,255,255,0.06)` }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={cfg.primaryColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+              </svg>
+              <span className="text-base font-medium" style={{ color: cfg.primaryColor + 'dd' }}>Tap anywhere to enter</span>
+            </div>
           </div>
         )}
 
