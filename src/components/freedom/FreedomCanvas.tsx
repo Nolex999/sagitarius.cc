@@ -325,10 +325,11 @@ export default function FreedomCanvas() {
           .eq('id', 1)
           .maybeSingle();
         if (data?.config) {
-          const sc = data.config as Record<string, unknown>;
-          const isPopulated = Object.keys(sc).length > 10;
-          if (isPopulated) {
-            merged = { ...merged, ...sc as unknown as Partial<FreedomConfig> };
+          const raw = data.config;
+          const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+          const keys = Object.keys(parsed);
+          if (keys.length > 1) {
+            merged = { ...merged, ...parsed as unknown as Partial<FreedomConfig> };
           }
           setViewCount(Number(data.views));
         }
@@ -658,7 +659,6 @@ export default function FreedomCanvas() {
         {cfg.videoUrl && (
           <video
             ref={videoRef}
-            key={cfg.videoUrl}
             src={cfg.videoUrl}
             autoPlay loop muted playsInline
             className="absolute inset-0 w-full h-full object-cover"
