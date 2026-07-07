@@ -47,6 +47,14 @@ interface FreedomConfig {
   badgeText: string;
   badgeSize: number;
   badgeFont: string;
+  revealEnabled: boolean;
+  revealText: string;
+  revealFont: string;
+  revealTextSize: number;
+  revealAnimation: string;
+  revealBgColor: string;
+  revealBgBlur: number;
+  revealAccentColor: string;
 }
 
 const STORAGE_KEY = 'freedom-config';
@@ -91,6 +99,14 @@ const DEFAULT_CONFIG: FreedomConfig = {
   badgeText: 'chris',
   badgeSize: 14,
   badgeFont: 'Inter, system-ui, sans-serif',
+  revealEnabled: true,
+  revealText: 'Tap anywhere to enter',
+  revealFont: 'Inter, system-ui, sans-serif',
+  revealTextSize: 18,
+  revealAnimation: 'pulse',
+  revealBgColor: '#000000',
+  revealBgBlur: 20,
+  revealAccentColor: '#f97316',
 };
 
 function loadConfig(): FreedomConfig {
@@ -617,6 +633,38 @@ export default function FreedomCanvas() {
         .name-anim-float { animation: float 3s ease-in-out infinite; }
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         @keyframes sound-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.08); } 50% { box-shadow: 0 0 0 12px rgba(255,255,255,0); } }
+        @keyframes reveal-fade { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
+        @keyframes reveal-glow { 0%,100% { text-shadow: 0 0 20px ${cfg.revealAccentColor}44; } 50% { text-shadow: 0 0 40px ${cfg.revealAccentColor}88, 0 0 80px ${cfg.revealAccentColor}44; } }
+        @keyframes reveal-shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        @keyframes reveal-rainbow {
+          0% { filter: hue-rotate(0deg); }
+          100% { filter: hue-rotate(360deg); }
+        }
+        @keyframes reveal-bounce {
+          0%,100% { transform: translateY(0); }
+          50% { transform: translateY(-12px); }
+        }
+        @keyframes reveal-slide-up {
+          0% { opacity: 0; transform: translateY(30px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        .reveal-anim-fade { animation: reveal-fade 1.2s ease-out both; }
+        .reveal-anim-pulse { animation: sound-pulse 2s ease-in-out infinite; }
+        .reveal-anim-glow { animation: reveal-glow 2s ease-in-out infinite; }
+        .reveal-anim-shimmer {
+          background: linear-gradient(90deg, transparent 0%, ${cfg.revealAccentColor} 50%, transparent 100%);
+          background-size: 200% 100%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: reveal-shimmer 2s linear infinite;
+        }
+        .reveal-anim-rainbow { animation: reveal-rainbow 3s linear infinite; }
+        .reveal-anim-bounce { animation: reveal-bounce 1.5s ease-in-out infinite; }
+        .reveal-anim-slide-up { animation: reveal-slide-up 0.8s ease-out both; }
         .sound-btn { animation: sound-pulse 2s ease-in-out infinite; }
         .name-anim-glow { animation: pulse-glow 2s ease-in-out infinite; }
         .name-anim-shimmer {
@@ -691,7 +739,7 @@ export default function FreedomCanvas() {
         )}
 
         {/* Full-screen reveal overlay */}
-        {!audioStarted && !edit && (
+        {cfg.revealEnabled && !audioStarted && !edit && (
           <div
             className="fixed inset-0 z-50 flex flex-col items-center justify-center cursor-pointer"
             onClick={() => {
@@ -702,14 +750,14 @@ export default function FreedomCanvas() {
               setAudioStarted(true);
             }}
             style={{
-              backgroundColor: `rgba(0,0,0,0.85)`,
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
+              backgroundColor: cfg.revealBgColor + 'd9',
+              backdropFilter: `blur(${cfg.revealBgBlur}px)`,
+              WebkitBackdropFilter: `blur(${cfg.revealBgBlur}px)`,
             }}
           >
             {cfg.badgeEnabled && (
               <div
-                className="flex items-center gap-2 px-4 py-2 rounded-xl mb-6"
+                className="reveal-anim-slide-up flex items-center gap-2 px-4 py-2 rounded-xl mb-6"
                 style={{ backgroundColor: `rgba(255,255,255,0.05)` }}
               >
                 <span style={{ fontFamily: cfg.badgeFont, fontSize: `${cfg.badgeSize + 4}px`, color: cfg.primaryColor, fontWeight: 600 }}>
@@ -720,13 +768,24 @@ export default function FreedomCanvas() {
                 </span>
               </div>
             )}
-            <div className="sound-btn flex items-center gap-3 px-6 py-3 rounded-xl" style={{ backgroundColor: `rgba(255,255,255,0.06)` }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={cfg.primaryColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-              </svg>
-              <span className="text-base font-medium" style={{ color: cfg.primaryColor + 'dd' }}>Tap anywhere to enter</span>
+            <div className={`flex items-center gap-3 px-6 py-3 rounded-xl ${cfg.revealAnimation !== 'shimmer' && cfg.revealAnimation !== 'rainbow' ? 'reveal-anim-' + cfg.revealAnimation : ''}`} style={{ backgroundColor: `rgba(255,255,255,0.06)` }}>
+              {cfg.revealAnimation !== 'shimmer' && (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={cfg.revealAnimation === 'rainbow' ? '#fff' : cfg.primaryColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                </svg>
+              )}
+              <span
+                className={`text-base font-medium ${cfg.revealAnimation === 'shimmer' ? 'reveal-anim-shimmer' : ''} ${cfg.revealAnimation === 'rainbow' ? 'reveal-anim-rainbow' : ''}`}
+                style={{
+                  fontFamily: cfg.revealFont,
+                  fontSize: `${cfg.revealTextSize}px`,
+                  color: cfg.primaryColor + 'dd',
+                }}
+              >
+                {cfg.revealText || 'Tap anywhere to enter'}
+              </span>
             </div>
           </div>
         )}
@@ -1183,6 +1242,51 @@ export default function FreedomCanvas() {
                         <input type="number" min={10} max={60} value={cfg.badgeSize} onChange={e => update('badgeSize', Number(e.target.value))}
                           className="w-full h-9 px-3 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/20" />
                       </div>
+                    </div>
+                  </>
+                )}
+              </Section>
+
+              {/* REVEAL SCREEN */}
+              <Section title="Reveal Screen">
+                <Toggle label="Enabled" value={cfg.revealEnabled} onChange={v => update('revealEnabled', v)} />
+                {cfg.revealEnabled && (
+                  <>
+                    <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Text</label>
+                    <input type="text" value={cfg.revealText} onChange={e => update('revealText', e.target.value)}
+                      placeholder="Tap anywhere to enter" maxLength={60}
+                      className="w-full h-9 px-3 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/20 placeholder:text-white/20" />
+                    <div className="flex gap-3">
+                      <div className="flex-1">
+                        <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Font</label>
+                        <select value={cfg.revealFont} onChange={e => update('revealFont', e.target.value)}
+                          className="w-full h-9 px-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[10px] text-white focus:outline-none focus:border-white/20 appearance-none cursor-pointer">
+                          {FONTS.map(f => <option key={f} value={f}>{f.split(',')[0]}</option>)}
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Size</label>
+                        <input type="number" min={12} max={80} value={cfg.revealTextSize} onChange={e => update('revealTextSize', Number(e.target.value))}
+                          className="w-full h-9 px-3 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/20" />
+                      </div>
+                    </div>
+                    <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Animation</label>
+                    <select value={cfg.revealAnimation} onChange={e => update('revealAnimation', e.target.value)}
+                      className="w-full h-9 px-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[10px] text-white focus:outline-none focus:border-white/20 appearance-none cursor-pointer mb-2">
+                      {['pulse','glow','shimmer','rainbow','bounce','fade','slide-up','none'].map(a =>
+                        <option key={a} value={a}>{a.charAt(0).toUpperCase() + a.slice(1)}</option>
+                      )}
+                    </select>
+                    <Slider label="Background Blur" value={cfg.revealBgBlur} onChange={v => update('revealBgBlur', v)} min={0} max={40} suffix="px" />
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] text-white/40 w-20 shrink-0">BG Color</span>
+                      <input type="color" value={cfg.revealBgColor} onChange={e => update('revealBgColor', e.target.value)}
+                        className="h-7 w-7 rounded cursor-pointer bg-transparent border border-white/[0.08]" />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] text-white/40 w-20 shrink-0">Accent</span>
+                      <input type="color" value={cfg.revealAccentColor} onChange={e => update('revealAccentColor', e.target.value)}
+                        className="h-7 w-7 rounded cursor-pointer bg-transparent border border-white/[0.08]" />
                     </div>
                   </>
                 )}
