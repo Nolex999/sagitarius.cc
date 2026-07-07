@@ -1127,4 +1127,43 @@ USING (
     AND auth.role() = 'authenticated'
 );
 
+-- ============================================================================
+-- FREEDOM CONFIG (page /freedom)
+-- Single-row table: config JSONB + view counter
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS public.freedom_config (
+  id int PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  config jsonb NOT NULL DEFAULT '{}'::jsonb,
+  views bigint NOT NULL DEFAULT 0,
+  updated_at timestamptz DEFAULT now()
+);
+
+INSERT INTO public.freedom_config (id, config, views)
+VALUES (1, '{}'::jsonb, 0)
+ON CONFLICT (id) DO NOTHING;
+
+ALTER TABLE public.freedom_config ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can read freedom_config" ON public.freedom_config;
+DROP POLICY IF EXISTS "Only owner/admin can update freedom_config" ON public.freedom_config;
+
+CREATE POLICY "Anyone can read freedom_config"
+ON public.freedom_config FOR SELECT
+USING (true);
+
+CREATE POLICY "Only owner/admin can update freedom_config"
+ON public.freedom_config FOR UPDATE
+USING (
+  (SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('owner', 'admin')
+);
+
+-- Function to atomically increment view counter
+CREATE OR REPLACE FUNCTION public.increment_freedom_views()
+RETURNS void
+LANGUAGE sql
+AS $$
+  UPDATE public.freedom_config SET views = views + 1 WHERE id = 1;
+$$;
+
 NOTIFY pgrst, 'reload schema';

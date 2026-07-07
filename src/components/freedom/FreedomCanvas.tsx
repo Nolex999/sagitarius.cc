@@ -309,11 +309,33 @@ export default function FreedomCanvas() {
   const [isOwner, setIsOwner] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
+  const [viewCount, setViewCount] = useState(0);
+
+  // Load config from Supabase + localStorage
   useEffect(() => {
-    setCfg(loadConfig());
-    setLoaded(true);
+    (async () => {
+      // Load Supabase published config
+      let merged = { ...DEFAULT_CONFIG };
+      try {
+        const { data } = await supabase
+          .from('freedom_config')
+          .select('config, views')
+          .eq('id', 1)
+          .single();
+        if (data?.config && Object.keys(data.config).length > 1) {
+          merged = { ...merged, ...data.config as unknown as Partial<FreedomConfig> };
+          setViewCount(Number(data.views));
+        }
+      } catch {}
+
+      // Load localStorage draft on top (for editors)
+      merged = { ...merged, ...loadConfig() };
+      setCfg(merged);
+      setLoaded(true);
+    })();
   }, []);
 
+  // Auth check
   useEffect(() => {
     (async () => {
       try {
@@ -333,6 +355,28 @@ export default function FreedomCanvas() {
     })();
   }, []);
 
+  // Save to localStorage on change
+  // Increment view counter once per session
+  useEffect(() => {
+    if (!loaded || edit) return;
+    if (sessionStorage.getItem('freedom_viewed')) return;
+    sessionStorage.setItem('freedom_viewed', '1');
+    supabase.rpc('increment_freedom_views').then(() => {});
+  }, [loaded, edit]);
+
+  // Refresh view count periodically
+  useEffect(() => {
+    if (!loaded) return;
+    const iv = setInterval(async () => {
+      try {
+        const { data } = await supabase.from('freedom_config').select('views').eq('id', 1).single();
+        if (data) setViewCount(Number(data.views));
+      } catch {}
+    }, 30000);
+    return () => clearInterval(iv);
+  }, [loaded]);
+
+  // Save to localStorage on change
   useEffect(() => {
     if (loaded) saveConfig(cfg);
   }, [cfg, loaded]);
@@ -395,6 +439,19 @@ export default function FreedomCanvas() {
 
   const removeCustomLink = (i: number) => {
     setCfg(prev => ({ ...prev, customLinks: prev.customLinks.filter((_, idx) => idx !== i) }));
+  };
+
+  const publishConfig = async () => {
+    try {
+      const { error } = await supabase
+        .from('freedom_config')
+        .update({ config: cfg as unknown as JSON, updated_at: new Date().toISOString() })
+        .eq('id', 1);
+      if (error) throw error;
+      alert('Published! Config is now live for all visitors.');
+    } catch {
+      alert('Failed to publish. Are you logged in as owner/admin?');
+    }
   };
 
   const resetConfig = () => {
@@ -1078,18 +1135,25 @@ export default function FreedomCanvas() {
               </Section>
 
               {/* FOOTER */}
-              <div className="pt-4 border-t border-white/[0.06] flex gap-3">
-                <input type="file" ref={fileInputRef} className="hidden"
-                  accept={uploadTarget === 'video' ? 'video/*' : 'audio/*'}
-                  onChange={e => e.target.files?.[0] && handleFileUpload(e.target.files[0], uploadTarget)} />
-                <button onClick={resetConfig}
-                  className="flex-1 h-9 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-bold uppercase tracking-wider hover:bg-red-500/20 transition-all">
-                  Reset All
-                </button>
+              <div className="pt-4 border-t border-white/[0.06] space-y-2">
+                <div className="flex gap-3">
+                  <input type="file" ref={fileInputRef} className="hidden"
+                    accept={uploadTarget === 'video' ? 'video/*' : 'audio/*'}
+                    onChange={e => e.target.files?.[0] && handleFileUpload(e.target.files[0], uploadTarget)} />
+                  <button onClick={publishConfig}
+                    className="flex-1 h-9 rounded-lg bg-green-500/15 border border-green-500/25 text-green-400 text-[10px] font-bold uppercase tracking-wider hover:bg-green-500/25 transition-all">
+                    Publish
+                  </button>
+                  <button onClick={resetConfig}
+                    className="flex-1 h-9 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-bold uppercase tracking-wider hover:bg-red-500/20 transition-all">
+                    Reset All
+                  </button>
+                </div>
+                <div className="flex justify-between text-[10px] text-white/30">
+                  <span>{viewCount} views</span>
+                  <span>Draft saved locally</span>
+                </div>
               </div>
-              <p className="text-[10px] text-white/20 text-center pb-4">
-                Config saved to localStorage
-              </p>
             </div>
           </div>
         )}
