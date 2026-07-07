@@ -314,22 +314,31 @@ export default function FreedomCanvas() {
   // Load config from Supabase + localStorage
   useEffect(() => {
     (async () => {
-      // Load Supabase published config
+      // Start with defaults
       let merged = { ...DEFAULT_CONFIG };
+
+      // Load Supabase published config (for everyone)
       try {
         const { data } = await supabase
           .from('freedom_config')
           .select('config, views')
           .eq('id', 1)
           .single();
-        if (data?.config && Object.keys(data.config).length > 1) {
-          merged = { ...merged, ...data.config as unknown as Partial<FreedomConfig> };
+        if (data?.config) {
+          const sc = data.config as Record<string, unknown>;
+          if (Object.keys(sc).length > 10) { // sanity check: a real config has many keys
+            merged = { ...merged, ...sc as unknown as Partial<FreedomConfig> };
+          }
           setViewCount(Number(data.views));
         }
       } catch {}
 
-      // Load localStorage draft on top (for editors)
-      merged = { ...merged, ...loadConfig() };
+      // Load localStorage draft only if it exists (for editors)
+      const hasLocal = typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEY) !== null;
+      if (hasLocal) {
+        merged = { ...merged, ...loadConfig() };
+      }
+
       setCfg(merged);
       setLoaded(true);
     })();
