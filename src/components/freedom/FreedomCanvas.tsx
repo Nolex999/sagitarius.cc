@@ -683,7 +683,7 @@ export default function FreedomCanvas() {
           </div>
         )}
 
-        {/* Unmute button */}
+        {/* Click-to-enable overlay */}
         {!audioStarted && !edit && (
           <button
             onClick={() => {
@@ -693,14 +693,20 @@ export default function FreedomCanvas() {
               if (a && cfg.audioUrl) { a.volume = cfg.audioVolume / 100; a.play().catch(() => {}); }
               setAudioStarted(true);
             }}
-            className="absolute bottom-6 right-6 z-30 w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
-            style={{ backgroundColor: `rgba(0,0,0,${cfg.cardOpacity / 100})`, backdropFilter: `blur(${cfg.cardBlur}px)` }}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 px-5 py-3 rounded-xl transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            style={{
+              backgroundColor: `rgba(0,0,0,${cfg.cardOpacity / 100})`,
+              backdropFilter: `blur(${cfg.cardBlur}px)`,
+              WebkitBackdropFilter: `blur(${cfg.cardBlur}px)`,
+              border: `1px solid ${cfg.primaryColor}22`,
+            }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cfg.primaryColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
               <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
               <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
             </svg>
+            <span className="text-sm font-medium" style={{ color: cfg.primaryColor + 'dd' }}>Enable sound</span>
           </button>
         )}
 
