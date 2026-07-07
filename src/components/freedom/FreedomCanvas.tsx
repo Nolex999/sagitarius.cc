@@ -327,17 +327,15 @@ export default function FreedomCanvas() {
         if (data?.config) {
           const raw = data.config;
           const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-          const keys = Object.keys(parsed);
-          if (keys.length > 1) {
-            merged = { ...merged, ...parsed as unknown as Partial<FreedomConfig> };
-          }
+          merged = { ...merged, ...parsed as unknown as Partial<FreedomConfig> };
           setViewCount(Number(data.views));
         }
       } catch {}
 
-      // Load localStorage draft only if it exists (for editors)
-      const hasLocal = typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEY) !== null;
-      if (hasLocal) {
+      // Load localStorage draft only if it has actual custom data (not defaults)
+      const rawLocal = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
+      const hasCustomLocal = rawLocal !== null && rawLocal !== JSON.stringify(DEFAULT_CONFIG);
+      if (hasCustomLocal) {
         merged = { ...merged, ...loadConfig() };
       }
 
@@ -454,10 +452,11 @@ export default function FreedomCanvas() {
 
   const publishConfig = async () => {
     try {
+      const payload = JSON.parse(JSON.stringify(cfg));
       const { error } = await supabase
         .from('freedom_config')
         .upsert(
-          { id: 1, config: cfg as unknown as JSON, updated_at: new Date().toISOString() },
+          { id: 1, config: payload, updated_at: new Date().toISOString() },
           { onConflict: 'id' }
         );
       if (error) throw error;
