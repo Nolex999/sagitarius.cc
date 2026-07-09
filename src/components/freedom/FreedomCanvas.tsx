@@ -43,6 +43,8 @@ interface FreedomConfig {
   nameShadowColor: string;
   nameAnimation: string;
   showCardBg: boolean;
+  videoFit: 'cover' | 'contain';
+  videoPosition: 'top' | 'center' | 'bottom';
   badgeEnabled: boolean;
   badgeText: string;
   badgeSize: number;
@@ -95,6 +97,8 @@ const DEFAULT_CONFIG: FreedomConfig = {
   nameShadowColor: '#000000',
   nameAnimation: 'fade-up',
   showCardBg: true,
+  videoFit: 'cover',
+  videoPosition: 'center',
   badgeEnabled: false,
   badgeText: 'chris',
   badgeSize: 14,
@@ -724,8 +728,8 @@ export default function FreedomCanvas() {
             ref={videoRef}
             src={cfg.videoUrl}
             autoPlay loop muted playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            style={videoStyle}
+            className="absolute inset-0 w-full h-full"
+            style={{ ...videoStyle, objectFit: cfg.videoFit, objectPosition: cfg.videoPosition === 'center' ? 'center' : cfg.videoPosition === 'top' ? 'top' : 'bottom' }}
           />
         )}
         {!cfg.videoUrl && (
@@ -1006,6 +1010,36 @@ export default function FreedomCanvas() {
                       </button>
                     )}
                   </div>
+                </div>
+              </Section>
+
+              {/* VIDEO FRAMING */}
+              <Section title="Video Framing">
+                <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Fit</label>
+                <div className="flex gap-2 mb-3">
+                  {(['cover', 'contain'] as const).map(fit => (
+                    <button key={fit} onClick={() => update('videoFit', fit)}
+                      className={`flex-1 h-9 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                        cfg.videoFit === fit
+                          ? 'bg-white/15 text-white'
+                          : 'bg-white/[0.03] text-white/40 hover:text-white/70'
+                      }`}>
+                      {fit}
+                    </button>
+                  ))}
+                </div>
+                <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Vertical Position</label>
+                <div className="flex gap-2">
+                  {(['top', 'center', 'bottom'] as const).map(pos => (
+                    <button key={pos} onClick={() => update('videoPosition', pos)}
+                      className={`flex-1 h-9 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                        cfg.videoPosition === pos
+                          ? 'bg-white/15 text-white'
+                          : 'bg-white/[0.03] text-white/40 hover:text-white/70'
+                      }`}>
+                      {pos}
+                    </button>
+                  ))}
                 </div>
               </Section>
 
