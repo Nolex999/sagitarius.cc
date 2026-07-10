@@ -3,10 +3,24 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
-type OverlayEffect = 'none' | 'vhs' | 'scanlines' | 'noise' | 'glitch' | 'crt';
-type BgEffect = 'none' | 'particles' | 'stars' | 'snow' | 'rain';
+export type OverlayEffect = 'none' | 'vhs' | 'scanlines' | 'noise' | 'glitch' | 'crt';
+export type BgEffect = 'none' | 'particles' | 'stars' | 'snow' | 'rain';
 
-interface FreedomConfig {
+export interface ImageLayer {
+  id: string;
+  enabled: boolean;
+  url: string;
+  x: number;
+  y: number;
+  width: number;
+  rotation: number;
+  opacity: number;
+  zIndex: number;
+  animation: 'none' | 'spin' | 'pulse' | 'float' | 'bounce' | 'rainbow';
+  animationSpeed: number;
+}
+
+export interface FreedomConfig {
   videoUrl: string;
   audioUrl: string;
   audioVolume: number;
@@ -57,6 +71,23 @@ interface FreedomConfig {
   revealBgColor: string;
   revealBgBlur: number;
   revealAccentColor: string;
+  lyricsEnabled: boolean;
+  lyricsSource: 'url' | 'inline';
+  lyricsUrl: string;
+  lyricsText: string;
+  lyricsPosX: number;
+  lyricsPosY: number;
+  lyricsFont: string;
+  lyricsSize: number;
+  lyricsWeight: number;
+  lyricsColor: string;
+  lyricsActiveColor: string;
+  lyricsBgColor: string;
+  lyricsBgBlur: number;
+  lyricsAlign: 'left' | 'center' | 'right';
+  lyricsMaxWidth: number;
+  lyricsAnimation: 'none' | 'fade' | 'slide' | 'rainbow';
+  imageLayers: ImageLayer[];
 }
 
 const STORAGE_KEY = 'freedom-config';
@@ -111,6 +142,23 @@ const DEFAULT_CONFIG: FreedomConfig = {
   revealBgColor: '#000000',
   revealBgBlur: 20,
   revealAccentColor: '#f97316',
+  lyricsEnabled: false,
+  lyricsSource: 'url',
+  lyricsUrl: '',
+  lyricsText: '',
+  lyricsPosX: 50,
+  lyricsPosY: 70,
+  lyricsFont: 'Inter, system-ui, sans-serif',
+  lyricsSize: 22,
+  lyricsWeight: 600,
+  lyricsColor: '#ffffff',
+  lyricsActiveColor: '#f97316',
+  lyricsBgColor: '#000000',
+  lyricsBgBlur: 12,
+  lyricsAlign: 'center',
+  lyricsMaxWidth: 600,
+  lyricsAnimation: 'fade',
+  imageLayers: [],
 };
 
 function loadConfig(): FreedomConfig {
@@ -317,11 +365,11 @@ export default function FreedomCanvas() {
   const [cfg, setCfg] = useState<FreedomConfig>(DEFAULT_CONFIG);
   const [loaded, setLoaded] = useState(false);
   const [audioStarted, setAudioStarted] = useState(false);
-  const [uploading, setUploading] = useState<'video' | 'audio' | null>(null);
+  const [uploading, setUploading] = useState<'video' | 'audio' | 'lyrics' | 'image' | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadTarget, setUploadTarget] = useState<'video' | 'audio'>('video');
+  const [uploadTarget, setUploadTarget] = useState<'video' | 'audio' | 'lyrics' | 'image'>('video');
   const supabase = createClient();
   const [draftLink, setDraftLink] = useState('');
   const [draftLabel, setDraftLabel] = useState('');
@@ -330,6 +378,35 @@ export default function FreedomCanvas() {
   const [authChecked, setAuthChecked] = useState(false);
 
   const [viewCount, setViewCount] = useState(0);
+  const [pages, setPages] = useState<{ slug: string; views: number }[]>([]);
+  const [newPageSlug, setNewPageSlug] = useState('');
+  const [pagesLoading, setPagesLoading] = useState(false);
+
+  const loadPages = useCallback(async () => {
+    setPagesLoading(true);
+    try {
+      const { data } = await supabase.from('freedom_pages').select('slug, views').order('created_at', { ascending: false });
+      if (data) setPages(data);
+    } catch {} finally { setPagesLoading(false); }
+  }, [supabase]);
+
+  const createPage = useCallback(async () => {
+    if (!newPageSlug.trim()) return;
+    try {
+      const { error } = await supabase.from('freedom_pages').insert({ slug: newPageSlug.trim().toLowerCase(), config: cfg });
+      if (error) { alert(error.message); return; }
+      setNewPageSlug('');
+      loadPages();
+    } catch (err: any) { alert(err.message); }
+  }, [newPageSlug, cfg, supabase, loadPages]);
+
+  const deletePage = useCallback(async (slug: string) => {
+    if (!confirm(`Delete "${slug}"?`)) return;
+    try {
+      await supabase.from('freedom_pages').delete().eq('slug', slug);
+      loadPages();
+    } catch {}
+  }, [supabase, loadPages]);
 
   // Load config from Supabase + localStorage
   useEffect(() => {
@@ -377,12 +454,13 @@ export default function FreedomCanvas() {
             .single();
           if (data && (data.role === 'owner' || data.role === 'admin')) {
             setIsOwner(true);
+            loadPages();
           }
         }
       } catch {}
       setAuthChecked(true);
     })();
-  }, []);
+  }, [loadPages]);
 
   // Save to localStorage on change
   // Increment view counter once per session
@@ -421,7 +499,7 @@ export default function FreedomCanvas() {
     setCfg(prev => ({ ...prev, [key]: value }));
   }, []);
 
-  const handleFileUpload = async (file: File, target: 'video' | 'audio') => {
+  const handleFileUpload = async (file: File, target: 'video' | 'audio' | 'lyrics' | 'image') => {
     setUploading(target);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -432,12 +510,26 @@ export default function FreedomCanvas() {
       if (error) throw error;
       const { data: { publicUrl } } = supabase.storage.from('bio-media').getPublicUrl(path);
       if (target === 'video') update('videoUrl', publicUrl);
-      else update('audioUrl', publicUrl);
+      else if (target === 'audio') update('audioUrl', publicUrl);
+      else if (target === 'lyrics') update('lyricsUrl', publicUrl);
+      else if (target === 'image') addImageLayer(publicUrl);
     } catch (err: any) {
       alert(err.message || 'Upload failed');
     } finally {
       setUploading(null);
     }
+  };
+  const addImageLayer = (url: string) => {
+    setCfg(prev => ({
+      ...prev,
+      imageLayers: [...prev.imageLayers, {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        enabled: true,
+        url,
+        x: 50, y: 50, width: 120, rotation: 0, opacity: 100, zIndex: prev.imageLayers.length + 1,
+        animation: 'none', animationSpeed: 3,
+      }],
+    }));
   };
 
   const addSocial = () => {
@@ -679,6 +771,26 @@ export default function FreedomCanvas() {
         .reveal-anim-bounce { animation: reveal-bounce 1.5s ease-in-out infinite; }
         .reveal-anim-slide-up { animation: reveal-slide-up 0.8s ease-out both; }
         .sound-btn { animation: sound-pulse 2s ease-in-out infinite; }
+        .lyrics-fade { animation: reveal-fade 0.4s ease-out both; }
+        .lyrics-slide { animation: reveal-slide-up 0.4s ease-out both; }
+        .lyrics-rainbow {
+          background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0000);
+          background-size: 400% 100%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: reveal-rainbow 6s ease infinite;
+        }
+        @keyframes img-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes img-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.05); } }
+        @keyframes img-float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
+        @keyframes img-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes img-rainbow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+        .img-anim-spin { animation: img-spin var(--speed) linear infinite; }
+        .img-anim-pulse { animation: img-pulse var(--speed) ease-in-out infinite; }
+        .img-anim-float { animation: img-float var(--speed) ease-in-out infinite; }
+        .img-anim-bounce { animation: img-bounce var(--speed) ease-in-out infinite; }
+        .img-anim-rainbow { animation: img-rainbow var(--speed) linear infinite; }
         .name-anim-glow { animation: pulse-glow 2s ease-in-out infinite; }
         .name-anim-shimmer {
           background: linear-gradient(90deg, transparent, ${cfg.primaryColor}88, transparent);
@@ -945,6 +1057,16 @@ export default function FreedomCanvas() {
           <source src={cfg.audioUrl} type="audio/mpeg" />
         </audio>
 
+        {/* Lyrics */}
+        {cfg.lyricsEnabled && audioStarted && !edit && (
+          <LyricsDisplay config={cfg} audioRef={audioRef} />
+        )}
+
+        {/* Image Layers */}
+        {!edit && cfg.imageLayers.filter(l => l.enabled && l.url).map(layer => (
+          <ImageLayerDisplay key={layer.id} layer={layer} />
+        ))}
+
         {/* Top right: views + edit */}
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
           {/* View count */}
@@ -1073,6 +1195,189 @@ export default function FreedomCanvas() {
                   )}
                 </div>
                 <Slider label="Volume" value={cfg.audioVolume} onChange={v => update('audioVolume', v)} min={0} max={100} suffix="%" />
+              </Section>
+
+              {/* LYRICS */}
+              <Section title="Lyrics">
+                <Toggle label="Enabled" value={cfg.lyricsEnabled} onChange={v => update('lyricsEnabled', v)} />
+                {cfg.lyricsEnabled && (
+                  <>
+                    <div className="flex gap-2 mb-2">
+                      <button onClick={() => update('lyricsSource', 'url')}
+                        className={`flex-1 h-9 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${cfg.lyricsSource === 'url' ? 'bg-white/15 text-white' : 'bg-white/[0.03] text-white/40'}`}>
+                        Upload LRC
+                      </button>
+                      <button onClick={() => update('lyricsSource', 'inline')}
+                        className={`flex-1 h-9 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${cfg.lyricsSource === 'inline' ? 'bg-white/15 text-white' : 'bg-white/[0.03] text-white/40'}`}>
+                        Paste LRC
+                      </button>
+                    </div>
+                    {cfg.lyricsSource === 'url' ? (
+                      <>
+                        <input type="text" value={cfg.lyricsUrl} onChange={e => update('lyricsUrl', e.target.value)}
+                          placeholder="LRC file URL"
+                          className="w-full h-9 px-3 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-white/20" />
+                        <button onClick={() => { setUploadTarget('lyrics'); fileInputRef.current?.click(); }}
+                          disabled={uploading === 'lyrics'}
+                          className="w-full h-9 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[10px] font-bold uppercase tracking-wider text-white/60 hover:text-white hover:bg-white/[0.06] transition-all disabled:opacity-50">
+                          {uploading === 'lyrics' ? 'Uploading...' : 'Upload .lrc file'}
+                        </button>
+                      </>
+                    ) : (
+                      <textarea value={cfg.lyricsText} onChange={e => update('lyricsText', e.target.value)}
+                        placeholder="[00:12.00]First line&#10;[00:15.00]Second line"
+                        rows={6}
+                        className="w-full px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[11px] text-white/80 font-mono placeholder:text-white/20 focus:outline-none focus:border-white/20 resize-none" />
+                    )}
+                    <div className="flex gap-3 mt-2">
+                      <div className="flex-1">
+                        <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Pos X (%)</label>
+                        <input type="number" min={0} max={100} value={cfg.lyricsPosX} onChange={e => update('lyricsPosX', Number(e.target.value))}
+                          className="w-full h-9 px-3 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/20" />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Pos Y (%)</label>
+                        <input type="number" min={0} max={100} value={cfg.lyricsPosY} onChange={e => update('lyricsPosY', Number(e.target.value))}
+                          className="w-full h-9 px-3 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/20" />
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="flex-1">
+                        <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Font</label>
+                        <select value={cfg.lyricsFont} onChange={e => update('lyricsFont', e.target.value)}
+                          className="w-full h-9 px-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[10px] text-white focus:outline-none focus:border-white/20 appearance-none cursor-pointer">
+                          {FONTS.map(f => <option key={f} value={f}>{f.split(',')[0]}</option>)}
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Size</label>
+                        <input type="number" min={10} max={80} value={cfg.lyricsSize} onChange={e => update('lyricsSize', Number(e.target.value))}
+                          className="w-full h-9 px-3 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/20" />
+                      </div>
+                    </div>
+                    <Slider label="Weight" value={cfg.lyricsWeight} onChange={v => update('lyricsWeight', v)} min={100} max={900} step={100} />
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] text-white/40 w-20 shrink-0">Color</span>
+                      <input type="color" value={cfg.lyricsColor} onChange={e => update('lyricsColor', e.target.value)}
+                        className="h-7 w-7 rounded cursor-pointer bg-transparent border border-white/[0.08]" />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] text-white/40 w-20 shrink-0">Active</span>
+                      <input type="color" value={cfg.lyricsActiveColor} onChange={e => update('lyricsActiveColor', e.target.value)}
+                        className="h-7 w-7 rounded cursor-pointer bg-transparent border border-white/[0.08]" />
+                    </div>
+                    <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Animation</label>
+                    <select value={cfg.lyricsAnimation} onChange={e => update('lyricsAnimation', e.target.value as any)}
+                      className="w-full h-9 px-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[10px] text-white focus:outline-none focus:border-white/20 appearance-none cursor-pointer mb-2">
+                      {['none','fade','slide','rainbow'].map(a =>
+                        <option key={a} value={a}>{a.charAt(0).toUpperCase() + a.slice(1)}</option>
+                      )}
+                    </select>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] text-white/40 w-20 shrink-0">BG Color</span>
+                      <input type="color" value={cfg.lyricsBgColor} onChange={e => update('lyricsBgColor', e.target.value)}
+                        className="h-7 w-7 rounded cursor-pointer bg-transparent border border-white/[0.08]" />
+                    </div>
+                    <Slider label="BG Blur" value={cfg.lyricsBgBlur} onChange={v => update('lyricsBgBlur', v)} min={0} max={40} suffix="px" />
+                    <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Align</label>
+                    <div className="flex gap-2 mb-2">
+                      {(['left','center','right'] as const).map(a => (
+                        <button key={a} onClick={() => update('lyricsAlign', a)}
+                          className={`flex-1 h-9 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${cfg.lyricsAlign === a ? 'bg-white/15 text-white' : 'bg-white/[0.03] text-white/40'}`}>
+                          {a}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-[9px] uppercase tracking-wider text-white/30 block mb-1">Max Width (px)</label>
+                      <input type="number" min={100} max={1200} value={cfg.lyricsMaxWidth} onChange={e => update('lyricsMaxWidth', Number(e.target.value))}
+                        className="w-full h-9 px-3 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-white/20" />
+                    </div>
+                  </>
+                )}
+              </Section>
+
+              {/* IMAGE LAYERS */}
+              <Section title="Images">
+                <Toggle label="Show Images" value={cfg.imageLayers.some(l => l.enabled)} onChange={() => {}} />
+                <div className="space-y-2 mt-2">
+                  {cfg.imageLayers.map((layer, i) => (
+                    <div key={layer.id} className="rounded-lg bg-white/[0.03] border border-white/[0.06] p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-white/40">Layer {i + 1}</span>
+                        <div className="flex gap-1">
+                          <button onClick={() => update('imageLayers', cfg.imageLayers.map(l => l.id === layer.id ? { ...l, enabled: !l.enabled } : l))}
+                            className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider ${layer.enabled ? 'bg-green-500/20 text-green-400' : 'bg-white/[0.04] text-white/30'}`}>
+                            {layer.enabled ? 'On' : 'Off'}
+                          </button>
+                          <button onClick={() => update('imageLayers', cfg.imageLayers.filter(l => l.id !== layer.id))}
+                            className="text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider bg-red-500/10 text-red-400">
+                            X
+                          </button>
+                        </div>
+                      </div>
+                      <input type="text" value={layer.url} onChange={e => update('imageLayers', cfg.imageLayers.map(l => l.id === layer.id ? { ...l, url: e.target.value } : l))}
+                        placeholder="Image URL"
+                        className="w-full h-8 px-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[10px] text-white placeholder:text-white/20 focus:outline-none focus:border-white/20" />
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <label className="text-[8px] uppercase tracking-wider text-white/30 block mb-0.5">X%</label>
+                          <input type="number" min={0} max={100} value={layer.x} onChange={e => update('imageLayers', cfg.imageLayers.map(l => l.id === layer.id ? { ...l, x: Number(e.target.value) } : l))}
+                            className="w-full h-7 px-2 rounded bg-white/[0.04] border border-white/[0.08] text-[10px] text-white focus:outline-none focus:border-white/20" />
+                        </div>
+                        <div className="flex-1">
+                          <label className="text-[8px] uppercase tracking-wider text-white/30 block mb-0.5">Y%</label>
+                          <input type="number" min={0} max={100} value={layer.y} onChange={e => update('imageLayers', cfg.imageLayers.map(l => l.id === layer.id ? { ...l, y: Number(e.target.value) } : l))}
+                            className="w-full h-7 px-2 rounded bg-white/[0.04] border border-white/[0.08] text-[10px] text-white focus:outline-none focus:border-white/20" />
+                        </div>
+                        <div className="flex-1">
+                          <label className="text-[8px] uppercase tracking-wider text-white/30 block mb-0.5">W (px)</label>
+                          <input type="number" min={0} max={800} value={layer.width} onChange={e => update('imageLayers', cfg.imageLayers.map(l => l.id === layer.id ? { ...l, width: Number(e.target.value) } : l))}
+                            className="w-full h-7 px-2 rounded bg-white/[0.04] border border-white/[0.08] text-[10px] text-white focus:outline-none focus:border-white/20" />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <label className="text-[8px] uppercase tracking-wider text-white/30 block mb-0.5">Rot°</label>
+                          <input type="number" min={0} max={360} value={layer.rotation} onChange={e => update('imageLayers', cfg.imageLayers.map(l => l.id === layer.id ? { ...l, rotation: Number(e.target.value) } : l))}
+                            className="w-full h-7 px-2 rounded bg-white/[0.04] border border-white/[0.08] text-[10px] text-white focus:outline-none focus:border-white/20" />
+                        </div>
+                        <div className="flex-1">
+                          <label className="text-[8px] uppercase tracking-wider text-white/30 block mb-0.5">Opacity</label>
+                          <input type="number" min={0} max={100} value={layer.opacity} onChange={e => update('imageLayers', cfg.imageLayers.map(l => l.id === layer.id ? { ...l, opacity: Number(e.target.value) } : l))}
+                            className="w-full h-7 px-2 rounded bg-white/[0.04] border border-white/[0.08] text-[10px] text-white focus:outline-none focus:border-white/20" />
+                        </div>
+                        <div className="flex-1">
+                          <label className="text-[8px] uppercase tracking-wider text-white/30 block mb-0.5">Z</label>
+                          <input type="number" min={1} max={20} value={layer.zIndex} onChange={e => update('imageLayers', cfg.imageLayers.map(l => l.id === layer.id ? { ...l, zIndex: Number(e.target.value) } : l))}
+                            className="w-full h-7 px-2 rounded bg-white/[0.04] border border-white/[0.08] text-[10px] text-white focus:outline-none focus:border-white/20" />
+                        </div>
+                      </div>
+                      <label className="text-[8px] uppercase tracking-wider text-white/30 block mb-0.5">Animation</label>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {(['none','spin','pulse','float','bounce','rainbow'] as const).map(a => (
+                          <button key={a} onClick={() => update('imageLayers', cfg.imageLayers.map(l => l.id === layer.id ? { ...l, animation: a } : l))}
+                            className={`px-2 py-1 rounded text-[8px] font-bold uppercase tracking-wider transition-all ${layer.animation === a ? 'bg-white/20 text-white' : 'bg-white/[0.03] text-white/40'}`}>
+                            {a}
+                          </button>
+                        ))}
+                      </div>
+                      {layer.animation !== 'none' && (
+                        <div className="flex-1">
+                          <label className="text-[8px] uppercase tracking-wider text-white/30 block mb-0.5">Speed ({layer.animationSpeed}s)</label>
+                          <input type="range" min={0.5} max={10} step={0.5} value={layer.animationSpeed}
+                            onChange={e => update('imageLayers', cfg.imageLayers.map(l => l.id === layer.id ? { ...l, animationSpeed: Number(e.target.value) } : l))}
+                            className="w-full h-1 appearance-none rounded-full bg-white/10 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => { setUploadTarget('image'); fileInputRef.current?.click(); }}
+                  disabled={uploading === 'image'}
+                  className="w-full h-9 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[10px] font-bold uppercase tracking-wider text-white/60 hover:text-white hover:bg-white/[0.06] transition-all disabled:opacity-50">
+                  {uploading === 'image' ? 'Uploading...' : '+ Add Image'}
+                </button>
               </Section>
 
               {/* OVERLAY EFFECTS */}
@@ -1335,6 +1640,49 @@ export default function FreedomCanvas() {
                 )}
               </Section>
 
+              {/* PAGES */}
+              <Section title="Pages">
+                {isOwner && (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input type="text" value={newPageSlug} onChange={e => setNewPageSlug(e.target.value)}
+                        placeholder="New page slug" maxLength={40}
+                        className="flex-1 h-9 px-3 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-white/20" />
+                      <button onClick={createPage}
+                        className="h-9 px-3 rounded-lg bg-white/[0.06] border border-white/[0.1] text-[10px] font-bold uppercase tracking-wider text-white/70 hover:text-white hover:bg-white/[0.1] transition-all">
+                        Create
+                      </button>
+                    </div>
+                    <button onClick={loadPages} disabled={pagesLoading}
+                      className="text-[9px] text-white/30 hover:text-white/60 transition-all">
+                      {pagesLoading ? 'Loading...' : `Refresh (${pages.length} pages)`}
+                    </button>
+                    <div className="max-h-[200px] overflow-y-auto space-y-1 mt-1">
+                      {pages.map(p => (
+                        <div key={p.slug} className="flex items-center justify-between px-2 py-1.5 rounded-lg bg-white/[0.02]">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] text-white/70">{p.slug}</span>
+                            <span className="text-[9px] text-white/30">{p.views} views</span>
+                          </div>
+                          <div className="flex gap-1">
+                            <a href={`/freedom/${p.slug}`} target="_blank" rel="noopener noreferrer"
+                              className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/50 hover:text-white transition-all">
+                              Open
+                            </a>
+                            <button onClick={() => deletePage(p.slug)}
+                              className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-red-500/10 text-red-400/70 hover:text-red-400 transition-all">
+                              X
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      {pages.length === 0 && <p className="text-[10px] text-white/20 text-center py-2">No pages yet</p>}
+                    </div>
+                  </div>
+                )}
+                {!isOwner && <p className="text-[10px] text-white/30">Login to manage pages</p>}
+              </Section>
+
               {/* CUSTOM CSS */}
               <Section title="Custom CSS">
                 <textarea value={cfg.customCss} onChange={e => update('customCss', e.target.value)}
@@ -1346,7 +1694,7 @@ export default function FreedomCanvas() {
               <div className="pt-4 border-t border-white/[0.06] space-y-2">
                 <div className="flex gap-3">
                   <input type="file" ref={fileInputRef} className="hidden"
-                    accept={uploadTarget === 'video' ? 'video/*' : 'audio/*'}
+                    accept={uploadTarget === 'video' ? 'video/*' : uploadTarget === 'audio' ? 'audio/*' : uploadTarget === 'lyrics' ? '.lrc,.txt' : 'image/*'}
                     onChange={e => e.target.files?.[0] && handleFileUpload(e.target.files[0], uploadTarget)} />
                   <button onClick={publishConfig}
                     className="flex-1 h-9 rounded-lg bg-green-500/15 border border-green-500/25 text-green-400 text-[10px] font-bold uppercase tracking-wider hover:bg-green-500/25 transition-all">
@@ -1381,13 +1729,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Slider({ label, value, onChange, min = 0, max = 100, suffix = '' }: {
-  label: string; value: number; onChange: (v: number) => void; min?: number; max?: number; suffix?: string;
+function Slider({ label, value, onChange, min = 0, max = 100, step, suffix = '' }: {
+  label: string; value: number; onChange: (v: number) => void; min?: number; max?: number; step?: number; suffix?: string;
 }) {
   return (
     <div className="flex items-center gap-3">
       <span className="text-[10px] text-white/40 w-20 shrink-0">{label}</span>
-      <input type="range" min={min} max={max} value={value}
+      <input type="range" min={min} max={max} step={step} value={value}
         onChange={e => onChange(Number(e.target.value))}
         className="flex-1 h-1 appearance-none rounded-full bg-white/10 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer" />
       <span className="text-[10px] font-mono text-white/40 w-10 text-right">{value}{suffix}</span>
@@ -1403,6 +1751,135 @@ function Toggle({ label, value, onChange }: { label: string; value: boolean; onC
         className={`relative w-9 h-5 rounded-full transition-all ${value ? 'bg-white/30' : 'bg-white/[0.06]'}`}>
         <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-all bg-white ${value ? 'left-[calc(100%-18px)]' : 'left-0.5'}`} />
       </button>
+    </div>
+  );
+}
+
+// ====== LRC PARSER ======
+function parseLRC(text: string): { time: number; text: string }[] {
+  const lines = text.split('\n');
+  const result: { time: number; text: string }[] = [];
+  const regex = /\[(\d+):(\d+(?:\.\d+)?)\]/;
+  for (const line of lines) {
+    const match = line.match(regex);
+    if (!match) continue;
+    const mins = parseInt(match[1]);
+    const secs = parseFloat(match[2]);
+    const time = mins * 60 + secs;
+    const text = line.replace(regex, '').trim();
+    if (text) result.push({ time, text });
+  }
+  result.sort((a, b) => a.time - b.time);
+  return result;
+}
+
+// ====== LYRICS DISPLAY ======
+function LyricsDisplay({ config, audioRef }: { config: FreedomConfig; audioRef: React.RefObject<HTMLAudioElement | null> }) {
+  const [lyrics, setLyrics] = useState<{ time: number; text: string }[]>([]);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!config.lyricsEnabled) return;
+    if (config.lyricsSource === 'url' && config.lyricsUrl) {
+      fetch(config.lyricsUrl).then(r => r.text()).then(t => setLyrics(parseLRC(t))).catch(() => {});
+    } else if (config.lyricsSource === 'inline' && config.lyricsText) {
+      setLyrics(parseLRC(config.lyricsText));
+    }
+  }, [config.lyricsEnabled, config.lyricsSource, config.lyricsUrl, config.lyricsText]);
+
+  useEffect(() => {
+    if (!lyrics.length || !audioRef.current) return;
+    const audio = audioRef.current;
+    let raf: number;
+    const tick = () => {
+      const ct = audio.currentTime;
+      let idx = -1;
+      for (let i = lyrics.length - 1; i >= 0; i--) {
+        if (ct >= lyrics[i].time) { idx = i; break; }
+      }
+      setActiveIdx(idx);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [lyrics, audioRef]);
+
+  if (!lyrics.length) return null;
+
+  const animClass = config.lyricsAnimation === 'fade' ? 'lyrics-fade' : config.lyricsAnimation === 'slide' ? 'lyrics-slide' : '';
+
+  return (
+    <div
+      ref={containerRef}
+      className="fixed pointer-events-none"
+      style={{
+        left: `${config.lyricsPosX}%`,
+        top: `${config.lyricsPosY}%`,
+        transform: 'translate(-50%, -50%)',
+        maxWidth: config.lyricsMaxWidth,
+        width: '100%',
+        textAlign: config.lyricsAlign,
+        fontFamily: config.lyricsFont,
+        fontSize: `${config.lyricsSize}px`,
+        fontWeight: config.lyricsWeight,
+        zIndex: 25,
+        padding: '12px 20px',
+        borderRadius: '12px',
+        backgroundColor: config.lyricsBgColor + Math.round(config.lyricsBgBlur * 0.3).toString(16).padStart(2, '0'),
+        backdropFilter: `blur(${config.lyricsBgBlur}px)`,
+        WebkitBackdropFilter: `blur(${config.lyricsBgBlur}px)`,
+      }}
+    >
+      {lyrics.map((line, i) => (
+        <div
+          key={i}
+          className={i === activeIdx ? animClass : ''}
+          style={{
+            color: i === activeIdx ? (config.lyricsAnimation === 'rainbow' ? 'transparent' : config.lyricsActiveColor) : config.lyricsColor + '88',
+            fontWeight: i === activeIdx ? config.lyricsWeight + 200 : config.lyricsWeight,
+            fontSize: i === activeIdx ? `${config.lyricsSize * 1.1}px` : `${config.lyricsSize}px`,
+            transition: 'all 0.3s ease',
+            marginBottom: '4px',
+            whiteSpace: 'pre-wrap',
+            ...(i === activeIdx && config.lyricsAnimation === 'rainbow' ? { background: 'linear-gradient(90deg,#ff0000,#ff8800,#ffff00,#00ff00,#0088ff,#8800ff,#ff0000)', backgroundSize: '400% 100%', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', animation: 'reveal-rainbow 6s ease infinite' } : {}),
+          }}
+        >
+          {line.text}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ====== IMAGE LAYER DISPLAY ======
+function ImageLayerDisplay({ layer }: { layer: ImageLayer }) {
+  const animClass = layer.animation !== 'none' ? `img-anim-${layer.animation}` : '';
+  return (
+    <div
+      className="fixed pointer-events-none"
+      style={{
+        left: `${layer.x}%`,
+        top: `${layer.y}%`,
+        transform: 'translate(-50%, -50%)',
+        width: layer.width > 0 ? `${layer.width}px` : 'auto',
+        opacity: layer.opacity / 100,
+        zIndex: layer.zIndex,
+        ['--speed' as any]: `${layer.animationSpeed}s`,
+      }}
+    >
+      <img
+        src={layer.url}
+        alt=""
+        className={animClass}
+        style={{
+          width: '100%',
+          height: 'auto',
+          transform: `rotate(${layer.rotation}deg)`,
+          borderRadius: '8px',
+        }}
+        draggable={false}
+      />
     </div>
   );
 }

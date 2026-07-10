@@ -1175,4 +1175,54 @@ AS $$
   UPDATE public.freedom_config SET views = views + 1 WHERE id = 1;
 $$;
 
+-- ============================================================================
+-- FREEDOM PAGES (wl.sagitarius.cc/nomdelapage)
+-- Multi-page support: each page has its own slug + config
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS public.freedom_pages (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug text UNIQUE NOT NULL,
+  config jsonb NOT NULL DEFAULT '{}'::jsonb,
+  views bigint NOT NULL DEFAULT 0,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.freedom_pages ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can read freedom_pages" ON public.freedom_pages;
+CREATE POLICY "Anyone can read freedom_pages"
+ON public.freedom_pages FOR SELECT
+USING (true);
+
+DROP POLICY IF EXISTS "Owner/admin insert freedom_pages" ON public.freedom_pages;
+CREATE POLICY "Owner/admin insert freedom_pages"
+ON public.freedom_pages FOR INSERT
+WITH CHECK (
+  (SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('owner', 'admin')
+);
+
+DROP POLICY IF EXISTS "Owner/admin update freedom_pages" ON public.freedom_pages;
+CREATE POLICY "Owner/admin update freedom_pages"
+ON public.freedom_pages FOR UPDATE
+USING (
+  (SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('owner', 'admin')
+);
+
+DROP POLICY IF EXISTS "Owner/admin delete freedom_pages" ON public.freedom_pages;
+CREATE POLICY "Owner/admin delete freedom_pages"
+ON public.freedom_pages FOR DELETE
+USING (
+  (SELECT role FROM public.profiles WHERE id = auth.uid()) IN ('owner', 'admin')
+);
+
+-- Function to atomically increment page view counter
+CREATE OR REPLACE FUNCTION public.increment_freedom_page_views(page_slug text)
+RETURNS void
+LANGUAGE sql
+AS $$
+  UPDATE public.freedom_pages SET views = views + 1 WHERE slug = page_slug;
+$$;
+
 NOTIFY pgrst, 'reload schema';
