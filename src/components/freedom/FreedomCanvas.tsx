@@ -393,11 +393,13 @@ export default function FreedomCanvas() {
 
   const createPage = useCallback(async () => {
     if (!newPageSlug.trim()) return;
+    const slug = newPageSlug.trim().toLowerCase();
     try {
-      const { error } = await supabase.from('freedom_pages').insert({ slug: newPageSlug.trim().toLowerCase(), config: cfg });
+      const { error } = await supabase.from('freedom_pages').insert({ slug, config: cfg });
       if (error) { alert(error.message); return; }
       setNewPageSlug('');
       loadPages();
+      window.location.href = `/freedom?editPage=${slug}`;
     } catch (err: any) { alert(err.message); }
   }, [newPageSlug, cfg, supabase, loadPages]);
 
@@ -506,10 +508,10 @@ export default function FreedomCanvas() {
     return () => clearInterval(iv);
   }, [loaded]);
 
-  // Save to localStorage on change
+  // Save to localStorage on change (only for main page, not slug pages)
   useEffect(() => {
-    if (loaded) saveConfig(cfg);
-  }, [cfg, loaded]);
+    if (loaded && !editPage) saveConfig(cfg);
+  }, [cfg, loaded, editPage]);
 
   useEffect(() => {
     if (!edit && audioRef.current && cfg.audioUrl) {
