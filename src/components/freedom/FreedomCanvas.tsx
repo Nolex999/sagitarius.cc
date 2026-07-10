@@ -379,6 +379,7 @@ export default function FreedomCanvas() {
 
   const [viewCount, setViewCount] = useState(0);
   const [pages, setPages] = useState<{ slug: string; views: number }[]>([]);
+  const [editPage, setEditPage] = useState<string | null>(null);
   const [newPageSlug, setNewPageSlug] = useState('');
   const [pagesLoading, setPagesLoading] = useState(false);
 
@@ -413,6 +414,28 @@ export default function FreedomCanvas() {
     (async () => {
       // Start with defaults
       let merged = { ...DEFAULT_CONFIG };
+
+      // Check URL for editPage param
+      const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+      const pageSlug = params?.get('editPage') || null;
+      if (pageSlug) {
+        setEditPage(pageSlug);
+        try {
+          const { data } = await supabase
+            .from('freedom_pages')
+            .select('config')
+            .eq('slug', pageSlug)
+            .maybeSingle();
+          if (data?.config) {
+            const raw = data.config;
+            const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            merged = { ...merged, ...parsed as unknown as Partial<FreedomConfig> };
+          }
+        } catch {}
+        setCfg(merged);
+        setLoaded(true);
+        return;
+      }
 
       // Load Supabase published config (for everyone)
       try {
@@ -565,17 +588,26 @@ export default function FreedomCanvas() {
   const publishConfig = async () => {
     try {
       const payload = JSON.parse(JSON.stringify(cfg));
-      const { error } = await supabase
-        .from('freedom_config')
-        .upsert(
-          { id: 1, config: payload, updated_at: new Date().toISOString() },
-          { onConflict: 'id' }
-        );
-      if (error) throw error;
-      // Refresh view count
-      const { data } = await supabase.from('freedom_config').select('views').eq('id', 1).maybeSingle();
-      if (data) setViewCount(Number(data.views));
-      alert('Published! Config is now live for all visitors.');
+      if (editPage) {
+        const { error } = await supabase
+          .from('freedom_pages')
+          .update({ config: payload, updated_at: new Date().toISOString() })
+          .eq('slug', editPage);
+        if (error) throw error;
+        alert(`Published! /${editPage} is now live.`);
+      } else {
+        const { error } = await supabase
+          .from('freedom_config')
+          .upsert(
+            { id: 1, config: payload, updated_at: new Date().toISOString() },
+            { onConflict: 'id' }
+          );
+        if (error) throw error;
+        // Refresh view count
+        const { data } = await supabase.from('freedom_config').select('views').eq('id', 1).maybeSingle();
+        if (data) setViewCount(Number(data.views));
+        alert('Published! Config is now live for all visitors.');
+      }
     } catch (e) {
       alert('Failed to publish. Are you logged in as owner/admin?');
     }
@@ -1111,7 +1143,17 @@ export default function FreedomCanvas() {
         {edit && (
           <div className="fixed top-0 right-0 z-40 w-[420px] h-full overflow-y-auto bg-zinc-950/90 backdrop-blur-xl border-l border-white/[0.06] shadow-2xl">
             <div className="p-5 pt-16 space-y-5 text-sm">
-              <h2 className="text-xs font-black uppercase tracking-widest text-white/40">Freedom Studio</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-black uppercase tracking-widest text-white/40">
+                  {editPage ? <span style={{color: cfg.accentColor}}>Editing: /{editPage}</span> : 'Freedom Studio'}
+                </h2>
+                {editPage && (
+                  <a href="/freedom"
+                    className="text-[9px] text-white/40 hover:text-white uppercase tracking-wider">
+                    Back to main
+                  </a>
+                )}
+              </div>
 
               {/* VIDEO */}
               <Section title="Video">
@@ -1665,9 +1707,14 @@ export default function FreedomCanvas() {
                             <span className="text-[9px] text-white/30">{p.views} views</span>
                           </div>
                           <div className="flex gap-1">
-                            <a href={`/freedom/${p.slug}`} target="_blank" rel="noopener noreferrer"
+                            <a href={typeof window !== 'undefined' && window.location.hostname === 'wl.sagitarius.cc' ? `/${p.slug}` : `/freedom/${p.slug}`}
+                              target="_blank" rel="noopener noreferrer"
                               className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-white/50 hover:text-white transition-all">
                               Open
+                            </a>
+                            <a href={`/freedom?editPage=${p.slug}`}
+                              className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-blue-500/10 text-blue-400/70 hover:text-blue-400 transition-all">
+                              Edit
                             </a>
                             <button onClick={() => deletePage(p.slug)}
                               className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-red-500/10 text-red-400/70 hover:text-red-400 transition-all">
