@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function TalmorPage() {
   const [tab, setTab] = useState<'login' | 'register'>('login');
@@ -21,8 +22,8 @@ export default function TalmorPage() {
       <div className="relative z-10 w-full max-w-[420px]">
         {/* Logo */}
         <div className="flex flex-col items-center mb-10">
-          <div className="w-14 h-14 rounded-2xl bg-[#111111] border border-[#2a2a2a] flex items-center justify-center mb-5">
-            <span className="text-white font-black text-xl tracking-tight">T</span>
+          <div className="mb-5">
+            <Image src="/talmor-logo.png" alt="Talmor" width={56} height={56} className="rounded-2xl" priority />
           </div>
           <h1 className="text-[26px] font-bold text-white tracking-tight">Talmor</h1>
           <p className="text-[13px] text-[#666666] mt-1.5">Your Lua development environment</p>
