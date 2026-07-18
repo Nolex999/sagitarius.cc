@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 const SUPABASE_URL = 'https://ovljjdqczqsyozegdbeg.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bGpqZHFjenFzeW96ZWdkYmVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDEzOTAsImV4cCI6MjA2ODA3NzM5MH0.ymTqW0bW4s69eQ0G3pYHDI2nK6gP0Mdl4h6sQrWnUz0';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bGpqZHFjenFzeW96ZWdkYmVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMzc1MzYsImV4cCI6MjA4ODkxMzUzNn0.iI1O_0khEVY1BqRG7cEsX31bbpCsolxFJLng9A_vC8k';
 
 export default function TalmorPage() {
   const router = useRouter();
