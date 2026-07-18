@@ -2,10 +2,96 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+const SUPABASE_URL = 'https://ovljjdqczqsyozegdbeg.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bGpqZHFjenFzeW96ZWdkYmVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDEzOTAsImV4cCI6MjA2ODA3NzM5MH0.ymTqW0bW4s69eQ0G3pYHDI2nK6gP0Mdl4h6sQrWnUz0';
+
+interface SessionData {
+  access_token: string;
+  refresh_token: string;
+  user: {
+    id: string;
+    email: string;
+  };
+}
+
+interface UserProfile {
+  username: string;
+  license_key: string;
+  plan: string;
+  created_at: string;
+}
 
 export default function TalmorDashboard() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'overview' | 'keys' | 'downloads' | 'settings'>('overview');
+  const [session, setSession] = useState<SessionData | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const raw = localStorage.getItem('talmor_session');
+    if (!raw) {
+      router.push('/talmor');
+      return;
+    }
+
+    try {
+      const sess: SessionData = JSON.parse(raw);
+      setSession(sess);
+
+      // Fetch user profile from Supabase
+      fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${sess.user.id}&select=*`, {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${sess.access_token}`,
+        },
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setProfile({
+              username: data[0].username || '',
+              license_key: data[0].license_key || '',
+              plan: data[0].plan || 'Free',
+              created_at: data[0].created_at || '',
+            });
+          }
+        })
+        .catch(() => {});
+    } catch {
+      router.push('/talmor');
+      return;
+    }
+
+    setAuthChecked(true);
+  }, [router]);
+
+  function handleSignOut() {
+    localStorage.removeItem('talmor_session');
+    router.push('/talmor');
+  }
+
+  if (!authChecked) {
+    return (
+      <main className="min-h-screen bg-[#0a0a0c] flex items-center justify-center">
+        <div className="text-[13px] text-[#444444]">Loading...</div>
+      </main>
+    );
+  }
+
+  const email = session?.user?.email || 'user';
+  const username = profile?.username || email.split('@')[0];
+  const plan = profile?.plan || 'Premium';
+  const licenseKey = profile?.license_key || 'N/A';
+  const maskedKey = licenseKey.length > 10
+    ? licenseKey.slice(0, 10) + '-***-***-***'
+    : licenseKey;
+  const memberSince = profile?.created_at
+    ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+    : 'Jul 2026';
 
   return (
     <main className="min-h-screen bg-[#0a0a0c] text-white" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
@@ -26,12 +112,12 @@ export default function TalmorDashboard() {
               </span>
               <span className="text-[12px] text-[#666666]">Active</span>
             </div>
-            <Link
-              href="/talmor"
+            <button
+              onClick={handleSignOut}
               className="text-[12px] font-medium text-[#666666] hover:text-white px-3 py-1.5 rounded-lg border border-[#2a2a2a] hover:border-[#444444] transition-all duration-200"
             >
               Sign Out
-            </Link>
+            </button>
           </div>
         </div>
       </header>
@@ -71,11 +157,11 @@ export default function TalmorDashboard() {
                 <div className="rounded-2xl bg-[#111111] border border-[#2a2a2a] p-6">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h2 className="text-[18px] font-bold text-white mb-1">Welcome back</h2>
+                      <h2 className="text-[18px] font-bold text-white mb-1">Welcome back, {username}</h2>
                       <p className="text-[13px] text-[#666666]">Here is your account overview.</p>
                     </div>
                     <div className="w-10 h-10 rounded-full bg-[#0a0a0c] border border-[#2a2a2a] flex items-center justify-center">
-                      <span className="text-[14px] font-bold text-white/60">U</span>
+                      <span className="text-[14px] font-bold text-white/60">{username.charAt(0).toUpperCase()}</span>
                     </div>
                   </div>
                 </div>
@@ -83,13 +169,13 @@ export default function TalmorDashboard() {
                 {/* Stats grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {[
-                    { label: 'Plan', value: 'Premium', color: 'text-white' },
-                    { label: 'Keys Active', value: '1', color: 'text-white' },
-                    { label: 'Member Since', value: 'Jul 2026', color: 'text-white' },
+                    { label: 'Plan', value: plan },
+                    { label: 'Status', value: 'Active' },
+                    { label: 'Member Since', value: memberSince },
                   ].map((s, i) => (
                     <div key={i} className="rounded-xl bg-[#111111] border border-[#2a2a2a] p-5">
                       <span className="text-[11px] font-semibold tracking-wide uppercase text-[#444444] block mb-2">{s.label}</span>
-                      <span className={`text-[20px] font-bold ${s.color}`}>{s.value}</span>
+                      <span className="text-[20px] font-bold text-white">{s.value}</span>
                     </div>
                   ))}
                 </div>
@@ -101,11 +187,11 @@ export default function TalmorDashboard() {
                   </div>
                   <div className="p-5 flex flex-col gap-3">
                     {[
-                      ['Key', 'TALMOR-E6FE***-4252-A5F3'],
+                      ['Key', maskedKey],
                       ['Status', 'Active'],
                       ['Product', 'talmor-v1'],
                       ['Expires', 'Never'],
-                      ['Max Devices', '3'],
+                      ['Email', email],
                     ].map(([k, v], i) => (
                       <div key={i} className="flex items-center justify-between py-2 border-b border-[#1a1a1a] last:border-0">
                         <span className="text-[12px] text-[#666666]">{k}</span>
@@ -125,11 +211,11 @@ export default function TalmorDashboard() {
                 </div>
                 <div className="p-5">
                   <div className="rounded-xl bg-[#0a0a0c] border border-[#2a2a2a] p-4 flex items-center justify-between">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[13px] font-mono font-semibold text-white">TALMOR-E6FEBC45-4252-A5F3-39F9</span>
-                      <span className="text-[11px] text-[#666666]">Premium &middot; Active &middot; 0/3 devices used</span>
+                    <div className="flex flex-col gap-1 min-w-0">
+                      <span className="text-[13px] font-mono font-semibold text-white truncate">{licenseKey}</span>
+                      <span className="text-[11px] text-[#666666]">{plan} &middot; Active</span>
                     </div>
-                    <span className="px-3 py-1 rounded-lg bg-[#2ea043]/10 border border-[#2ea043]/20 text-[11px] font-semibold text-[#2ea043]">Active</span>
+                    <span className="shrink-0 ml-4 px-3 py-1 rounded-lg bg-[#2ea043]/10 border border-[#2ea043]/20 text-[11px] font-semibold text-[#2ea043]">Active</span>
                   </div>
                   <p className="text-[12px] text-[#444444] mt-4 text-center">
                     Need another key? Visit the{' '}
@@ -165,25 +251,21 @@ export default function TalmorDashboard() {
                   <div className="px-5 py-3.5 border-b border-[#1a1a1a]">
                     <span className="text-[13px] font-semibold text-white/80">Changelog</span>
                   </div>
-                  <div className="p-5 flex flex-col gap-4">
-                    {[
-                      { v: 'v1.0.0', date: 'Jul 2026', items: ['Initial release', 'Lua script executor with instant injection', 'Anti-detection bypass for Byfron/Hyperion', 'Multi-instance support', 'Built-in script hub', 'Decompiler (beta)'] },
-                    ].map((release, i) => (
-                      <div key={i}>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-[13px] font-bold text-white">{release.v}</span>
-                          <span className="text-[11px] text-[#444444]">{release.date}</span>
-                        </div>
-                        <ul className="flex flex-col gap-1 ml-1">
-                          {release.items.map((item, j) => (
-                            <li key={j} className="text-[12px] text-[#666666] flex items-start gap-2">
-                              <span className="text-[#444444] mt-0.5 shrink-0">&bull;</span>
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
+                  <div className="p-5">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[13px] font-bold text-white">v1.0.0</span>
+                        <span className="text-[11px] text-[#444444]">Jul 2026</span>
                       </div>
-                    ))}
+                      <ul className="flex flex-col gap-1 ml-1">
+                        {['Initial release', 'Lua script executor with instant injection', 'Anti-detection bypass for Byfron/Hyperion', 'Multi-instance support', 'Built-in script hub', 'Decompiler (beta)'].map((item, j) => (
+                          <li key={j} className="text-[12px] text-[#666666] flex items-start gap-2">
+                            <span className="text-[#444444] mt-0.5 shrink-0">&bull;</span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -201,26 +283,9 @@ export default function TalmorDashboard() {
                     <input
                       type="email"
                       className="w-full max-w-sm px-4 py-3 rounded-xl bg-[#0f0f0f] border border-[#2a2a2a] text-[#e0e0e0] text-[14px] placeholder-[#3a3a3a] outline-none focus:border-[#0078d4] focus:bg-[#141414] transition-all duration-200"
-                      defaultValue="user@talmor.bz"
+                      defaultValue={email}
+                      readOnly
                     />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold tracking-wide uppercase text-[#6a6a6a] mb-2">Change Password</label>
-                    <input
-                      type="password"
-                      className="w-full max-w-sm px-4 py-3 rounded-xl bg-[#0f0f0f] border border-[#2a2a2a] text-[#e0e0e0] text-[14px] placeholder-[#3a3a3a] outline-none focus:border-[#0078d4] focus:bg-[#141414] transition-all duration-200 mb-3"
-                      placeholder="New password"
-                    />
-                    <input
-                      type="password"
-                      className="w-full max-w-sm px-4 py-3 rounded-xl bg-[#0f0f0f] border border-[#2a2a2a] text-[#e0e0e0] text-[14px] placeholder-[#3a3a3a] outline-none focus:border-[#0078d4] focus:bg-[#141414] transition-all duration-200"
-                      placeholder="Confirm new password"
-                    />
-                  </div>
-                  <div className="pt-2">
-                    <button className="px-6 py-2.5 rounded-xl text-[13px] font-semibold text-white bg-[#1e1e1e] border border-[#2a2a2a] hover:bg-[#282828] transition-all duration-200">
-                      Save Changes
-                    </button>
                   </div>
                   <div className="border-t border-[#1a1a1a] pt-5">
                     <span className="text-[12px] font-semibold text-[#f87171]">Danger Zone</span>
